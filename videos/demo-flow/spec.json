@@ -1,0 +1,61 @@
+{
+  "title": "Tür demosu: flow",
+  "lang": "tr",
+  "durationSec": 8,
+  "voiceover": {
+    "sections": [
+      { "id": "demo", "window": [0, 8], "phrases": ["Bir paket telefondan çıkıyor,", "sağlayıcıdan geçip sunucuya varıyor."] }
+    ]
+  },
+  "layers": [
+    {
+      "type": "flow",
+      "visible": [{}],
+      "anchorY": 1000,
+      "regions": [
+        { "id": "home", "points": [[-430, 110], [-110, 110], [-110, 430], [-430, 430]], "smooth": false, "fill": "faint", "edge": "faint" },
+        { "id": "dc", "points": [[250, -430], [470, -430], [470, -170], [250, -170]], "smooth": false, "fill": "surface", "edge": "surface" }
+      ],
+      "paths": [
+        { "id": "air", "points": [[-330, 330], [-200, 200]], "smooth": false },
+        { "id": "cable", "points": [[-200, 200], [-120, 90], [0, 0]] },
+        { "id": "backbone", "points": [[0, 0], [150, -120], [250, -260], [360, -300]] }
+      ],
+      "nodes": [
+        { "id": "phone", "at": [-330, 330], "shape": "glow", "color": "you" },
+        { "id": "router", "at": [-200, 200], "shape": "ring", "r": 16 },
+        { "id": "isp", "at": [0, 0], "shape": "ring", "r": 22, "lit": [[3.4, 4.6]] },
+        { "id": "server", "at": [360, -300], "shape": "pad", "r": 24, "flashes": [6.5] }
+      ],
+      "signals": [{ "along": ["air", "cable", "backbone"], "progress": { "times": [1.5, 6.5] } }],
+      "fields": [{ "origin": "router", "emits": [0.4, 1.1], "duration": 1.2, "maxRadius": 260, "lights": ["phone"] }],
+      "highlight": [
+        { "target": "isp", "range": [3.4, 5] },
+        { "target": "dc", "range": [5.8, 8] }
+      ],
+      "camera": [
+        { "at": 0, "focus": [-200, 220], "zoom": 1.7 },
+        { "at": 3.6, "focus": "isp", "zoom": 1.4 },
+        { "at": 6.5, "focus": "server", "zoom": 1.7 },
+        { "at": 8, "focus": [0, 0], "zoom": 1.05 }
+      ]
+    }
+  ],
+  "labels": [
+    { "text": "TELEFON", "at": 0.4, "until": 3.2, "top": 470, "size": 52, "bar": true, "color": "you", "sound": "tick" },
+    { "text": "SAĞLAYICI", "at": 3.4, "until": 5.6, "top": 560, "size": 52, "bar": true, "sound": "tick" },
+    { "text": "SUNUCU", "at": 5.8, "until": 8, "top": 650, "size": 52, "bar": true, "sound": "tick" }
+  ],
+  "notes": [{ "text": "ŞEMATİK", "at": 0.3, "until": 8, "top": 1330 }],
+  "sound": {
+    "beds": [{ "id": "space", "at": 0, "fadeIn": [0, 1], "fadeOut": [7, 8] }],
+    "hits": [{ "id": "pulse", "at": 1.5, "gain": 0.6 }, { "id": "land", "at": 6.5 }]
+  },
+  "credits": [
+    { "item": "Ses efektleri (eleven_text_to_sound_v2): tick, pulse, land, space", "kind": "sfx", "author": "ElevenLabs", "license": "ElevenLabs ücretsiz plan: ticari kullanım yok", "url": "https://elevenlabs.io/service-specific-terms" },
+    { "item": "Inter (yazı tipi)", "kind": "font", "author": "Rasmus Andersson", "license": "SIL Open Font License 1.1", "url": "https://github.com/rsms/inter" },
+    { "item": "JetBrains Mono (yazı tipi)", "kind": "font", "author": "JetBrains", "license": "SIL Open Font License 1.1", "url": "https://github.com/JetBrains/JetBrainsMono" },
+    { "item": "Remotion", "kind": "code", "author": "Remotion AG", "license": "Remotion License", "url": "https://www.remotion.dev/license" }
+  ],
+  "styleExceptions": ["Tür demosu: STYLE'ın kanca, bölüm ve final akışı uygulanmaz."]
+}

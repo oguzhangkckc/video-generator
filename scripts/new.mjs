@@ -18,6 +18,9 @@ if (existsSync(videoDir(slug))) {
 const template = readFileSync(path.join(videoDir("sablon"), "spec.json"), "utf8");
 mkdirSync(videoDir(slug), { recursive: true });
 mkdirSync(publicDir(slug), { recursive: true });
-const spec = template.replace(/"title": "[^"]*"/, `"title": ${JSON.stringify(title)}`);
+// Dropping the flag makes `npm run check` fail until every "[yer tutucu]" has been replaced.
+const spec = template
+  .replace(/"title": "[^"]*"/, `"title": ${JSON.stringify(title)}`)
+  .replace(/^\s*"template": true,\n/m, "");
 writeFileSync(path.join(videoDir(slug), "spec.json"), spec);
 console.log(`${path.relative(ROOT, videoDir(slug))}/spec.json — composition "${slug}" appears in npm run studio`);

@@ -49,6 +49,10 @@ export const counterSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T
       curve: z.string(),
       fadeIn: k.range,
       dim: z.object({ range: k.range, amount: z.number().min(0).max(1) }).strict().optional(),
+      /** The curve's units per real second; when it runs slower or faster the counter says so ("×100 YAVAŞ"). */
+      timeScale: z.object({ unitPerSec: z.number().positive() }).strict().optional(),
+      /** Where the shown value may stand still for more than 3 s; anywhere else `npm run check` fails. */
+      holds: z.array(k.range).default([]),
       format: z
         .object({ zeroBelow: z.number().min(0).default(0.05), oneDecimalBelow: z.number().min(0).default(10) })
         .strict()
@@ -61,8 +65,17 @@ export const captionsSchema = z
     /** Vertical centre as a fraction of the frame height. */
     y: z.number().min(0).max(1).default(0.77),
     maxFont: z.number().positive().default(60),
-    maxWidth: z.number().positive().default(960),
+    /** Defaults to layout.contentWidth. */
+    maxWidth: z.number().positive().optional(),
     lingerMs: z.number().min(0).default(450),
+  })
+  .strict();
+
+/** Safe-area layout (STYLE.md); the defaults keep text out of the right 120 px. */
+export const layoutSchema = z
+  .object({
+    rightInset: z.number().min(0).default(132),
+    contentWidth: z.number().positive().max(1080).default(840),
   })
   .strict();
 

@@ -1,9 +1,10 @@
 import { Audio } from "@remotion/media";
-import { Sequence, staticFile } from "remotion";
+import { Sequence, staticFile, useVideoConfig } from "remotion";
 import type { Spec } from "../../spec/schema";
 import type { Phrase } from "../../spec/timing";
 import { FPS } from "../format";
-import { envelope, ramp, sec } from "../time";
+import { EASING, envelope, ramp, sec } from "../time";
+import lengths from "./sfx-durations.json";
 import { Sfx } from "./Sfx";
 
 type Range = [number, number];
@@ -15,10 +16,27 @@ const speakingFn = (phrases: Phrase[]) => (t: number) =>
 const fades = (fadeIn?: Range, fadeOut?: Range) => (t: number) =>
   (fadeIn ? ramp(t, fadeIn) : 1) * (fadeOut ? 1 - ramp(t, fadeOut) : 1);
 
+/** Real file lengths, written by `npm run sfx -- --index`. */
+export const LENGTH: Record<string, number> = lengths;
+
+/** Copies of a looping bed overlap by `xfade`, so there is always one fading in while the other fades out. */
+export const loopStarts = (at: number, length: number, xfade: number, until: number) => {
+  const starts: number[] = [];
+  for (let s = at; s < until; s += length - xfade) starts.push(s);
+  return starts;
+};
+
+/** Equal-power crossfade keeps the loudness steady through the overlap. */
+const crossfade = (t: number, start: number, length: number, xfade: number, first: boolean, last: boolean) =>
+  (first ? 1 : Math.sin((Math.PI / 2) * ramp(t, [start, start + xfade], [0, 1], EASING.linear))) *
+  (last ? 1 : Math.cos((Math.PI / 2) * ramp(t, [start + length - xfade, start + length], [0, 1], EASING.linear)));
+
 type Props = { sound: Spec["sound"]; voiceover?: string; phrases: Phrase[] };
 
 /** Voice-over, ambience beds, music and scene-level hits; data-line sounds live on each label. */
 export const Soundtrack: React.FC<Props> = ({ sound, voiceover, phrases }) => {
+  const { durationInFrames, fps } = useVideoConfig();
+  const end = durationInFrames / fps;
   const speaking = speakingFn(phrases);
   const { music } = sound;
   const musicFrom = sec(music?.at ?? 0);
@@ -29,7 +47,17 @@ export const Soundtrack: React.FC<Props> = ({ sound, voiceover, phrases }) => {
 
       {sound.beds.map((bed, i) => {
         const fade = fades(bed.fadeIn, bed.fadeOut);
-        return <Sfx key={`bed-${i}`} id={bed.id} at={bed.at} gain={(t) => fade(t) * (1 - bed.duck * speaking(t))} />;
+        const gain = (t: number) => fade(t) * (1 - bed.duck * speaking(t));
+        if (!bed.loop) return <Sfx key={`bed-${i}`} id={bed.id} at={bed.at} gain={gain} />;
+        const starts = loopStarts(bed.at, LENGTH[bed.id], bed.crossfade, end);
+        return starts.map((start, k) => (
+          <Sfx
+            key={`bed-${i}-${k}`}
+            id={bed.id}
+            at={start}
+            gain={(t) => gain(t) * crossfade(t, start, LENGTH[bed.id], bed.crossfade, k === 0, k === starts.length - 1)}
+          />
+        ));
       })}
       {sound.hits.map((hit, i) => (
         <Sfx key={`hit-${i}`} id={hit.id} at={hit.at} gain={hit.gain} />

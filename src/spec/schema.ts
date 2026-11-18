@@ -6,11 +6,15 @@ import {
   counterSchema,
   countdownSchema,
   labelSchema,
+  layoutSchema,
   noteSchema,
   titleSchema,
 } from "../kit/overlays/schema.ts";
 import { cityMapSchema } from "../kit/scenes/city-map/schema.ts";
+import { flowSchema } from "../kit/scenes/flow/schema.ts";
 import { globeSchema } from "../kit/scenes/globe/schema.ts";
+import { model3dSchema } from "../kit/scenes/model3d/schema.ts";
+import { traceSchema } from "../kit/scenes/trace/schema.ts";
 import {
   darkenSchema,
   hazeSchema,
@@ -21,10 +25,13 @@ import {
 import { RAW, RESOLVED, curveSchema, type Kit } from "./primitives.ts";
 
 /** Adding a scene type: write its schema next to its component, then list it here and in src/kit/registry.tsx. */
-const layerSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, R>) =>
+const layerSchema = <T extends z.ZodType, R extends z.ZodType, N extends z.ZodType>(k: Kit<T, R, N>) =>
   z.discriminatedUnion("type", [
     globeSchema(k),
     cityMapSchema(k),
+    model3dSchema(k),
+    flowSchema(k),
+    traceSchema(k),
     hazeSchema(k),
     speedLinesSchema(k),
     signalPassSchema(k),
@@ -55,10 +62,20 @@ const voiceoverSchema = z
 
 const markName = z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/, "mark names are letters, digits and _");
 
-const buildSpec = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, R>) =>
+const buildSpec = <T extends z.ZodType, R extends z.ZodType, N extends z.ZodType>(k: Kit<T, R, N>) =>
   z
     .object({
       $schema: z.string().optional(),
+      /** Only videos/sablon: "[yer tutucu]" text is allowed there. `npm run new` drops the flag. */
+      template: z.boolean().default(false),
+      /** Sourced key values ("#name" elsewhere in the spec); every key names a `sources[].id`. */
+      timeline: z
+        .object({
+          unit: z.string().optional(),
+          keys: z.record(markName, z.object({ value: z.number(), source: z.string() }).strict()),
+        })
+        .strict()
+        .optional(),
       title: z.string().min(1),
       lang: z.string().default("tr"),
       durationSec: z.number().positive().max(180),
@@ -75,12 +92,15 @@ const buildSpec = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, R>) =>
       countdown: countdownSchema(k).optional(),
       concept: conceptSchema(k).optional(),
       counter: counterSchema(k).optional(),
-      captions: captionsSchema.default({ y: 0.77, maxFont: 60, maxWidth: 960, lingerMs: 450 }),
+      captions: captionsSchema.prefault({}),
+      layout: layoutSchema.prefault({}),
       sound: soundSchema(k).default({ beds: [], hits: [] }),
       sources: z
         .array(
           z
             .object({
+              /** Referenced by timeline keys. */
+              id: z.string().optional(),
               claim: z.string(),
               value: z.string().optional(),
               url: z.url(),

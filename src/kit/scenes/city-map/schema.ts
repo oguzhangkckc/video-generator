@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { curveSchema, windowSchema, type Kit } from "../../../spec/primitives.ts";
 
-export const cityMapSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, R>) =>
+export const cityMapSchema = <T extends z.ZodType, R extends z.ZodType, N extends z.ZodType>(k: Kit<T, R, N>) =>
   z
     .object({
       type: z.literal("cityMap"),

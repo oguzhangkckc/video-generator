@@ -7,7 +7,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { API, apiKey } from "./elevenlabs.mjs";
-import { ROOT } from "./lib/video.mjs";
+import { ROOT, duration } from "./lib/video.mjs";
 
 const TARGET_LUFS = -16;
 const RAW_DIR = path.join(ROOT, "out/sfx-raw");
@@ -51,7 +51,24 @@ const processSound = (id) => {
   console.log(`  ${id.padEnd(8)} ${Number(m.input_i).toFixed(1)} LUFS → ${TARGET_LUFS}`);
 };
 
-const named = process.argv.slice(2);
+// Looping beds need each file's real length at render time; written here so a clean clone has it without the API.
+const INDEX = path.join(ROOT, "src/kit/audio/sfx-durations.json");
+const writeIndex = () => {
+  const lengths = Object.fromEntries(
+    Object.keys(SOUNDS)
+      .filter((id) => existsSync(path.join(OUT_DIR, `${id}.wav`)))
+      .map((id) => [id, Math.round(duration(path.join(OUT_DIR, `${id}.wav`)) * 1000) / 1000]),
+  );
+  writeFileSync(INDEX, `${JSON.stringify(lengths, null, 2)}\n`);
+  console.log(`${path.relative(ROOT, INDEX)}: ${Object.keys(lengths).length} sounds`);
+};
+
+const args = process.argv.slice(2);
+if (args.includes("--index")) {
+  writeIndex();
+  process.exit(0);
+}
+const named = args;
 const unknown = named.filter((id) => !(id in SOUNDS));
 if (unknown.length) {
   console.error(`Unknown sound(s): ${unknown.join(", ")}. Known: ${Object.keys(SOUNDS).join(", ")}`);
@@ -67,3 +84,4 @@ if (todo.length) {
 }
 console.log(`processing → ${path.relative(ROOT, OUT_DIR)}`);
 for (const id of Object.keys(SOUNDS)) processSound(id);
+writeIndex();

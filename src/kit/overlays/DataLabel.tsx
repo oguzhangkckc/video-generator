@@ -1,5 +1,6 @@
 import type { Spec } from "../../spec/schema";
 import { Sfx } from "../audio/Sfx";
+import { useLayout } from "../layout";
 import { COLOR, MONO, SANS, TEXT_SHADOW, tokenColor } from "../theme";
 import { ramp, useTime } from "../time";
 
@@ -15,13 +16,14 @@ const Check: React.FC<{ size: number; color: string }> = ({ size, color }) => (
 
 const DataText: React.FC<TextProps> = ({ text, at, until, top, color, size, font, align, typeSpeed, bar, check, letterSpacing }) => {
   const t = useTime();
+  const { rightInset } = useLayout();
   if (t < at || t > until) return null;
 
   const enter = ramp(t, [at, at + 0.25]);
   const exit = ramp(t, [until - 0.3, until]);
   const shown = typeSpeed ? text.slice(0, Math.floor((t - at) * typeSpeed)) : text;
   const typed = !typeSpeed || shown.length === text.length;
-  const horizontal = align === "left" ? { left: 80 } : align === "right" ? { right: 72 } : { left: 0, right: 0 };
+  const horizontal = align === "left" ? { left: 80 } : align === "right" ? { right: rightInset } : { left: 0, right: 0 };
 
   return (
     <div

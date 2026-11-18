@@ -2,6 +2,7 @@
   "title": "Telefonun konumu nasıl buluyor?",
   "lang": "tr",
   "durationSec": 30,
+  "layout": { "rightInset": 72, "contentWidth": 960 },
   "voiceover": {
     "audio": "videos/gps-pilot/vo.wav",
     "voice": "ElevenLabs Alice (Xb7hH8MSUJpSbSDYk0k2), eleven_multilingual_v2",
@@ -205,7 +206,8 @@
     "unit": "km",
     "curve": "altitude",
     "fadeIn": [0.2, 0.7],
-    "dim": { "range": "@darken", "amount": 0.6 }
+    "dim": { "range": "@darken", "amount": 0.6 },
+    "holds": [["@landed-0.4", "@end"]]
   },
   "sound": {
     "beds": [
@@ -247,6 +249,7 @@
     "Pilot, STYLE.md yazılmadan önce yapıldı ve referans olarak olduğu gibi korunuyor.",
     "Bölümler her zaman \"Peki…?\" ile açılmıyor; soru kancanın sonunda ve videonun bitişinde.",
     "Geri sayımlı doruk, tek cümlelik özet ve kavram adı yok; video bir soruyla (uçurumla) bitiyor.",
-    "Üçüncü kanca başlığı 6. saniyeye kadar sürüyor (STYLE: ilk 5 saniyede 3 başlık)."
+    "Üçüncü kanca başlığı 6. saniyeye kadar sürüyor (STYLE: ilk 5 saniyede 3 başlık).",
+    "Yerleşim, güvenli alan kuralından önceki hâliyle sabitlendi (layout: rightInset 72, contentWidth 960); sayaç, notlar, başlıklar ve altyazı sağdaki 120 px'e taşabiliyor."
   ]
 }

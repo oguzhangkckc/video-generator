@@ -1,9 +1,11 @@
 import { getRemotionEnvironment } from "remotion";
 import { z } from "zod";
 import catalog from "../kit/audio/sfx-catalog.json";
+import lengths from "../kit/audio/sfx-durations.json";
 import { curveFn, type CurveFn } from "../kit/curves";
-import { MARK_REF } from "./primitives";
-import { ResolvedSpec, Timing, VideoSpec, type Spec } from "./schema";
+import { FPS, formatCounter } from "../kit/format";
+import { KEY_REF, MARK_REF } from "./primitives";
+import { ResolvedSpec, Timing, VideoSpec, type LayerOf, type Spec } from "./schema";
 import {
   captionPages,
   estimatePhrases,
@@ -81,8 +83,15 @@ const createResolver = (raw: RawSpec, phrases: Phrase[]) => {
     return fail(where, "expected a time");
   }
 
+  const key = (name: string, where: string) =>
+    raw.timeline?.keys[name]?.value ?? fail(where, `unknown timeline key "#${name}" — define it under "timeline.keys"`);
+
   const walk = (v: unknown, where: string): unknown => {
-    if (typeof v === "string") return v.startsWith("@") ? ref(v, where) : v;
+    if (typeof v === "string") {
+      if (v.startsWith("@")) return ref(v, where);
+      const k = KEY_REF.exec(v);
+      return k ? key(k[1], where) : v;
+    }
     if (Array.isArray(v)) return v.map((item, i) => walk(item, `${where}[${i}]`));
     if (v && typeof v === "object") {
       if (isCue(v)) return cue(v.cue, v.offset ?? 0, where);
@@ -95,7 +104,131 @@ const createResolver = (raw: RawSpec, phrases: Phrase[]) => {
 };
 
 // Free text never holds times, so it is left alone even if it starts with "@".
-const TEXT_FIELDS = new Set(["$schema", "title", "lang", "voiceover", "sources", "credits", "styleExceptions", "marks"]);
+const TEXT_FIELDS = new Set([
+  "$schema",
+  "template",
+  "timeline",
+  "title",
+  "lang",
+  "voiceover",
+  "sources",
+  "credits",
+  "styleExceptions",
+  "marks",
+]);
+
+/** Every id a flow layer refers to must exist, so a typo fails `npm run check` instead of drawing nothing. */
+const checkFlow = (layer: LayerOf<"flow">, where: string, needCurve: (name: string, where: string) => void) => {
+  const seen = new Set<string>();
+  for (const [kind, items] of [["regions", layer.regions], ["paths", layer.paths], ["nodes", layer.nodes]] as const) {
+    items.forEach((item, i) => {
+      if (seen.has(item.id)) fail(`${where}.${kind}[${i}]`, `duplicate id "${item.id}"`);
+      seen.add(item.id);
+    });
+  }
+  const nodes = new Set(layer.nodes.map((n) => n.id));
+  const paths = new Set(layer.paths.map((p) => p.id));
+  const regions = new Set(layer.regions.map((r) => r.id));
+  const place = (p: string | [number, number], at: string) => {
+    if (typeof p === "string" && !nodes.has(p)) fail(at, `no node "${p}"`);
+  };
+  const progress = (p: { curve: string } | { times: [number, number] }, at: string) => {
+    if ("curve" in p) needCurve(p.curve, at);
+  };
+  layer.camera.forEach((shot, k) => place(shot.focus, `${where}.camera[${k}].focus`));
+  layer.regions.forEach((r, i) => {
+    if (r.clipTo && !regions.has(r.clipTo)) fail(`${where}.regions[${i}].clipTo`, `no region "${r.clipTo}"`);
+    if (r.sweep) {
+      place(r.sweep.origin, `${where}.regions[${i}].sweep.origin`);
+      progress(r.sweep.progress, `${where}.regions[${i}].sweep.progress`);
+    }
+  });
+  layer.signals.forEach((s, i) => {
+    s.along.forEach((p, j) => {
+      if (!paths.has(p)) fail(`${where}.signals[${i}].along[${j}]`, `no path "${p}"`);
+    });
+    progress(s.progress, `${where}.signals[${i}].progress`);
+  });
+  layer.fields.forEach((f, i) => {
+    place(f.origin, `${where}.fields[${i}].origin`);
+    f.lights.forEach((n, j) => {
+      if (!nodes.has(n)) fail(`${where}.fields[${i}].lights[${j}]`, `no node "${n}"`);
+    });
+  });
+  layer.highlight.forEach((h, i) => {
+    if (!seen.has(h.target)) fail(`${where}.highlight[${i}].target`, `no node, path or region "${h.target}"`);
+  });
+};
+
+const PLACEHOLDER = /\[[^\]\n]+\]/;
+
+/** Template text like "[Kavramın adı]" must not survive into a real video. */
+const checkPlaceholders = (raw: RawSpec) => {
+  if (raw.template) return;
+  const visit = (v: unknown, where: string): void => {
+    if (typeof v === "string") {
+      const m = PLACEHOLDER.exec(v);
+      if (m) fail(where, `still holds the template placeholder ${m[0]} — write the real text (use parentheses for literal brackets)`);
+    } else if (Array.isArray(v)) v.forEach((item, i) => visit(item, `${where}[${i}]`));
+    else if (v && typeof v === "object") Object.entries(v).forEach(([k, item]) => visit(item, `${where}.${k}`));
+  };
+  Object.entries(raw).forEach(([k, v]) => visit(v, k));
+};
+
+const FREEZE_LIMIT = 3;
+
+/**
+ * A spec with a timeline shows only sourced values on its counter: every value the counter can display comes
+ * from "#key" or from a segment that runs at real speed. And no counter stands still for more than 3 s unless
+ * a `holds` range says so.
+ */
+const checkTimeline = (raw: RawSpec, spec: Spec, curve: (name: string) => CurveFn, fps: number) => {
+  const ids = new Set(spec.sources.map((s) => s.id).filter(Boolean));
+  for (const [name, k] of Object.entries(spec.timeline?.keys ?? {})) {
+    if (!ids.has(k.source)) fail(`timeline.keys.${name}.source`, `no source has id "${k.source}"`);
+  }
+
+  const c = spec.counter;
+  if (!c) return;
+  const end = spec.concept ? spec.concept.at - 0.3 : spec.durationSec;
+
+  if (spec.timeline) {
+    const where = `curves.${c.curve}`;
+    spec.curves[c.curve].segments.forEach((s, i) => {
+      if (s.to <= c.fadeIn[0] || s.from >= end) return;
+      const rawValues = raw.curves[c.curve].segments[i].values;
+      if (s.realtime) {
+        if (!c.timeScale) fail(`${where}.segments[${i}]`, 'a "realtime" segment needs counter.timeScale');
+        const expected = c.timeScale!.unitPerSec * (s.to - s.from);
+        if (Math.abs(s.values[1] - s.values[0] - expected) > Math.max(1, expected * 0.01)) {
+          fail(`${where}.segments[${i}]`, `"realtime" but it advances ${s.values[1] - s.values[0]} in ${(s.to - s.from).toFixed(2)} s (expected ≈${Math.round(expected)})`);
+        }
+        if (typeof rawValues[0] !== "string") fail(`${where}.segments[${i}].values[0]`, 'a "realtime" segment starts from a "#key"');
+        return;
+      }
+      rawValues.forEach((v, j) => {
+        if (typeof v !== "string") {
+          fail(`${where}.segments[${i}].values[${j}]`, 'the counter shows this value; take it from the timeline ("#name") so it has a source');
+        }
+      });
+    });
+  }
+
+  const value = curve(c.curve);
+  const held = (from: number, to: number) => c.holds.some(([a, b]) => a <= from + 0.05 && b >= to - 0.05);
+  let runStart = c.fadeIn[1];
+  let runText = "";
+  for (let f = Math.ceil(c.fadeIn[1] * fps); f <= Math.floor(end * fps); f++) {
+    const t = f / fps;
+    const shown = formatCounter(value(t), c.unit, c.format, spec.lang).text;
+    if (shown !== runText) {
+      runText = shown;
+      runStart = t;
+    } else if (t - runStart > FREEZE_LIMIT && !held(runStart, t)) {
+      fail("counter", `shows "${shown} ${c.unit}" unchanged from ${runStart.toFixed(1)} s for more than ${FREEZE_LIMIT} s — keep the curve moving or add a "holds" range`);
+    }
+  }
+};
 
 const check = (spec: Spec) => {
   const sfx = new Set(Object.keys(catalog));
@@ -137,6 +270,16 @@ const check = (spec: Spec) => {
       }
     }
     if (layer.type === "cityMap") needCurve(layer.zoom.curve, where);
+    if (layer.type === "trace" || layer.type === "flow" || layer.type === "model3d") {
+      layer.camera.forEach((shot, k) => {
+        if (k > 0 && shot.at < layer.camera[k - 1].at) fail(`${where}.camera[${k}]`, "shots must be in time order");
+      });
+    }
+    if (layer.type === "trace") {
+      needCurve(layer.clock, where);
+      needSfx(layer.beep?.id, `${where}.beep`);
+    }
+    if (layer.type === "flow") checkFlow(layer, where, needCurve);
   });
 
   spec.layers.forEach((layer, i) => {
@@ -150,7 +293,13 @@ const check = (spec: Spec) => {
 
   if (spec.counter) needCurve(spec.counter.curve, "counter");
   spec.labels.forEach((l, i) => needSfx(l.sound, `labels[${i}].sound`));
-  spec.sound.beds.forEach((b, i) => needSfx(b.id, `sound.beds[${i}]`));
+  spec.sound.beds.forEach((b, i) => {
+    needSfx(b.id, `sound.beds[${i}]`);
+    if (!b.loop) return;
+    const length = (lengths as Record<string, number>)[b.id];
+    if (!length) fail(`sound.beds[${i}]`, `no length for "${b.id}" — run npm run sfx -- --index`);
+    if (b.crossfade * 2 >= length) fail(`sound.beds[${i}].crossfade`, `must be under half of the file (${length} s)`);
+  });
   spec.sound.hits.forEach((h, i) => needSfx(h.id, `sound.hits[${i}]`));
   needSfx(spec.countdown?.sound, "countdown.sound");
   needSfx(spec.concept?.sound, "concept.sound");
@@ -189,9 +338,11 @@ export const resolveVideo = (rawSpec: unknown, rawTiming: unknown): Video => {
     );
   }
   const spec = resolved.data;
+  checkPlaceholders(raw);
   check(spec);
 
   const curves = new Map(Object.entries(spec.curves).map(([name, c]) => [name, curveFn(c)]));
+  checkTimeline(raw, spec, (name) => curves.get(name) ?? fail("curves", `unknown curve "${name}"`), FPS);
   return {
     spec,
     phrases,

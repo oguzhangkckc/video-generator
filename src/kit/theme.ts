@@ -41,7 +41,22 @@ export const COLOR = {
   satellitePanel: "#1f3f9a",
   satellitePanelGlow: "#0b1d4d",
   satelliteDish: "#e8e8e8",
+
+  /** flow regions and paths: a solid body (organ, device) and a faint enclosing outline (body, building). */
+  surface: "#111A38",
+  surfaceEdge: "rgba(255,255,255,0.55)",
+  faint: "rgba(255,255,255,0.035)",
+  faintEdge: "rgba(255,255,255,0.3)",
+  /** flow "pad" nodes (sensors, electrodes, ports). */
+  pad: "#C9D3E6",
+  gridMinor: "rgba(63,216,230,0.08)",
+  gridMajor: "rgba(63,216,230,0.2)",
+  light: "#FFFFFF",
 } as const;
+
+/** Fills and strokes a flow diagram may name, besides the semantic colour tokens. */
+export const SURFACE = { surface: COLOR.surface, faint: COLOR.faint } as const;
+export const EDGE = { surface: COLOR.surfaceEdge, faint: COLOR.faintEdge } as const;
 
 export type ColorToken = "text" | "you" | "danger" | "secondary" | "marker" | "muted";
 export const tokenColor = (token: ColorToken): string => COLOR[token];

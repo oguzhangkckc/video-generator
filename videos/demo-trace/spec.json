@@ -1,0 +1,81 @@
+{
+  "title": "Tür demosu: trace",
+  "lang": "tr",
+  "durationSec": 8,
+  "voiceover": {
+    "sections": [
+      { "id": "demo", "window": [0, 8], "phrases": ["Kalem bir saat eğrisini izler.", "Ağır çekimde parçalar adını alır."] }
+    ]
+  },
+  "marks": { "slow": [2.5, 6.5] },
+  "timeline": {
+    "unit": "ms",
+    "keys": {
+      "pStart": { "value": 0, "source": "klabunde-ekg" },
+      "pEnd": { "value": 90, "source": "klabunde-ekg" },
+      "qrsStart": { "value": 160, "source": "klabunde-ekg" },
+      "qrsEnd": { "value": 230, "source": "klabunde-ekg" },
+      "tStart": { "value": 330, "source": "klabunde-qt" },
+      "tEnd": { "value": 490, "source": "klabunde-qt" }
+    }
+  },
+  "curves": {
+    "clock": {
+      "unit": "ms",
+      "segments": [
+        { "from": 0, "to": "@slow.start", "values": [-2500, 0] },
+        { "from": "@slow.start", "to": "@slow.end", "values": ["#pStart", "#tEnd"], "easing": "inOutSine" },
+        { "from": "@slow.end", "to": "@end", "values": ["#tEnd", 1990], "realtime": true }
+      ]
+    }
+  },
+  "layers": [
+    {
+      "type": "trace",
+      "visible": [{}],
+      "clock": "clock",
+      "waveform": {
+        "preset": "ecg",
+        "p": { "range": ["#pStart", "#pEnd"] },
+        "qrs": { "range": ["#qrsStart", "#qrsEnd"] },
+        "t": { "range": ["#tStart", "#tEnd"] }
+      },
+      "grid": { "legend": "25 mm/sn · 10 mm/mV" },
+      "camera": [
+        { "at": 0, "focus": "frame", "zoom": 1 },
+        { "at": 3, "focus": "pen", "zoom": 1.7 },
+        { "at": 6.5, "focus": "pen", "zoom": 1.8 },
+        { "at": 8, "focus": "frame", "zoom": 1.05 }
+      ],
+      "drift": { "degPerSec": 0, "px": 6 },
+      "parts": [
+        { "text": "P", "range": ["#pStart", "#pEnd"] },
+        { "text": "QRS", "range": ["#qrsStart", "#qrsEnd"] },
+        { "text": "T", "range": ["#tStart", "#tEnd"] }
+      ],
+      "beep": { "id": "monitor-beep", "ranges": [[0, 8]] }
+    }
+  ],
+  "counter": {
+    "label": "ZAMAN",
+    "unit": "ms",
+    "curve": "clock",
+    "fadeIn": ["@slow.start", "@slow.start+0.4"],
+    "timeScale": { "unitPerSec": 1000 },
+    "format": { "zeroBelow": 0.5, "oneDecimalBelow": 0 }
+  },
+  "sound": {
+    "beds": [{ "id": "space", "at": 0, "fadeIn": [0, 1], "fadeOut": [7, 8] }]
+  },
+  "sources": [
+    { "id": "klabunde-ekg", "claim": "P dalgası 80–100 ms; QRS 60–100 ms; kâğıt 25 mm/sn, 1 mV = 10 mm", "value": "P 0–90, QRS 160–230 ms", "url": "https://cvphysiology.com/arrhythmias/a009", "accessed": "2026-11-18", "status": "simplified", "note": "Şematik bir atım: aralıklar tipik değerlere oturtuldu." },
+    { "id": "klabunde-qt", "claim": "T dalgası karıncıkların toparlanmasıdır; QRS'ten sonra gelir", "value": "T 330–490 ms", "url": "https://cvphysiology.com/arrhythmias/a009", "accessed": "2026-11-18", "status": "simplified", "note": "T dalgasının yeri şematik; demo amaçlı." }
+  ],
+  "credits": [
+    { "item": "Ses efektleri (eleven_text_to_sound_v2): monitor-beep, space", "kind": "sfx", "author": "ElevenLabs", "license": "ElevenLabs ücretsiz plan: ticari kullanım yok", "url": "https://elevenlabs.io/service-specific-terms" },
+    { "item": "Inter (yazı tipi)", "kind": "font", "author": "Rasmus Andersson", "license": "SIL Open Font License 1.1", "url": "https://github.com/rsms/inter" },
+    { "item": "JetBrains Mono (yazı tipi)", "kind": "font", "author": "JetBrains", "license": "SIL Open Font License 1.1", "url": "https://github.com/JetBrains/JetBrainsMono" },
+    { "item": "Remotion", "kind": "code", "author": "Remotion AG", "license": "Remotion License", "url": "https://www.remotion.dev/license" }
+  ],
+  "styleExceptions": ["Tür demosu: STYLE'ın kanca, bölüm ve final akışı uygulanmaz."]
+}

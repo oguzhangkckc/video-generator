@@ -1,6 +1,7 @@
 import { Composition, Folder } from "remotion";
 import type { z } from "zod";
 import { FPS, HEIGHT, WIDTH } from "./kit/format";
+import { validateModels } from "./kit/scenes/model3d/validate";
 import { resolveVideo } from "./spec/resolve";
 import { VideoProps } from "./spec/schema";
 import { VideoFromSpec } from "./VideoFromSpec";
@@ -28,9 +29,11 @@ export const RemotionRoot: React.FC = () => (
           component={VideoFromSpec}
           schema={VideoProps}
           defaultProps={props}
-          calculateMetadata={({ props: p }) => ({
-            durationInFrames: Math.round(resolveVideo(p.spec, p.timing).spec.durationSec * FPS),
-          })}
+          calculateMetadata={async ({ props: p }) => {
+            const { spec } = resolveVideo(p.spec, p.timing);
+            await validateModels(spec);
+            return { durationInFrames: Math.round(spec.durationSec * FPS) };
+          }}
           durationInFrames={1}
           fps={FPS}
           width={WIDTH}

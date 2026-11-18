@@ -7,6 +7,7 @@ import { Countdown } from "./kit/overlays/Countdown";
 import { Counter } from "./kit/overlays/Counter";
 import { DataLabel, NoteLabel } from "./kit/overlays/DataLabel";
 import { HookTitle } from "./kit/overlays/HookTitle";
+import { LayoutContext } from "./kit/layout";
 import { Karaoke } from "./kit/overlays/Karaoke";
 import { LayerView } from "./kit/registry";
 import { createGlobeRig } from "./kit/scenes/globe/rig";
@@ -32,6 +33,7 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
 
   return (
     <RigContext.Provider value={rigs}>
+      <LayoutContext.Provider value={s.layout}>
       <AbsoluteFill lang={s.lang} style={{ backgroundColor: COLOR.space }}>
         <Soundtrack sound={s.sound} voiceover={video.voiceoverAudio} phrases={video.phrases} />
         {s.layers.map((layer, i) => (
@@ -49,9 +51,12 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
         {s.darken ? <Darken darken={s.darken} /> : null}
         {s.countdown ? <Countdown countdown={s.countdown} /> : null}
         {s.concept ? <ConceptCard concept={s.concept} /> : null}
-        {s.counter ? <Counter counter={s.counter} value={video.curve(s.counter.curve)} locale={s.lang} /> : null}
+        {s.counter ? (
+          <Counter counter={s.counter} value={video.curve(s.counter.curve)} locale={s.lang} conceptAt={s.concept?.at} />
+        ) : null}
         <Karaoke pages={video.pages} captions={s.captions} />
       </AbsoluteFill>
+      </LayoutContext.Provider>
     </RigContext.Provider>
   );
 };

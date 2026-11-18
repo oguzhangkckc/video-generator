@@ -2,6 +2,7 @@ import { fitText } from "@remotion/layout-utils";
 import { spring, useVideoConfig } from "remotion";
 import type { Spec } from "../../spec/schema";
 import { Sfx } from "../audio/Sfx";
+import { useLayout } from "../layout";
 import { COLOR, MONO, SANS, TEXT_SHADOW, tokenColor } from "../theme";
 import { ramp, sec, useTime } from "../time";
 
@@ -12,13 +13,14 @@ const MAX_SIZE = 150;
 const ConceptView: React.FC<{ concept: Concept }> = ({ concept }) => {
   const t = useTime();
   const { fps } = useVideoConfig();
+  const { contentWidth } = useLayout();
   const { at, until, kicker, name, color, top } = concept;
   if (t < at || (until !== undefined && t >= until)) return null;
 
   const enter = spring({ frame: Math.round(t * fps) - sec(at), fps, config: { damping: 200 }, durationInFrames: 14 });
   const underline = ramp(t, [at + 0.25, at + 0.8]);
   const exit = until !== undefined ? ramp(t, [until - 0.3, until]) : 0;
-  const size = Math.min(MAX_SIZE, fitText({ text: name, withinWidth: 960, fontFamily: SANS, fontWeight: 800 }).fontSize);
+  const size = Math.min(MAX_SIZE, fitText({ text: name, withinWidth: contentWidth, fontFamily: SANS, fontWeight: 800 }).fontSize);
 
   return (
     <div

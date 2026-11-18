@@ -13,13 +13,22 @@ export const CueRef = z.object({ cue: z.string().min(1), offset: z.number().opti
 export const TimeRaw = z.union([z.number(), MarkRef, CueRef]);
 export const RangeRaw = z.union([z.tuple([TimeRaw, TimeRaw]), MarkRef]);
 
+/** "#name": a value from the spec's sourced `timeline`. */
+export const KEY_REF = /^#([A-Za-z][A-Za-z0-9_]*)$/;
+const KeyRef = z.string().regex(KEY_REF, 'timeline reference must look like "#name"');
+
 /**
  * Every schema is built twice from the same factory: with raw times (what spec.json is written in) and with
- * plain seconds (what components receive after src/spec/resolve.ts has replaced every reference).
+ * plain seconds (what components receive after src/spec/resolve.ts has replaced every reference). `num` is a
+ * number that may instead name a sourced timeline value.
  */
-export type Kit<T extends z.ZodType = z.ZodType, R extends z.ZodType = z.ZodType> = { time: T; range: R };
-export const RAW = { time: TimeRaw, range: RangeRaw };
-export const RESOLVED = { time: z.number(), range: z.tuple([z.number(), z.number()]) };
+export type Kit<T extends z.ZodType = z.ZodType, R extends z.ZodType = z.ZodType, N extends z.ZodType = z.ZodType> = {
+  time: T;
+  range: R;
+  num: N;
+};
+export const RAW = { time: TimeRaw, range: RangeRaw, num: z.union([z.number(), KeyRef]) };
+export const RESOLVED = { time: z.number(), range: z.tuple([z.number(), z.number()]), num: z.number() };
 
 export const EasingName = z.enum([
   "linear",
@@ -45,7 +54,7 @@ export const envelopeSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<
   z.object({ in: k.range, out: k.range }).strict();
 
 /** Piecewise keyframes; between segments the previous end value holds. */
-export const curveSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, R>) =>
+export const curveSchema = <T extends z.ZodType, R extends z.ZodType, N extends z.ZodType>(k: Kit<T, R, N>) =>
   z
     .object({
       unit: z.string().optional(),
@@ -55,7 +64,9 @@ export const curveSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, 
             .object({
               from: k.time,
               to: k.time,
-              values: z.tuple([z.number(), z.number()]),
+              values: z.tuple([k.num, k.num]),
+              /** Runs at real speed (needs counter.timeScale); `npm run check` verifies the values agree. */
+              realtime: z.boolean().default(false),
               scale: z.enum(["linear", "log"]).default("linear"),
               /** Log scale interpolates log(value + logOffset), so a curve can start from 0. */
               logOffset: z.number().min(0).default(0),

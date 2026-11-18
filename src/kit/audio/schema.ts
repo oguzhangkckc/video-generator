@@ -15,6 +15,9 @@ export const soundSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, 
               fadeOut: k.range.optional(),
               /** Fraction removed while speaking (0.5 ≈ −6 dB). */
               duck: z.number().min(0).max(1).default(0.5),
+              /** Repeat with an equal-power crossfade until the end, so a short bed never cuts out. */
+              loop: z.boolean().default(false),
+              crossfade: z.number().positive().default(2),
             })
             .strict(),
         )

@@ -2,16 +2,20 @@ import { fitText } from "@remotion/layout-utils";
 import { spring, useVideoConfig } from "remotion";
 import type { Spec } from "../../spec/schema";
 import { Sfx } from "../audio/Sfx";
+import { useLayout } from "../layout";
 import { COLOR, MONO, TEXT_SHADOW, tokenColor } from "../theme";
 import { ramp, useTime } from "../time";
 
 type Countdown = NonNullable<Spec["countdown"]>;
 
 const MAX_SIZE = 260;
+/** Each value pops in from this scale, so it is fitted to the width divided by it. */
+const POP = 1.25;
 
 const CountdownView: React.FC<{ countdown: Countdown }> = ({ countdown }) => {
   const t = useTime();
   const { fps } = useVideoConfig();
+  const { contentWidth } = useLayout();
   const { from, to, values, label, top, color } = countdown;
   if (t < from || t >= to) return null;
 
@@ -21,7 +25,7 @@ const CountdownView: React.FC<{ countdown: Countdown }> = ({ countdown }) => {
   const pop = spring({ frame: Math.round(local * fps), fps, config: { damping: 12, stiffness: 180 } });
   const opacity = ramp(t, [from, from + 0.15]) * (1 - ramp(t, [to - 0.2, to]));
   const value = values[index];
-  const size = Math.min(MAX_SIZE, fitText({ text: value, withinWidth: 940, fontFamily: MONO, fontWeight: 700 }).fontSize);
+  const size = Math.min(MAX_SIZE, fitText({ text: value, withinWidth: contentWidth / POP, fontFamily: MONO, fontWeight: 700 }).fontSize);
   const remaining = 1 - Math.min(1, local / slot);
 
   return (
@@ -48,7 +52,7 @@ const CountdownView: React.FC<{ countdown: Countdown }> = ({ countdown }) => {
           lineHeight: 1.05,
           color: tokenColor(color),
           textShadow: TEXT_SHADOW,
-          transform: `scale(${1.25 - 0.25 * pop})`,
+          transform: `scale(${POP - (POP - 1) * pop})`,
         }}
       >
         {value}
