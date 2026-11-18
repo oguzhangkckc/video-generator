@@ -84,6 +84,11 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
     <AbsoluteFill style={{ opacity, background: `linear-gradient(180deg, ${COLOR.bgTop} 0%, ${COLOR.bgBottom} 100%)` }}>
       <svg width={WIDTH} height={HEIGHT} style={{ position: "absolute", inset: 0 }}>
         <defs>
+          {layer.frame ? (
+            <clipPath id={`${uid}-band`}>
+              <rect x={0} y={layer.frame.top} width={WIDTH} height={layer.frame.height} />
+            </clipPath>
+          ) : null}
           {layer.regions.map((r) => (
             <clipPath key={r.id} id={`${uid}-${r.id}`}>
               <path d={toPath(geo.regions.get(r.id)!, true)} />
@@ -91,6 +96,7 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
           ))}
         </defs>
 
+        <g clipPath={layer.frame ? `url(#${uid}-band)` : undefined}>
         <g transform={worldTransform(view, anchor)}>
           {layer.regions.map((r) => {
             const a = r.visible ? windowAlpha(t, r.visible) : 1;
@@ -129,9 +135,11 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
           })}
 
           {layer.paths.map((p) => {
+            const a = p.visible ? windowAlpha(t, p.visible) : 1;
+            if (a <= 0) return null;
             const g = lit(p.id) * pulse;
             return (
-              <path key={p.id} d={toPath(geo.paths.get(p.id)!.points)} stroke={pathColor(p.color)} strokeOpacity={Math.min(1, p.opacity + 0.5 * g)} strokeWidth={sw(p.width + 1.6 * lit(p.id))} {...ns} />
+              <path key={p.id} d={toPath(geo.paths.get(p.id)!.points)} stroke={pathColor(p.color)} strokeOpacity={a * Math.min(1, p.opacity + 0.5 * g)} strokeWidth={sw(p.width + 1.6 * lit(p.id))} {...ns} />
             );
           })}
 
@@ -211,6 +219,14 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
             </g>
           );
         })}
+        </g>
+        {layer.frame ? (
+          <path
+            d={`M0 ${layer.frame.top}H${WIDTH}M0 ${layer.frame.top + layer.frame.height}H${WIDTH}`}
+            stroke={COLOR.gridMajor}
+            strokeWidth={2}
+          />
+        ) : null}
       </svg>
     </AbsoluteFill>
   );

@@ -4,9 +4,9 @@ import { useCurrentFrame, useVideoConfig } from "remotion";
 import type { Video } from "../../spec/resolve";
 import { CX, HEIGHT, WIDTH } from "../format";
 import { useLayout } from "../layout";
-import { counterText, speedLabel } from "../overlays/Counter";
+import { counterOpacity, counterText, speedLabel } from "../overlays/Counter";
+import { labelBox } from "../overlays/geometry";
 import { MONO, SANS } from "../theme";
-import { ramp } from "../time";
 
 export type QaBox = { kind: string; id: string; text: string; x1: number; y1: number; x2: number; y2: number };
 
@@ -28,12 +28,8 @@ const boxesAt = (video: Video, t: number, rightInset: number, contentWidth: numb
 
   s.labels.forEach((l, i) => {
     if (t < l.at + SETTLE || t > l.until - SETTLE) return;
-    const mono = l.font === "mono";
-    const w =
-      width(l.text, mono ? MONO : SANS, l.size, mono ? 700 : 800, l.letterSpacing) +
-      (l.bar ? 6 + l.size * 0.4 : 0) +
-      (l.check ? l.size * 1.25 : 0);
-    add("label", `labels[${i}]`, l.text, xFor(l.align, w), l.top, w, l.size * LINE);
+    const b = labelBox(l, rightInset);
+    add("label", `labels[${i}]`, l.text, b.x1, b.y1, b.x2 - b.x1, b.y2 - b.y1);
   });
   s.notes.forEach((n, i) => {
     if (t < n.at + SETTLE || t > n.until - SETTLE) return;
@@ -49,13 +45,11 @@ const boxesAt = (video: Video, t: number, rightInset: number, contentWidth: numb
   if (s.counter) {
     const c = s.counter;
     const value = video.curve(c.curve);
-    const hidden = s.concept ? ramp(t, [s.concept.at - 0.3, s.concept.at]) : 0;
-    const opacity = Math.min(ramp(t, c.fadeIn), c.dim ? 1 - c.dim.amount * ramp(t, c.dim.range) : 1) * (1 - hidden);
-    if (opacity > 0.5) {
+    if (counterOpacity(c, t, s.concept?.at) > 0.5) {
       const text = counterText(c, value, t, s.lang);
-      const speed = speedLabel(c, value, t, s.lang);
-      const w = Math.max(width(c.label, MONO, 24, 500, "0.22em"), width(text, MONO, 76, 700), speed ? width(speed, MONO, 26, 500, "0.12em") : 0);
-      add("counter", "counter", text, WIDTH - rightInset - w, 150, w, 24 * LINE + 76 * 1.05 + (speed ? 26 * LINE : 0));
+      const speed = speedLabel(c, s.curves[c.curve], t, s.lang);
+      const w = Math.max(width(c.label, MONO, 24, 500, "0.22em"), width(text, MONO, 76, 700), speed ? width(speed, MONO, 42, 700) * 1.18 : 0);
+      add("counter", "counter", text, WIDTH - rightInset - w, 150, w, 24 * LINE + 76 * 1.05 + (speed ? 42 * 1.1 : 0));
     }
   }
   if (s.countdown) {

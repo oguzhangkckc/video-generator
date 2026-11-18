@@ -45,12 +45,20 @@ kullanılır.
 - İzleyiciye **"sen"** diye hitap edilir.
 - Soyut sistem **tek bir somut yolculuk** üzerinden anlatılır: bir sinyalin, bir paketin, bir elektronun
   yolculuğu… Kamera o yolculuğu izler.
-- **Her bölüm "Peki…?" sorusuyla açılır.** Soru bir önceki bölümün bıraktığı boşluğu adlandırır.
-- Konuşma hızı **~2,5 kelime/sn**: 30 sn ≈ 70 kelime, 45 sn ≈ 110, 60 sn ≈ 145. Bölüm bütçesi =
+- **Her gövde bölümü "Peki…?" sorusuyla açılır.** Soru bir önceki bölümün bıraktığı boşluğu adlandırır. **Art arda
+  iki "Peki…?" cümlesi olmaz;** kancanın sorusu bu yüzden "Peki" ile başlamaz.
+- **Kanca başlıkları seslendirmeyle aynı kelimeleri kullanır** (başlık ekrandayken söylenen kelimeler).
+- Konuşma hızı **~2,5 kelime/sn** (render sonrası genel ölçüm 2,4–2,7 aralığında olmalı): 30 sn ≈ 70 kelime, 45 sn ≈ 110,
+  60 sn ≈ 145. Bölüm bütçesi =
   pencere süresi × 2,5 − ~1 kelime pay.
 - Cümleler kısa tutulur. Bir cümle bir altyazı sayfasıdır ve tek satıra sığmalıdır (≈ 32 karakter).
 - **Sağ ya da sol söylenen her yerde ekranda yön ipucu olur.** Anatomik görünümde izleyicinin sağı ekranın solunda
   kalır; "SENİN SAĞIN" gibi bir etiket ya da ok bunu gösterir.
+
+## Duygusal eğri
+
+- En güçlü an (doruk) videonun **son üçte birinde** olur ve spec'te `marks.peak` ile işaretlenir.
+- Doruktan sonra **8 sn'den uzun yeni bir bölüm açılmaz**; doruktan sonra yalnızca kısa bir final gelir.
 
 ## Final
 
@@ -88,13 +96,17 @@ Sıra her zaman aynıdır:
   `timeline.keys` içinde bir `sources[].id`'ye bağlıdır (`"#ad"`); kaynaksız ara değer sayaca yazılmaz.
 - Zaman gerçek hızdan farklı akıyorsa `counter.timeScale` verilir; sayaç "×100 YAVAŞ" gibi etiketi kendisi gösterir.
   Birim de kendiliğinden büyür (1000 ms üstü "1,69 sn").
+- Bir bölüm içinde hız (×N YAVAŞ) değişmez: her bölüm sayacın eğrisinde tek bir segmenttir. Bölüm geçişinde
+  değişen hız etiketi kısa bir vurguyla güncellenir; etiket harfleri en az ~30 px'tir.
 - **Sayaç 3 sn'den uzun donmaz.** Bilinçli duraklama `counter.holds` ile yazılır. Kavram kartı sırasında sayaç gizlenir.
 
 ## Yerleşim
 
 - **Sayaç** sağ üstte, sabit (`counter`).
 - **Altyazı** yüksekliğin **%77'sinde**, tek satır karaoke: söylenen kelime beyaz, sıradakiler gri.
-- Veri satırları üst yarıda (`top` ≈ 450–850). Notlar sağ altta (`top` ≈ 1330).
+- Veri satırları üst yarıda (`top` ≈ 380–850), sütunun arkasında yarı saydam koyu bir zemin olur (`layout.labelBackdrop`).
+  **Etiket kutusuna hiçbir çizim girmez:** sahne, etiket sütununu boş bırakacak şekilde kadrajlanır; `npm run qa` bunu
+  hata olarak denetler. Notlar sağ altta (`top` ≈ 1330).
 - **Güvenli alanlar:** alt %15 (≈ 1630 px altı) ve sağ kenarın son 120 px'i platform arayüzü için boş kalır.
   Okunması gereken hiçbir şey oraya konmaz. Varsayılan `layout` (sağ boşluk 132 px, ortalanmış genişlik 840 px) bunu
   sağlar; `npm run qa` taşan ya da çakışan her yazıyı hata olarak bildirir.
@@ -127,7 +139,9 @@ Sıra her zaman aynıdır:
 
 Still kareler incelenirken (skill adım e) her madde tek tek kontrol edilir:
 
-- [ ] İlk 5 sn: 3 başlık, her biri ~2 sn, birlikte bir soru; ilk kare okunuyor.
+- [ ] İlk 5 sn: 3 başlık, her biri ~2 sn, birlikte bir soru; başlıklar seslendirmenin kelimeleri; ilk kare okunuyor.
+- [ ] Art arda iki "Peki…?" yok; doruk son üçte birde, ardından 8 sn'den uzun bölüm yok.
+- [ ] Etiket sütununa çizim girmiyor; bir bölüm içinde sayacın hız etiketi değişmiyor.
 - [ ] Kancadaki soru finalde açıkça cevaplanıyor.
 - [ ] Her bölüm "Peki…?" ile açılıyor; izleyiciye "sen" deniyor.
 - [ ] Kelime sayısı bütçenin içinde (süre × 2,5); hiçbir altyazı satırı taşmıyor.

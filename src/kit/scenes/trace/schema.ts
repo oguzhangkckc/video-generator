@@ -94,6 +94,8 @@ export const traceSchema = <T extends z.ZodType, R extends z.ZodType, N extends 
               once: z.boolean().default(true),
               /** Label height above the baseline, in waveform units. */
               labelAt: z.number().optional(),
+              /** Lit up (brighter, larger label) over these ranges, e.g. while the narration names the part. */
+              lit: z.array(k.range).default([]),
             })
             .strict(),
         )

@@ -8,7 +8,7 @@
       {
         "id": "kanca",
         "window": [0, 5],
-        "phrases": ["[Gündelik bir sahne, sen diye.]", "[Görünmeyen şaşırtıcı gerçek.]", "Peki [kancanın sorusu]?"]
+        "phrases": ["[Gündelik bir sahne, sen diye.]", "[Görünmeyen şaşırtıcı gerçek.]", "[Kancanın sorusu]?"]
       },
       {
         "id": "adim-1",
@@ -67,7 +67,7 @@
   "titles": [
     { "top": "[KANCA 1 ÜST]", "bottom": "[KANCA 1 ALT]", "from": 0, "to": 1.7 },
     { "top": "[KANCA 2 ÜST]", "bottom": "[KANCA 2 ALT]", "from": 1.7, "to": 3.4 },
-    { "top": "PEKİ", "bottom": "[KANCANIN SORUSU]?", "from": 3.4, "to": 5 }
+    { "top": "[KANCA 3 ÜST]", "bottom": "[KANCANIN SORUSU]?", "from": 3.4, "to": 5 }
   ],
   "labels": [
     { "text": "[RAKAM 1]", "at": { "cue": "[Somut yolculuğun", "offset": 0.3 }, "until": 12.8, "top": 520, "size": 56, "bar": true, "sound": "tick" },

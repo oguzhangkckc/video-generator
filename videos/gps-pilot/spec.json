@@ -2,7 +2,7 @@
   "title": "Telefonun konumu nasıl buluyor?",
   "lang": "tr",
   "durationSec": 30,
-  "layout": { "rightInset": 72, "contentWidth": 960 },
+  "layout": { "rightInset": 72, "contentWidth": 960, "labelBackdrop": false },
   "voiceover": {
     "audio": "videos/gps-pilot/vo.wav",
     "voice": "ElevenLabs Alice (Xb7hH8MSUJpSbSDYk0k2), eleven_multilingual_v2",

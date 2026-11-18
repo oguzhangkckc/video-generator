@@ -29,6 +29,7 @@ Konu için 2–3 farklı açı öner, tek tablo halinde:
 | Somut yolculuk | kameranın baştan sona izleyeceği tek şey | | |
 | Doruk anı | gerilimin en yüksek anı | | |
 | Doruğun gerçek sayacı ya da eşiği | gerçek bir süre/mesafe/eşik varsa o; yoksa alternatif doruk (kritik an, karşılaştırma, "aha") | | |
+| Duygusal eğri | en güçlü an son üçte birde (`marks.peak`); ondan sonra 8 sn'den uzun yeni bölüm yok | | |
 | Kancadaki soru → finaldeki cevap | kancanın sorusu ve finalde tek cümlelik cevabı | | |
 | Kavram adı | en son verilecek terim | | |
 | İzleyici kavram adını biliyor mu? | biliyorsa finaldeki şaşırtma (köken, beklenmedik bağlantı) ya da başka bir kavram | | |
@@ -59,7 +60,9 @@ Birini gerekçesiyle öner. **Dur.**
 - Kelime bütçesi: bölüm penceresi × 2,5.
 - STYLE kuralları:
   - izleyiciye "sen" diye hitap
-  - her bölüm "Peki…?" ile açılır
+  - her gövde bölümü "Peki…?" ile açılır; **art arda iki "Peki…?" cümlesi olmaz** (kancanın sorusu "Peki"siz)
+  - kanca başlıkları seslendirmeyle aynı kelimeleri kullanır
+  - bölüm pencerelerini ~2,6 kelime/sn'ye göre boyutla: render sonrası genel hız 2,4–2,7 değilse qa hata verir
   - tek somut yolculuk
   - final sırası: doruk → tek cümlelik özet (kancadaki sorunun cevabı) → kavramın adı en son (ad daha önce
     söylenmez); geri sayım yalnızca gerçek bir süre/eşik için

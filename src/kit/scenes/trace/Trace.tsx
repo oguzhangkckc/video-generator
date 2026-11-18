@@ -5,7 +5,7 @@ import { Sfx } from "../../audio/Sfx";
 import type { CurveFn } from "../../curves";
 import { CX, HEIGHT, WIDTH } from "../../format";
 import { COLOR, MONO, tokenColor } from "../../theme";
-import { ramp, useTime, windowAlpha } from "../../time";
+import { envelope, ramp, useTime, windowAlpha } from "../../time";
 import { project, strokeAt, viewAt, worldTransform, type Vec } from "../camera2d/camera";
 import { GlowDot, MATCH_DOT_R } from "../camera2d/GlowDot";
 import { waveform, type Waveform } from "./waveform";
@@ -119,7 +119,8 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
       if (drawnTo <= from || to < xFrom) return [];
       const peak = Math.max(...samples(wave, from, to, (to - from) / 24).map(wave.value));
       const [lx, ly] = toScreen([xAt((from + drawnTo) / 2), yAt(part.labelAt ?? Math.max(peak, 0) + 0.3)]);
-      return [{ part, from: Math.max(from, xFrom), drawnTo, lx, ly, alpha: ramp(drawnTo - from, [0, (to - from) * 0.15]) }];
+      const glow = Math.max(0, ...part.lit.map(([a, b]) => envelope(t, [a, a + 0.2], [Math.max(a + 0.2, b - 0.2), b])));
+      return [{ part, from: Math.max(from, xFrom), drawnTo, lx, ly, glow, alpha: ramp(drawnTo - from, [0, (to - from) * 0.15]) }];
     });
   });
 
@@ -164,13 +165,13 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
                 <polyline points={trace} fill="none" stroke={`url(#${gradientId})`} strokeWidth={strokeAt(3.4, view.zoom)} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
               </>
             ) : null}
-            {parts.map(({ part, from, drawnTo, alpha }, i) => (
-              <polyline key={i} points={line(from, drawnTo)} fill="none" stroke={tokenColor(part.color)} strokeOpacity={0.85 * alpha} strokeWidth={strokeAt(5, view.zoom)} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            {parts.map(({ part, from, drawnTo, alpha, glow }, i) => (
+              <polyline key={i} points={line(from, drawnTo)} fill="none" stroke={tokenColor(part.color)} strokeOpacity={Math.min(1, 0.85 * alpha + 0.15 * glow)} strokeWidth={strokeAt(5 + 4 * glow, view.zoom)} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
             ))}
           </g>
           {band ? null : <rect width={WIDTH} height={HEIGHT} fill={`url(#${gradientId}-vignette)`} />}
-          {parts.map(({ part, lx, ly, alpha }, i) => (
-            <text key={i} x={lx} y={ly} textAnchor="middle" fontFamily={MONO} fontWeight={700} fontSize={34} fill={tokenColor(part.color)} opacity={alpha} stroke={COLOR.space} strokeWidth={6} paintOrder="stroke">
+          {parts.map(({ part, lx, ly, alpha, glow }, i) => (
+            <text key={i} x={lx} y={ly} textAnchor="middle" fontFamily={MONO} fontWeight={700} fontSize={34 * (1 + 0.4 * glow)} fill={glow > 0 ? COLOR.text : tokenColor(part.color)} opacity={Math.max(alpha, glow)} stroke={glow > 0 ? tokenColor(part.color) : COLOR.space} strokeWidth={6} paintOrder="stroke">
               {part.text}
             </text>
           ))}

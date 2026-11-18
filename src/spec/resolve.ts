@@ -4,6 +4,7 @@ import catalog from "../kit/audio/sfx-catalog.json";
 import lengths from "../kit/audio/sfx-durations.json";
 import { curveFn, type CurveFn } from "../kit/curves";
 import { FPS, formatCounter } from "../kit/format";
+import { speedLabel } from "../kit/overlays/Counter";
 import { KEY_REF, MARK_REF } from "./primitives";
 import { ResolvedSpec, Timing, VideoSpec, type LayerOf, type Spec } from "./schema";
 import {
@@ -175,6 +176,43 @@ const checkPlaceholders = (raw: RawSpec) => {
   Object.entries(raw).forEach(([k, v]) => visit(v, k));
 };
 
+const words = (text: string) =>
+  text
+    .toLocaleLowerCase("tr")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+
+/**
+ * STYLE rules about the script itself: no two "Peki…?" questions in a row, hook titles reuse the words being
+ * spoken, and with a `peak` mark the strongest moment sits in the last third with no long section after it.
+ */
+const checkScript = (raw: RawSpec, spec: Spec, phrases: Phrase[]) => {
+  phrases.forEach((p, i) => {
+    if (i > 0 && /^peki\b/i.test(phrases[i - 1].text) && /^peki\b/i.test(p.text)) {
+      fail("voiceover", `"${phrases[i - 1].text}" / "${p.text}": two "Peki…?" questions in a row`);
+    }
+  });
+  if (!raw.template) {
+    spec.titles.forEach((title, i) => {
+      const spoken = new Set(phrases.filter((p) => p.end > title.from && p.start < title.to).flatMap((p) => words(p.text)));
+      const missing = words(`${title.top} ${title.bottom}`).filter((w) => !spoken.has(w));
+      if (missing.length) fail(`titles[${i}]`, `uses words the voice-over does not say meanwhile: ${missing.join(", ")}`);
+    });
+  }
+  const peak = spec.marks.peak;
+  if (typeof peak === "number") {
+    const third = (spec.durationSec * 2) / 3;
+    if (peak < third) fail("marks.peak", `the strongest moment (${peak.toFixed(1)} s) must be in the last third (after ${third.toFixed(1)} s)`);
+    raw.voiceover.sections.forEach((s, i) => {
+      const length = s.window[1] - s.window[0];
+      if (s.window[0] >= peak - 0.01 && length > 8) {
+        fail(`voiceover.sections[${i}]`, `"${s.id}" starts after the peak and runs ${length.toFixed(1)} s (at most 8)`);
+      }
+    });
+  }
+};
+
 const FREEZE_LIMIT = 3;
 
 /**
@@ -182,7 +220,7 @@ const FREEZE_LIMIT = 3;
  * from "#key" or from a segment that runs at real speed. And no counter stands still for more than 3 s unless
  * a `holds` range says so.
  */
-const checkTimeline = (raw: RawSpec, spec: Spec, curve: (name: string) => CurveFn, fps: number) => {
+const checkTimeline = (raw: RawSpec, spec: Spec, curve: (name: string) => CurveFn, fps: number, phrases: Phrase[]) => {
   const ids = new Set(spec.sources.map((s) => s.id).filter(Boolean));
   for (const [name, k] of Object.entries(spec.timeline?.keys ?? {})) {
     if (!ids.has(k.source)) fail(`timeline.keys.${name}.source`, `no source has id "${k.source}"`);
@@ -190,7 +228,28 @@ const checkTimeline = (raw: RawSpec, spec: Spec, curve: (name: string) => CurveF
 
   const c = spec.counter;
   if (!c) return;
-  const end = spec.concept ? spec.concept.at - 0.3 : spec.durationSec;
+  const end = Math.min(spec.concept ? spec.concept.at - 0.3 : spec.durationSec, c.until !== undefined ? c.until - 0.3 : Infinity);
+
+  if (c.timeScale) {
+    let p = 0;
+    const starts = raw.voiceover.sections.map((s) => {
+      const start = phrases[p].start;
+      p += s.phrases.length;
+      return start;
+    });
+    raw.voiceover.sections.forEach((section, i) => {
+      const from = Math.max(starts[i], c.fadeIn[1]);
+      const to = Math.min(starts[i + 1] ?? spec.durationSec, end);
+      const seen = new Set<string>();
+      for (let f = Math.ceil(from * fps); f < Math.floor(to * fps); f++) {
+        const label = speedLabel(c, spec.curves[c.curve], f / fps, spec.lang);
+        if (label) seen.add(label);
+      }
+      if (seen.size > 1) {
+        fail("counter", `the speed label changes inside section "${section.id}" (${[...seen].join(" → ")}) — give each section one curve segment`);
+      }
+    });
+  }
 
   if (spec.timeline) {
     const where = `curves.${c.curve}`;
@@ -342,7 +401,8 @@ export const resolveVideo = (rawSpec: unknown, rawTiming: unknown): Video => {
   check(spec);
 
   const curves = new Map(Object.entries(spec.curves).map(([name, c]) => [name, curveFn(c)]));
-  checkTimeline(raw, spec, (name) => curves.get(name) ?? fail("curves", `unknown curve "${name}"`), FPS);
+  checkTimeline(raw, spec, (name) => curves.get(name) ?? fail("curves", `unknown curve "${name}"`), FPS, phrases);
+  checkScript(raw, spec, phrases);
   return {
     spec,
     phrases,

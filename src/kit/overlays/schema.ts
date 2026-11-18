@@ -53,6 +53,8 @@ export const counterSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T
       timeScale: z.object({ unitPerSec: z.number().positive() }).strict().optional(),
       /** Where the shown value may stand still for more than 3 s; anywhere else `npm run check` fails. */
       holds: z.array(k.range).default([]),
+      /** Fades the counter out here (it also hides itself for the concept card). */
+      until: k.time.optional(),
       format: z
         .object({ zeroBelow: z.number().min(0).default(0.05), oneDecimalBelow: z.number().min(0).default(10) })
         .strict()
@@ -76,6 +78,8 @@ export const layoutSchema = z
   .object({
     rightInset: z.number().min(0).default(132),
     contentWidth: z.number().positive().max(1080).default(840),
+    /** Dark panel behind each column of data lines. */
+    labelBackdrop: z.boolean().default(true),
   })
   .strict();
 

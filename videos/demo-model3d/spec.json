@@ -32,7 +32,7 @@
     { "text": "KESİT", "at": 6.5, "until": 8.3, "top": 650, "size": 52, "bar": true, "sound": "tick" },
     { "text": "PATLATMA", "at": 8.5, "until": 10, "top": 740, "size": 52, "bar": true, "sound": "tick" }
   ],
-  "notes": [{ "text": "ÖLÇEKLİ DEĞİL", "at": 0.3, "until": 10, "top": 1330 }],
+  "notes": [{ "text": "ÖLÇEKLİ DEĞİL", "at": 0.3, "until": 10, "top": 300 }],
   "sound": {
     "beds": [{ "id": "space", "at": 0, "fadeIn": [0, 1], "fadeOut": [9, 10] }]
   },

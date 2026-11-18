@@ -14,9 +14,11 @@ import { ROOT, duration, loadSpec, outDir, requireSlug, videoDir } from "./lib/v
 const SAFE_RIGHT = 960;
 const SAFE_BOTTOM = 1632;
 const FPS = 30;
-const RATE_LIMITS = [2.2, 2.8];
+const RATE_LIMITS = [2.4, 2.7];
 const SECTION_TOLERANCE = 0.2;
 const SILENCE = { noiseDb: -70, minSec: 0.3, tailSec: 0.7 };
+/** A data line's box must be empty background: no pixel brighter than `luma` beyond these shares. */
+const CLUTTER = { luma: 70, share: 0.004, line: 0.35 };
 
 const { positional, flags } = parseArgs(process.argv.slice(2), { layout: "boolean", audio: "boolean", every: "number" });
 const slug = requireSlug(positional[0]);
@@ -79,23 +81,25 @@ const probe = async (frame, qa, output) => {
 
 const overlap = (a, b) => Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1) > 2 && Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1) > 2;
 
-/** Brightest row/column share inside a box of a frame rendered without overlays: a line runs behind the text. */
-const brightLine = (png, box) => {
+/** Anything drawn behind a data line: share of bright pixels in its box, and the fullest row or column (a line). */
+const drawingInBox = (png, box) => {
   const x = Math.max(0, Math.floor(box.x1) - 4);
   const y = Math.max(0, Math.floor(box.y1) - 4);
   const w = Math.min(1080 - x, Math.ceil(box.x2 - box.x1) + 8);
   const h = Math.min(1920 - y, Math.ceil(box.y2 - box.y1) + 8);
-  if (w < 4 || h < 4) return 0;
+  if (w < 4 || h < 4) return { share: 0, line: 0 };
   const { stdout } = spawnSync(
     "ffmpeg",
     ["-hide_banner", "-loglevel", "error", "-i", png, "-vf", `crop=${w}:${h}:${x}:${y},format=gray`, "-f", "rawvideo", "-"],
     { maxBuffer: 64 * 1024 * 1024 },
   );
-  const bright = (v) => v > 150;
+  const bright = (v) => v > CLUTTER.luma;
   let best = 0;
+  let total = 0;
   for (let r = 0; r < h; r++) {
     let n = 0;
     for (let c = 0; c < w; c++) n += bright(stdout[r * w + c]) ? 1 : 0;
+    total += n;
     best = Math.max(best, n / w);
   }
   for (let c = 0; c < w; c++) {
@@ -103,7 +107,7 @@ const brightLine = (png, box) => {
     for (let r = 0; r < h; r++) n += bright(stdout[r * w + c]) ? 1 : 0;
     best = Math.max(best, n / h);
   }
-  return best;
+  return { share: total / (w * h), line: best };
 };
 
 const layout = async () => {
@@ -116,12 +120,14 @@ const layout = async () => {
 
   const overlaps = spans();
   const unsafe = spans();
-  const firstSeen = new Map();
+  const seen = new Map();
   for (const frame of frames) {
     const { boxes } = frame === 0 ? first : await probe(frame, { probe: true }, path.join(tmp, "probe.png"));
     if (!boxes) continue;
     for (const b of boxes.boxes) {
-      if (!firstSeen.has(b.id)) firstSeen.set(b.id, { t: boxes.t, frame, box: b });
+      const list = seen.get(b.id) ?? [];
+      if (!list.length || frame - list.at(-1).frame >= FPS) list.push({ t: boxes.t, frame, box: b });
+      seen.set(b.id, list);
       if (b.x2 > SAFE_RIGHT + 0.5) unsafe.add(`${b.id}:right`, boxes.t, `${b.id} "${b.text}" reaches x ${Math.round(b.x2)} (right safe area starts at ${SAFE_RIGHT})`);
       if (b.y2 > SAFE_BOTTOM + 0.5) unsafe.add(`${b.id}:bottom`, boxes.t, `${b.id} "${b.text}" reaches y ${Math.round(b.y2)} (bottom safe area starts at ${SAFE_BOTTOM})`);
       if (b.x1 < -0.5) unsafe.add(`${b.id}:left`, boxes.t, `${b.id} "${b.text}" starts off-screen (x ${Math.round(b.x1)})`);
@@ -135,13 +141,19 @@ const layout = async () => {
   }
   errors.push(...overlaps.list().map((m) => `yerleşim: ${m}`), ...unsafe.list().map((m) => `güvenli alan: ${m}`));
 
-  for (const { t, frame, box } of firstSeen.values()) {
-    if (box.kind !== "label" && box.kind !== "note") continue;
-    const png = path.join(tmp, `bg-${frame}.png`);
-    if (!existsSync(png)) await probe(frame, { probe: false, overlays: false }, png);
-    const share = brightLine(png, box);
-    if (share > 0.5) warnings.push(`parlak çizgi: ${fmt(t)}: ${box.id} "${box.text}" — kutunun bir satır/sütununun %${Math.round(share * 100)}'i parlak`);
+  const clutter = spans();
+  for (const list of seen.values()) {
+    for (const { t, frame, box } of list) {
+      if (box.kind !== "label" && box.kind !== "note") continue;
+      const png = path.join(tmp, `bg-${frame}.png`);
+      if (!existsSync(png)) await probe(frame, { probe: false, overlays: false }, png);
+      const { share, line } = drawingInBox(png, box);
+      if (share > CLUTTER.share || line > CLUTTER.line) {
+        clutter.add(box.id, t, `${box.id} "${box.text}" kutusuna çizim giriyor (parlak piksel %${(share * 100).toFixed(1)}, en dolu satır/sütun %${Math.round(line * 100)})`);
+      }
+    }
   }
+  errors.push(...clutter.list().map((m) => `etiket alanı: ${m}`));
   rmSync(tmp, { recursive: true, force: true });
   return { frames: frames.length, sound: first.spec?.sound };
 };
@@ -215,7 +227,7 @@ writeFileSync(path.join(outDir(slug), "qa.json"), `${JSON.stringify(report, null
 
 const rows = [
   ["Yerleşim (çakışma, güvenli alan)", runLayout ? (errors.some((e) => /^(yerleşim|güvenli alan)/.test(e)) ? "HATA" : "temiz") : "—"],
-  ["Parlak çizgi (etiket arkası)", runLayout ? (warnings.some((w) => w.startsWith("parlak")) ? "uyarı" : "temiz") : "—"],
+  ["Etiket alanı (çizgi/nesne)", runLayout ? (errors.some((e) => e.startsWith("etiket alanı")) ? "HATA" : "temiz") : "—"],
   ["Konuşma hızı", runAudio ? (errors.some((e) => e.startsWith("konuşma")) ? "HATA" : warnings.some((w) => w.startsWith("konuşma")) ? "uyarı" : "temiz") : "—"],
   ["Dijital sessizlik", runAudio ? (errors.some((e) => e.startsWith("sessizlik")) ? "HATA" : "temiz") : "—"],
   ["Yatak sürekliliği", runAudio ? (errors.some((e) => e.startsWith("yatak")) ? "HATA" : warnings.some((w) => w.startsWith("yatak")) ? "uyarı" : "temiz") : "—"],

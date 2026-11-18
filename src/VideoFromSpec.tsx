@@ -10,6 +10,7 @@ import { HookTitle } from "./kit/overlays/HookTitle";
 import { LayoutContext } from "./kit/layout";
 import { QaProbe } from "./kit/qa/QaProbe";
 import { Karaoke } from "./kit/overlays/Karaoke";
+import { LabelBackdrop } from "./kit/overlays/LabelBackdrop";
 import { LayerView } from "./kit/registry";
 import { createGlobeRig } from "./kit/scenes/globe/rig";
 import { RigContext } from "./kit/scenes/globe/rig-context";
@@ -42,6 +43,7 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
         ))}
         {qa?.overlays === false ? null : (
           <>
+            {s.layout.labelBackdrop ? <LabelBackdrop labels={s.labels} /> : null}
             {s.labels.map((label, i) => (
               <DataLabel key={`label-${i}`} label={label} />
             ))}
@@ -55,7 +57,13 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
             {s.countdown ? <Countdown countdown={s.countdown} /> : null}
             {s.concept ? <ConceptCard concept={s.concept} /> : null}
             {s.counter ? (
-              <Counter counter={s.counter} value={video.curve(s.counter.curve)} locale={s.lang} conceptAt={s.concept?.at} />
+              <Counter
+                counter={s.counter}
+                value={video.curve(s.counter.curve)}
+                curve={s.curves[s.counter.curve]}
+                locale={s.lang}
+                conceptAt={s.concept?.at}
+              />
             ) : null}
             <Karaoke pages={video.pages} captions={s.captions} />
           </>

@@ -33,8 +33,8 @@ export const flowSchema = <T extends z.ZodType, R extends z.ZodType, N extends z
               id,
               points: z.array(point).min(3),
               smooth: z.boolean().default(true),
-              fill: z.enum(["none", "surface", "faint"]).default("surface"),
-              edge: z.enum(["none", "surface", "faint"]).default("surface"),
+              fill: z.enum(["none", "surface", "faint", "skin"]).default("surface"),
+              edge: z.enum(["none", "surface", "faint", "skin"]).default("surface"),
               /** Also clip the sweep and highlight to this region (e.g. a chamber inside an organ). */
               clipTo: id.optional(),
               /** A colour that floods the region from `origin` as `progress` goes 0 → 1. */
@@ -58,6 +58,8 @@ export const flowSchema = <T extends z.ZodType, R extends z.ZodType, N extends z
               color: z.union([ColorToken, z.enum(["surface", "faint"])]).default("secondary"),
               opacity: z.number().min(0).max(1).default(0.4),
               width: z.number().positive().default(2.4),
+              /** Path visibility (e.g. cables that leave with the skin). */
+              visible: windowSchema(k).optional(),
             })
             .strict(),
         )
@@ -117,6 +119,8 @@ export const flowSchema = <T extends z.ZodType, R extends z.ZodType, N extends z
       drift: driftSchema.prefault({}),
       /** Screen y where the camera's focus lands; match it with the layer this one hands off to. */
       anchorY: z.number().default(960),
+      /** Draw only inside this horizontal band, leaving the rest of the frame to data lines and other layers. */
+      frame: z.object({ top: z.number().min(0), height: z.number().positive() }).strict().optional(),
     })
     .strict();
 };
