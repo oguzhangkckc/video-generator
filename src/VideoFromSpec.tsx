@@ -8,6 +8,7 @@ import { Counter } from "./kit/overlays/Counter";
 import { DataLabel, NoteLabel } from "./kit/overlays/DataLabel";
 import { HookTitle } from "./kit/overlays/HookTitle";
 import { LayoutContext } from "./kit/layout";
+import { QaProbe } from "./kit/qa/QaProbe";
 import { Karaoke } from "./kit/overlays/Karaoke";
 import { LayerView } from "./kit/registry";
 import { createGlobeRig } from "./kit/scenes/globe/rig";
@@ -18,7 +19,7 @@ import { resolveVideo } from "./spec/resolve";
 import type { LayerOf, VideoProps } from "./spec/schema";
 
 /** Layers in spec order, then the overlays in a fixed order: labels, notes, titles, darken, finale, counter, captions. */
-export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timing }) => {
+export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timing, qa }) => {
   const video = useMemo(() => resolveVideo(spec, timing), [spec, timing]);
   const rigs = useMemo(
     () =>
@@ -39,22 +40,27 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
         {s.layers.map((layer, i) => (
           <LayerView key={`layer-${i}`} layer={layer} video={video} />
         ))}
-        {s.labels.map((label, i) => (
-          <DataLabel key={`label-${i}`} label={label} />
-        ))}
-        {s.notes.map((note, i) => (
-          <NoteLabel key={`note-${i}`} note={note} />
-        ))}
-        {s.titles.map((title, i) => (
-          <HookTitle key={`title-${i}`} {...title} />
-        ))}
-        {s.darken ? <Darken darken={s.darken} /> : null}
-        {s.countdown ? <Countdown countdown={s.countdown} /> : null}
-        {s.concept ? <ConceptCard concept={s.concept} /> : null}
-        {s.counter ? (
-          <Counter counter={s.counter} value={video.curve(s.counter.curve)} locale={s.lang} conceptAt={s.concept?.at} />
-        ) : null}
-        <Karaoke pages={video.pages} captions={s.captions} />
+        {qa?.overlays === false ? null : (
+          <>
+            {s.labels.map((label, i) => (
+              <DataLabel key={`label-${i}`} label={label} />
+            ))}
+            {s.notes.map((note, i) => (
+              <NoteLabel key={`note-${i}`} note={note} />
+            ))}
+            {s.titles.map((title, i) => (
+              <HookTitle key={`title-${i}`} {...title} />
+            ))}
+            {s.darken ? <Darken darken={s.darken} /> : null}
+            {s.countdown ? <Countdown countdown={s.countdown} /> : null}
+            {s.concept ? <ConceptCard concept={s.concept} /> : null}
+            {s.counter ? (
+              <Counter counter={s.counter} value={video.curve(s.counter.curve)} locale={s.lang} conceptAt={s.concept?.at} />
+            ) : null}
+            <Karaoke pages={video.pages} captions={s.captions} />
+          </>
+        )}
+        {qa?.probe ? <QaProbe video={video} /> : null}
       </AbsoluteFill>
       </LayoutContext.Provider>
     </RigContext.Provider>

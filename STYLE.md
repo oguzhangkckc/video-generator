@@ -38,6 +38,7 @@ kullanılır.
 - İlk 5 saniyede **2'şer saniyelik 3 başlık** (`titles`), birlikte tek bir **soru** kurar. İlk başlık 0. karede
   okunur durumdadır (kapak görseli).
 - Kanca, izleyicinin elindeki gündelik bir şeyle başlar ("Cebinde bir uydu alıcısı var.").
+- **Kancadaki soru finalde açıkça cevaplanır.** Tek cümlelik özet, kancanın sorusunun cevabıdır.
 
 ## Anlatım
 
@@ -48,15 +49,20 @@ kullanılır.
 - Konuşma hızı **~2,5 kelime/sn**: 30 sn ≈ 70 kelime, 45 sn ≈ 110, 60 sn ≈ 145. Bölüm bütçesi =
   pencere süresi × 2,5 − ~1 kelime pay.
 - Cümleler kısa tutulur. Bir cümle bir altyazı sayfasıdır ve tek satıra sığmalıdır (≈ 32 karakter).
+- **Sağ ya da sol söylenen her yerde ekranda yön ipucu olur.** Anatomik görünümde izleyicinin sağı ekranın solunda
+  kalır; "SENİN SAĞIN" gibi bir etiket ya da ok bunu gösterir.
 
 ## Final
 
 Sıra her zaman aynıdır:
 
-1. **Geri sayımlı doruk** (`countdown`): gerilimin en yüksek anı; 3–2–1 ya da gerçek bir sayaç.
-2. **Tek cümlelik özet.**
+1. **Doruk:** gerilimin en yüksek anı. **Geri sayım (`countdown`) yalnızca gerçek bir süre, mesafe ya da eşik
+   varsa kullanılır** (kalan saniye, kalan metre, aşılacak bir sınır). Yoksa doruk başka bir biçimde kurulur: kritik
+   an, karşılaştırma ya da "aha" anı.
+2. **Tek cümlelik özet:** kancadaki sorunun cevabı.
 3. **Kavramın adı en son** (`concept`). İsim videonun içinde önceden söylenmez; izleyici önce ne olduğunu anlar,
-   sonra adını öğrenir.
+   sonra adını öğrenir. **Kavramın adı izleyicinin muhtemelen zaten bildiği bir şeyse** (EKG, GPS…) finale bir
+   şaşırtma eklenir (kelimenin kökeni, beklenmedik bir bağlantı) ya da başka bir kavram seçilir.
 
 ## Ritim
 
@@ -67,6 +73,8 @@ Sıra her zaman aynıdır:
 ## Kamera ve geçişler
 
 - **Kamera hiç durmaz.** Sabit görünen planlarda bile yavaş bir dönüş, yaklaşma ya da kayma vardır.
+- **Önce bağlam, sonra detay:** ilk yakın plandan önce nesnenin nerede olduğunu gösteren bir geniş plan gelir
+  (kalpten önce göğüs, uydudan önce gezegen).
 - **Düz kesme yoktur.** Sahneler kamera hareketiyle birbirine bağlanır:
   - **nesnenin içinden geçme:** atmosfer pusu (`haze`), halkanın içinden geçiş (`signalPass`)
   - **şekil eşleştirme:** bir sahnedeki biçim diğerindekine oturur (`ringShrink`: halka → işaretçi)
@@ -74,19 +82,31 @@ Sıra her zaman aynıdır:
 - Sayaç, harita zoom'u ve 3D kamera aynı eğriden (`curves`) beslenir. Ekranda gördüğün yükseklik ile sayaçtaki
   değer her zaman tutarlıdır.
 
+## Sayaç ve zaman çizelgesi
+
+- Sayaç, animasyon (iletim, sinyal) ve `trace` **aynı zaman çizelgesinden** beslenir. Çizelgenin her anahtar değeri
+  `timeline.keys` içinde bir `sources[].id`'ye bağlıdır (`"#ad"`); kaynaksız ara değer sayaca yazılmaz.
+- Zaman gerçek hızdan farklı akıyorsa `counter.timeScale` verilir; sayaç "×100 YAVAŞ" gibi etiketi kendisi gösterir.
+  Birim de kendiliğinden büyür (1000 ms üstü "1,69 sn").
+- **Sayaç 3 sn'den uzun donmaz.** Bilinçli duraklama `counter.holds` ile yazılır. Kavram kartı sırasında sayaç gizlenir.
+
 ## Yerleşim
 
 - **Sayaç** sağ üstte, sabit (`counter`).
 - **Altyazı** yüksekliğin **%77'sinde**, tek satır karaoke: söylenen kelime beyaz, sıradakiler gri.
 - Veri satırları üst yarıda (`top` ≈ 450–850). Notlar sağ altta (`top` ≈ 1330).
 - **Güvenli alanlar:** alt %15 (≈ 1630 px altı) ve sağ kenarın son 120 px'i platform arayüzü için boş kalır.
-  Okunması gereken hiçbir şey oraya konmaz.
+  Okunması gereken hiçbir şey oraya konmaz. Varsayılan `layout` (sağ boşluk 132 px, ortalanmış genişlik 840 px) bunu
+  sağlar; `npm run qa` taşan ya da çakışan her yazıyı hata olarak bildirir.
 
 ## Ses
 
 - Seslendirme −14 LUFS'e normalize edilir. Efekt dosyaları −16 LUFS'tedir; görece seviyeleri
   `src/kit/audio/sfx-catalog.json` içindeki `level` belirler.
 - Ambiyans yatakları ve müzik konuşma sırasında **~6 dB kısılır** (`duck: 0.5`).
+- Yatak ya da müzik **videonun tamamı boyunca kesintisiz** çalar. Kısa bir yatak `loop: true` ile döner; müzik
+  kullanılmıyorsa varsayılan yatak `space`, `loop: true`, 0'dan sona.
+- Konuşma hızı render sonrası ölçülür (`npm run qa`): genel olarak 2,2–2,8 kelime/sn.
 - Efekt görsel bir olaya bağlıdır: bir etiket, bir geçiş, bir çarpma. Olaysız efekt yoktur.
 
 ## Dürüstlük
@@ -108,12 +128,17 @@ Sıra her zaman aynıdır:
 Still kareler incelenirken (skill adım e) her madde tek tek kontrol edilir:
 
 - [ ] İlk 5 sn: 3 başlık, her biri ~2 sn, birlikte bir soru; ilk kare okunuyor.
+- [ ] Kancadaki soru finalde açıkça cevaplanıyor.
 - [ ] Her bölüm "Peki…?" ile açılıyor; izleyiciye "sen" deniyor.
 - [ ] Kelime sayısı bütçenin içinde (süre × 2,5); hiçbir altyazı satırı taşmıyor.
 - [ ] 2–3 sn'de bir yeni rakam/etiket var; aynı anda en fazla 4 veri satırı.
 - [ ] Renkler anlamına uygun: turuncu = senin verin, kırmızı = tehlike, camgöbeği = ikincil.
 - [ ] Hiçbir yazı güvenli alanlara (alt %15, sağ 120 px) ya da altyazının üstüne binmiyor; işaretçiyi örtmüyor.
 - [ ] Hiçbir karede kamera donmuyor; sahne değişimleri geçişle bağlı, düz kesme yok.
+- [ ] İlk yakın plandan önce nesnenin yerini gösteren geniş plan var; sağ/sol söylenen yerde yön ipucu var.
+- [ ] Sayaç kaynaklı çizelgeden besleniyor, 3 sn'den uzun donmuyor, yavaş/hızlı akışta etiket var.
 - [ ] Ölçeksiz ya da sadeleştirilmiş her görselde not var; her rakamın kaynağı `sources`'ta.
-- [ ] Final sırası: geri sayım → tek cümle özet → kavram adı en son.
+- [ ] Final sırası: doruk → tek cümle özet → kavram adı en son. Geri sayım yalnızca gerçek bir süre/eşik için;
+      tanıdık kavramda şaşırtma var.
+- [ ] `npm run qa` temiz (e adımında yerleşim, f adımında ses); sonuç tablosu kullanıcıya gösterildi.
 - [ ] `credits` eksiksiz: ses, efekt, müzik, doku, yazı tipi, kod.

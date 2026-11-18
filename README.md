@@ -48,6 +48,10 @@ de kareler incelenebilir.
 | `npm run sfx [id…]` | ElevenLabs efektlerini katalogdan üretir → `public/kit/sfx/` |
 | `npm run music -- list` | lisanslı müzik kütüphanesini listeler ve doğrular |
 | `npm run compare -- <dirA> <dirB>` | kare kare SSIM (ya da iki ses dosyasında null test); regresyon kontrolü |
+| `npm run qa -- <slug> [--layout] [--audio] [--every 0.25]` | otomatik kalite kontrolü (aşağıda); `out/<slug>/qa.json`, hata varsa çıkış kodu 1 |
+| `npm run models -- list` | 3D model kütüphanesini doğrular (lisans kaydı) ve parça adlarını listeler |
+| `npm run models -- pack <file.gltf> <id> [--max 1024] [--jpeg]` | glTF'i dokuları küçültülmüş tek GLB'ye paketler → `public/kit/models/<id>.glb` |
+| `npm run sfx -- --index` | efekt süre dizinini (`src/kit/audio/sfx-durations.json`) API'siz yeniden yazar |
 
 ## Tarif formatı (`spec.json`)
 
@@ -68,6 +72,9 @@ de kareler incelenebilir.
 | `sources[]` | her iddia: değer, url, erişim tarihi, `verified` / `simplified` / `disputed` |
 | `credits[]` | her model, ses, doku, yazı tipi, müzik ve kod: sahibi + lisansı |
 | `styleExceptions[]` | STYLE.md'den bilinçli sapmalar ve gerekçeleri |
+| `layout` | güvenli alan: `rightInset` (132), `contentWidth` (840); yazılar sağdaki 120 px'e girmez |
+| `timeline` | kaynaklı değerler: `keys.<ad> = { value, source: "<sources[].id>" }`; spec'te `"#ad"` diye kullanılır |
+| `template` | yalnız `videos/sablon`: `[yer tutucu]` metinlerine izin verir; `npm run new` bu bayrağı siler |
 
 **Zaman yazımı.** Zaman alan her alan şunlardan birini kabul eder:
 
@@ -76,6 +83,14 @@ de kareler incelenebilir.
 - cümleye bağlı: `{ "cue": "Peki ya", "offset": -0.3 }` → o cümlenin başladığı an
 
 Cümleye bağlı zamanlar ses değişince kendiliğinden kayar. `@` ile başlayan metinler işaret sayılır.
+
+**Kaynaklı değerler.** Eğri değerleri ve tür parametreleri (ör. `trace` dalga aralıkları, `flow` sinyal aralıkları)
+`"#ad"` alabilir; değer `timeline.keys`'ten gelir, her anahtar bir `sources[].id`'ye bağlıdır. Spec'te `timeline`
+varsa sayacın gösterdiği her değer ya `"#ad"` ya da `"realtime": true` bir segmentten gelmek zorundadır. Sayaç
+3 sn'den uzun aynı değeri gösteremez (bilinçli duraklama: `counter.holds`). Hepsini `npm run check` denetler.
+
+**Şablon yer tutucuları.** `videos/sablon` metinleri `[köşeli parantez]` içindedir. `template: true` olmayan bir
+spec'te köşeli parantezli metin kalırsa `npm run check` alan yoluyla hata verir.
 
 **Zamanlama dosyası.** `videos/<slug>/timing.json` elle düzenlenmez; `align` ya da `voiceover` yazar. Metin
 değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise hata verir.
@@ -89,10 +104,16 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
 | `globe` | 3D gezegen (NASA gece dokusu), atmosfer, yıldızlar; isteğe bağlı yörüngeler, kahraman uydu, yayın parlaması | `window`, `texture`, `location`, `orbits`, `hero`, `flash`, `camera[]` |
 | ↳ `camera[]` | ilkel çekimler: `pullback` (yüzeyden geniş plana, eğriyle), `follow` (uyduyu arkadan, dönerek), `descend` (önceki çekimden konuma iniş); `blendIn` ile yumuşak geçiş | `from`, çekime göre `progress` / `curve` / `blendIn` |
 | `cityMap` | prosedürel, soyut gece şehri ve konum işaretçisi; zoom bir eğriyi izler; işaretçi kayabilir (hata) | `visible[]`, `zoom`, `rotation`, `marker`, `offset`, `seed` |
+| `model3d` | GLB model (`public/kit/models`, lisansı `<id>.json`'da): kamera anahtar kareleri (yörünge açısı, yükseklik, uzaklık, hedef parça), parça vurgulama (renk anlamıyla), kesit düzlemi, patlatma. Parça adları ve `credits` kaydı `npm run check`'te doğrulanır | `window`, `file`, `camera[]`, `orbitDegPerSec`, `highlight[]`, `dimOthers`, `section`, `explode` |
+| `flow` | 2D şema: bölgeler (dolgu, kaynaktan yayılan renk), yollar, düğümler (`glow`/`dot`/`ring`/`pad`), yollar boyunca ilerleyen sinyaller, alan halkaları | `regions[]`, `paths[]`, `nodes[]`, `signals[]`, `fields[]`, `highlight[]`, `camera[]`, `drift`, `anchorY` |
+| `trace` | monitör/grafik çizgisi; kalem bir saat eğrisini izler (gerçek zaman ya da ağır çekim). Dalga biçimi parametre: `ecg` ön ayarı, `sine`, `square`, `saw`, `samples`. `parts` çizilirken adlandırılır (P, QRS, T…) | `clock`, `waveform`, `grid`, `parts[]`, `penX`, `baselineY`, `anchorY`, `camera[]`, `beep` |
+| ↳ `camera[]` (2D) | flow ve trace'in ortak düz kamerası (`camera2d`): `{ at, focus, zoom, rotate, easing }` + `drift` (asla donmaz). **Şekil eşleştirme:** iki katman aynı `anchorY` ve zoom'da odak noktasını gösterince turuncu nokta (`MATCH_DOT_R`) birebir örtüşür | `focus`: düğüm adı, `"pen"` / `"frame"` ya da `[x, y]` |
 | `haze` | **nesnenin içinden geçme:** atmosfer pusu | `envelopes[]` |
 | `speedLines` | ışık hızı çizgileri | `envelope` |
 | `signalPass` | **halkanın içinden geçme:** bir küredeki 3D noktadan çıkıp kameradan geçen halkalar | `anchor` {`layer`, `point`}, `emits[]` |
 | `ringShrink` | **şekil eşleştirme:** ekranı dolduran halka işaretçinin halesine oturur | `range`, `toRadius` |
+
+Örnekler: `videos/demo-model3d`, `videos/demo-flow`, `videos/demo-trace`.
 
 **Üst yazılar** (sabit sırayla en üstte): `labels` → `notes` → `titles` → `darken` → `countdown` → `concept` →
 `counter` → `captions`. Renkler anlamsal adlarla yazılır: `text`, `you`, `danger`, `secondary`, `marker`, `muted`.
@@ -107,7 +128,8 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
 4. GPS regresyonunu çalıştırın:
    `npm run stills -- gps-pilot --every 10 --out out/regress/frames` ve ardından
    `npm run compare -- out/baseline/frames out/regress/frames`. Referans kareler değişiklikten önce aynı komutla
-   `out/baseline/frames`'e alınır.
+   `out/baseline/frames`'e alınır. Ses değiştiyse ayrıca render alıp null testi:
+   `npm run compare -- out/baseline/gps-pilot.mp4 out/gps-pilot.mp4`.
 
 ## Ses
 
@@ -122,8 +144,20 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
   { "title": "…", "author": "…", "license": "…", "url": "https://…", "downloaded": "2026-11-18", "moods": ["gerilim", "ambient"] }
   ```
 
-  `npm run music -- list` kütüphaneyi doğrular ve parça başına başlangıç `gain`'i önerir. Kütüphane boşken
-  `space` drone yatağı kullanılır. ElevenLabs Music API ücretsiz planda kapalıdır.
+  `npm run music -- list` kütüphaneyi doğrular ve parça başına başlangıç `gain`'i önerir. Kütüphanede dört CC0
+  ambiyans parçası var (OpenGameArt). Müzik kullanılmayan videoda `space` drone yatağı `loop: true` ile baştan
+  sona kesintisiz çalar (eşit güçlü çapraz geçişli döngü). ElevenLabs Music API ücretsiz planda kapalıdır.
+- **3D modeller:** `public/kit/models/<id>.glb` + `<id>.json` (`title`, `author`, `license`, `url`,
+  `downloaded`). CC0 tercih edilir; modeli kullanan spec'in `credits`'inde `kind: "model"` ve aynı `url` zorunludur.
+
+## Kalite kontrolü (`npm run qa`)
+
+- **Yerleşim** (render gerekmez): her 0,25 sn'de bir kare tarayıcıda açılır, üst yazıların kutuları
+  `@remotion/layout-utils` ile ölçülür. Yazılar birbirine ya da altyazıya biniyorsa, sağdaki 120 px'e ya da alttaki
+  %15'e taşıyorsa hata. Üst yazılar kapatılmış karede bir etiket kutusunun içinden parlak çizgi geçiyorsa uyarı.
+- **Ses** (render sonrası): konuşma hızı genel 2,2–2,8 kelime/sn dışındaysa hata, bölüm hedeften %20 saparsa uyarı;
+  son 0,7 sn dışında 0,3 sn'den uzun dijital sessizlik hata; bir yatak ya da müzik hâlâ duyulması gerekirken dosya
+  biterse hata.
 
 ## GPS pilotu ve regresyon
 
@@ -138,4 +172,5 @@ karede bir) hepsi eskisiyle SSIM 1,000; ses bit düzeyinde aynı. Pilot STYLE.md
 - **Remotion:** 3 kişiden büyük şirketlerde şirket lisansı gerekir (remotion.dev/license).
 - **Doku:** NASA Black Marble 2016, kamu malı (NASA Goddard'a kredi verilir).
 - **Yazı tipleri:** Inter ve JetBrains Mono (SIL OFL 1.1). **three.js:** MIT.
+- **3D model:** Flight Helmet (Gary Hsu, Khronos glTF-Sample-Assets), CC0 1.0. **Müzik:** OpenGameArt, CC0 1.0.
 - **Şehir haritası** gerçek veri içermez; tamamen prosedürel ve soyuttur. Yörüngeler ölçekli değildir.

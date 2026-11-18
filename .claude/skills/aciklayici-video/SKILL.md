@@ -27,8 +27,11 @@ Konu için 2–3 farklı açı öner, tek tablo halinde:
 | Gündelik kanca | izleyicinin elindeki şey, tek cümle | | |
 | Görünmez sistem | perde arkasında çalışan şey | | |
 | Somut yolculuk | kameranın baştan sona izleyeceği tek şey | | |
-| Doruk anı | geri sayımın neye kadar saydığı | | |
+| Doruk anı | gerilimin en yüksek anı | | |
+| Doruğun gerçek sayacı ya da eşiği | gerçek bir süre/mesafe/eşik varsa o; yoksa alternatif doruk (kritik an, karşılaştırma, "aha") | | |
+| Kancadaki soru → finaldeki cevap | kancanın sorusu ve finalde tek cümlelik cevabı | | |
 | Kavram adı | en son verilecek terim | | |
+| İzleyici kavram adını biliyor mu? | biliyorsa finaldeki şaşırtma (köken, beklenmedik bağlantı) ya da başka bir kavram | | |
 | Sahne türleri | kütüphaneden hangileri; yeni tür gerekir mi | | |
 
 Birini gerekçesiyle öner. **Dur.**
@@ -42,6 +45,9 @@ Birini gerekçesiyle öner. **Dur.**
 - Ekranda kalacak her `simplified` / `disputed` iddia için bir `notes` girdisi öner ("YAKLAŞIK", "SADELEŞTİRİLDİ",
   "ÖLÇEKLİ DEĞİL").
 - Doğrulanamayan rakam metne girmez.
+- Sayaç, animasyon ve `trace` bir zaman çizelgesinden besleniyorsa her anahtar değeri `timeline.keys` içinde bir
+  `sources[].id`'ye bağla (`"#ad"`). Ara değerler de kaynaklı olmalı; `npm run check` kaynaksız sayaç değerini
+  reddeder.
 - Kullanıcıya kaynak listesini kısaca göster ve c'ye geç.
 
 ## c) Metin ★
@@ -55,7 +61,9 @@ Birini gerekçesiyle öner. **Dur.**
   - izleyiciye "sen" diye hitap
   - her bölüm "Peki…?" ile açılır
   - tek somut yolculuk
-  - final sırası: geri sayım → tek cümlelik özet → kavramın adı en son (ad daha önce söylenmez)
+  - final sırası: doruk → tek cümlelik özet (kancadaki sorunun cevabı) → kavramın adı en son (ad daha önce
+    söylenmez); geri sayım yalnızca gerçek bir süre/eşik için
+  - sağ/sol söylenen her yerde ekranda yön ipucu planla
 - Çıktı:
   - bölüm tablosu: pencere, bütçe, gerçek kelime sayısı
   - cümle cümle metin: her cümle bir altyazı sayfası, en fazla ~32 karakter
@@ -66,9 +74,12 @@ Birini gerekçesiyle öner. **Dur.**
 ## d) Sahne planı ★
 
 - Planı yalnızca kütüphanedeki türlerle kur (README → Sahne türleri):
-  - katmanlar: `globe`, `cityMap`, `haze`, `speedLines`, `signalPass`, `ringShrink`
+  - katmanlar: `model3d`, `flow`, `trace`, `globe`, `cityMap`, `haze`, `speedLines`, `signalPass`, `ringShrink`
+    (genel türler önce: 3D nesne → `model3d`, şema/akış → `flow`, sinyal/grafik → `trace`; örnekler
+    `videos/demo-*`)
   - üst yazılar: `titles`, `labels`, `notes`, `counter`, `countdown`, `concept`, `darken`, `captions`
-  - ses: `beds`, `hits`, `music`
+  - ses: `beds` (`loop`), `hits`, `music`
+- İlk yakın plandan önce nesnenin yerini gösteren geniş plan koy.
 - Zaman çizelgesi tablosu ver: aralık | bölüm | katman / geçiş | kamera hareketi | ekran yazısı | efekt. Kamera hiç
   durmaz, sahneler kesmeyle değil geçişle bağlanır.
 - **Yeni tür gerekiyorsa açıkça söyle:** mevcutlar neden yetmiyor, önerilen ad, parametreler. Onay gelirse:
@@ -79,7 +90,9 @@ Birini gerekçesiyle öner. **Dur.**
   4. Regresyonu kontrol et. Değişiklikten **önce** referans yoksa üret:
      `npm run stills -- gps-pilot --every 10 --out out/baseline/frames`. Değişiklikten sonra
      `npm run stills -- gps-pilot --every 10 --out out/regress/frames` ve
-     `npm run compare -- out/baseline/frames out/regress/frames` çalıştır; sonuç temiz olmalı.
+     `npm run compare -- out/baseline/frames out/regress/frames` çalıştır; sonuç temiz olmalı. Ses tarafına
+     dokunduysan gps-pilot'u render edip `npm run compare -- out/baseline/gps-pilot.mp4 out/gps-pilot.mp4` ile null
+     testi yap (referans render değişiklikten önce alınır).
 - Yeni bir efekt gerekiyorsa `src/kit/audio/sfx-catalog.json`'a ekle ve `npm run sfx -- <id>` çalıştır. Bu ElevenLabs
   kredisi harcar; önce söyle.
 
@@ -98,10 +111,12 @@ Birini gerekçesiyle öner. **Dur.**
 4. `npm run check` temiz olmalı.
 5. Kilit anları render et: her bölümün ilk saniyesi, her etiketin göründüğü an +0,3 sn, her geçişin ortası, geri
    sayım, kavram kartı, son kare. Komut: `npm run stills -- <slug> 0.5s 4s … --sheet`.
-6. Kareleri Read ile kendin incele ve STYLE.md kontrol listesini madde madde uygula. Uymayanları düzelt, yeniden
+6. **`npm run qa -- <slug> --layout` zorunlu.** Çakışan, altyazıya binen ya da güvenli alana taşan yazı varsa
+   düzelt ve tekrarla; parlak çizgi uyarılarını karelerde kontrol et.
+7. Kareleri Read ile kendin incele ve STYLE.md kontrol listesini madde madde uygula. Uymayanları düzelt, yeniden
    render et.
-7. Kullanıcıya `out/<slug>/stills/sheet.png` dosyasını ve gerekirse önemli tekil kareleri göster. Kontrol listesinin
-   sonucunu ve bilinen sapmaları yaz. **Dur.**
+8. Kullanıcıya `out/<slug>/stills/sheet.png` dosyasını ve gerekirse önemli tekil kareleri göster. **qa sonuç
+   tablosunu**, kontrol listesinin sonucunu ve bilinen sapmaları yaz. **Dur.**
 
 ## f) Ses, müzik, render
 
@@ -120,11 +135,15 @@ Seslendirme dosyası verildiğinde:
    - **Kütüphanede uygun parça varsa:** ruh haline (`moods`) göre seç ve `sound.music`'e yaz: `file`, listedeki
      önerilen `gain`, `duck: 0.5`, gerekirse `loop`, `fadeIn` / `fadeOut`. Parçanın JSON'undaki başlık, sahip, lisans
      ve url'yi `credits`'e kopyala.
-   - **Kütüphane boşsa:** bunu söyle ve `space` drone yatağını (`sound.beds`) kullan.
+   - **Uygun parça yoksa:** bunu söyle ve `space` drone yatağını `loop: true` ile 0'dan sona kullan
+     (`sound.beds`); yatak hiçbir yerde kesilmemeli.
    - İnternetten kendiliğinden müzik indirme.
 5. `npm run render -- <slug>` → `out/<slug>.mp4`. Son satır "OK" olmalı (−14 ± 0,5 LUFS, ≤ −1 dBTP); değilse
    nedenini bul.
-6. Kullanıcıya bildir: dosya yolu, süre, loudness, kontrol listesinin son durumu, kredilerin özeti.
+6. **`npm run qa -- <slug> --audio` zorunlu:** konuşma hızı (genel 2,2–2,8 kelime/sn), dijital sessizlik, yatak
+   sürekliliği. Hata varsa düzelt, yeniden render et.
+7. Kullanıcıya bildir: dosya yolu, süre, loudness, **qa sonuç tablosu**, kontrol listesinin son durumu, kredilerin
+   özeti.
 
 Seslendirme dosyası yoksa ve kullanıcı taslak ses isterse: `npm run voiceover -- build <slug> <voiceId>`. Bu
 ElevenLabs kredisi harcar ve ücretsiz planda çıkan ses ticari kullanılamaz; ikisini de önceden söyle.
@@ -138,6 +157,9 @@ ElevenLabs kredisi harcar ve ücretsiz planda çıkan ses ticari kullanılamaz; 
   - Inter ve JetBrains Mono (SIL OFL 1.1)
   - Remotion (Remotion License)
   - `globe` varsa three.js (MIT) ve kullanılan doku (ör. NASA Black Marble, kamu malı)
+  - `model3d` varsa three.js (MIT) ve model: `public/kit/models/<id>.json`'daki başlık, sahip, lisans ve url
+    (`kind: "model"`, url birebir; `npm run check` denetler). CC0 tercih edilir; yeni model indirmeden önce aday
+    listesini kullanıcıya göster.
   - ElevenLabs sesi ya da efekti varsa ElevenLabs, planın lisans koşuluyla
   - Whisper ile hizalandıysa whisper.cpp (MIT) ve OpenAI Whisper modeli (MIT)
 
