@@ -15,16 +15,20 @@
     "align": "node scripts/align.mjs",
     "sfx": "node scripts/sfx.mjs",
     "music": "node scripts/music.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "models": "node scripts/models.mjs",
+    "qa": "node scripts/qa.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "9.8.2",
+    "@remotion/bundler": "4.0.544",
     "@remotion/captions": "4.0.544",
     "@remotion/cli": "4.0.544",
     "@remotion/google-fonts": "4.0.544",
     "@remotion/install-whisper-cpp": "4.0.544",
     "@remotion/layout-utils": "4.0.544",
     "@remotion/media": "4.0.544",
+    "@remotion/renderer": "4.0.544",
     "@remotion/three": "4.0.544",
     "react": "19.3.1",
     "react-dom": "19.3.1",
