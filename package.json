@@ -1,0 +1,40 @@
+{
+  "name": "aciklayici-video",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Spec-driven explainer videos (9:16) built with Remotion",
+  "scripts": {
+    "studio": "remotion studio",
+    "check": "tsc --noEmit && remotion compositions",
+    "new": "node scripts/new.mjs",
+    "stills": "node scripts/stills.mjs",
+    "render": "node scripts/render.mjs",
+    "compare": "node scripts/compare.mjs",
+    "voiceover": "node scripts/voiceover.mjs",
+    "align": "node scripts/align.mjs",
+    "sfx": "node scripts/sfx.mjs",
+    "music": "node scripts/music.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-three/fiber": "9.8.2",
+    "@remotion/captions": "4.0.544",
+    "@remotion/cli": "4.0.544",
+    "@remotion/google-fonts": "4.0.544",
+    "@remotion/install-whisper-cpp": "4.0.544",
+    "@remotion/layout-utils": "4.0.544",
+    "@remotion/media": "4.0.544",
+    "@remotion/three": "4.0.544",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.544",
+    "three": "0.187.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/three": "0.187.0",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "city": { "seconds": 6, "level": 0.35, "prompt": "Distant night city ambience heard from high above, soft low traffic hum and airy wind, calm, no voices, no horns" },
+  "ping": { "seconds": 1.5, "level": 0.5, "prompt": "Soft clean sonar ping from a smartphone map location marker, a single gentle digital blip with a short airy tail" },
+  "rise": { "seconds": 2.5, "level": 0.6, "prompt": "Cinematic upward whoosh riser, rushing air that opens into vast silent outer space, airy swell, no impact at the end" },
+  "space": { "seconds": 26, "level": 0.4, "prompt": "Dark cinematic ambient space drone, low evolving synth pad with a slow subtle pulse, documentary tension, no melody, no drums" },
+  "tick": { "seconds": 0.5, "level": 0.35, "prompt": "Tiny crisp digital interface tick, a data readout appearing on a HUD screen, very short and clean" },
+  "lock": { "seconds": 2, "level": 0.45, "prompt": "Sci-fi HUD target lock-on: three quick rising electronic beeps followed by a short confirming tone" },
+  "pulse": { "seconds": 1.5, "level": 0.7, "prompt": "Deep resonant radio signal pulse, a sonar-like wave whooshing past the listener with a shimmering electronic tail" },
+  "typing": { "seconds": 1, "level": 0.3, "prompt": "Rapid soft digital data chatter, fast computer terminal readout beeps, clean sci-fi interface" },
+  "confirm": { "seconds": 0.8, "level": 0.4, "prompt": "Soft positive two-note digital confirmation chime, clean UI success sound" },
+  "dive": { "seconds": 2.5, "level": 0.6, "prompt": "Fast cinematic downward whoosh, falling from space through the atmosphere, wind rush building toward the ground" },
+  "land": { "seconds": 1.5, "level": 0.6, "prompt": "Crisp digital location lock ping with a soft low thud underneath, a signal ring snapping onto a map pin, clean and satisfying" },
+  "error": { "seconds": 1, "level": 0.45, "prompt": "Short low digital error buzz, ominous HUD warning tone" },
+  "glitch": { "seconds": 1.3, "level": 0.6, "prompt": "Digital glitch smear, a GPS location sliding off target, distorted stuttering electronic slide" },
+  "boom": { "seconds": 3, "level": 0.8, "prompt": "Deep cinematic sub boom with a long dark reverb tail, ominous ending hit" },
+  "monitor-beep": { "seconds": 0.6, "level": 0.4, "prompt": "Single short hospital heart monitor beep, one clean pure electronic sine tone like an ECG patient monitor at a bedside, no reverb, no background noise" }
+}

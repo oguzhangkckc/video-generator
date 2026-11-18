@@ -1,0 +1,618 @@
+{
+  "source": "elevenlabs:Xb7hH8MSUJpSbSDYk0k2/eleven_multilingual_v2",
+  "audio": "videos/gps-pilot/vo.wav",
+  "phrases": [
+    {
+      "text": "Cebinde bir uydu alıcısı var.",
+      "start": 0.2,
+      "end": 1.57
+    },
+    {
+      "text": "Ama uydular seni",
+      "start": 1.78,
+      "end": 2.58
+    },
+    {
+      "text": "görmüyor bile.",
+      "start": 2.63,
+      "end": 3.36
+    },
+    {
+      "text": "Peki telefonun nerede",
+      "start": 3.49,
+      "end": 4.41
+    },
+    {
+      "text": "olduğunu nasıl biliyor?",
+      "start": 4.45,
+      "end": 5.68
+    },
+    {
+      "text": "Yirmi bin kilometre yukarıda,",
+      "start": 6.2,
+      "end": 7.91
+    },
+    {
+      "text": "otuzdan fazla uydu",
+      "start": 7.98,
+      "end": 9.32
+    },
+    {
+      "text": "saatte on dört bin",
+      "start": 9.37,
+      "end": 10.74
+    },
+    {
+      "text": "kilometreyle dönüyor.",
+      "start": 10.79,
+      "end": 12.04
+    },
+    {
+      "text": "Hepsi durmadan",
+      "start": 12.37,
+      "end": 13.38
+    },
+    {
+      "text": "aynı şeyi fısıldıyor:",
+      "start": 13.49,
+      "end": 14.85
+    },
+    {
+      "text": "“Saat şu an bu,",
+      "start": 15.2,
+      "end": 16.08
+    },
+    {
+      "text": "ben de buradayım.”",
+      "start": 16.1,
+      "end": 16.98
+    },
+    {
+      "text": "Bu fısıltı sana",
+      "start": 17.21,
+      "end": 18.01
+    },
+    {
+      "text": "ışık hızıyla,",
+      "start": 18.06,
+      "end": 18.85
+    },
+    {
+      "text": "yaklaşık yetmiş",
+      "start": 19.02,
+      "end": 19.89
+    },
+    {
+      "text": "milisaniyede ulaşıyor.",
+      "start": 19.96,
+      "end": 21.14
+    },
+    {
+      "text": "Telefonun bu gecikmeden",
+      "start": 21.31,
+      "end": 22.43
+    },
+    {
+      "text": "uzaklığı hesaplıyor.",
+      "start": 22.51,
+      "end": 23.85
+    },
+    {
+      "text": "Ama saat",
+      "start": 24.2,
+      "end": 24.67
+    },
+    {
+      "text": "bir mikrosaniye şaşarsa,",
+      "start": 24.72,
+      "end": 26
+    },
+    {
+      "text": "haritada üç yüz metre kayarsın.",
+      "start": 26.15,
+      "end": 27.84
+    },
+    {
+      "text": "Peki ya uydudaki",
+      "start": 27.9,
+      "end": 28.77
+    },
+    {
+      "text": "saatler yanlışsa?",
+      "start": 28.81,
+      "end": 29.85
+    }
+  ],
+  "words": [
+    {
+      "text": "Cebinde",
+      "startMs": 200,
+      "endMs": 583,
+      "timestampMs": 391,
+      "confidence": null
+    },
+    {
+      "text": "bir",
+      "startMs": 630,
+      "endMs": 722,
+      "timestampMs": 676,
+      "confidence": null
+    },
+    {
+      "text": "uydu",
+      "startMs": 746,
+      "endMs": 943,
+      "timestampMs": 845,
+      "confidence": null
+    },
+    {
+      "text": "alıcısı",
+      "startMs": 966,
+      "endMs": 1268,
+      "timestampMs": 1117,
+      "confidence": null
+    },
+    {
+      "text": "var.",
+      "startMs": 1315,
+      "endMs": 1570,
+      "timestampMs": 1443,
+      "confidence": null
+    },
+    {
+      "text": "Ama",
+      "startMs": 1779,
+      "endMs": 1965,
+      "timestampMs": 1872,
+      "confidence": null
+    },
+    {
+      "text": "uydular",
+      "startMs": 2011,
+      "endMs": 2371,
+      "timestampMs": 2191,
+      "confidence": null
+    },
+    {
+      "text": "seni",
+      "startMs": 2418,
+      "endMs": 2580,
+      "timestampMs": 2499,
+      "confidence": null
+    },
+    {
+      "text": "görmüyor",
+      "startMs": 2626,
+      "endMs": 3010,
+      "timestampMs": 2818,
+      "confidence": null
+    },
+    {
+      "text": "bile.",
+      "startMs": 3044,
+      "endMs": 3358,
+      "timestampMs": 3201,
+      "confidence": null
+    },
+    {
+      "text": "Peki",
+      "startMs": 3486,
+      "endMs": 3695,
+      "timestampMs": 3591,
+      "confidence": null
+    },
+    {
+      "text": "telefonun",
+      "startMs": 3729,
+      "endMs": 4089,
+      "timestampMs": 3909,
+      "confidence": null
+    },
+    {
+      "text": "nerede",
+      "startMs": 4136,
+      "endMs": 4414,
+      "timestampMs": 4275,
+      "confidence": null
+    },
+    {
+      "text": "olduğunu",
+      "startMs": 4449,
+      "endMs": 4693,
+      "timestampMs": 4571,
+      "confidence": null
+    },
+    {
+      "text": "nasıl",
+      "startMs": 4751,
+      "endMs": 5007,
+      "timestampMs": 4879,
+      "confidence": null
+    },
+    {
+      "text": "biliyor?",
+      "startMs": 5041,
+      "endMs": 5680,
+      "timestampMs": 5361,
+      "confidence": null
+    },
+    {
+      "text": "Yirmi",
+      "startMs": 6200,
+      "endMs": 6545,
+      "timestampMs": 6372,
+      "confidence": null
+    },
+    {
+      "text": "bin",
+      "startMs": 6591,
+      "endMs": 6729,
+      "timestampMs": 6660,
+      "confidence": null
+    },
+    {
+      "text": "kilometre",
+      "startMs": 6775,
+      "endMs": 7270,
+      "timestampMs": 7022,
+      "confidence": null
+    },
+    {
+      "text": "yukarıda,",
+      "startMs": 7316,
+      "endMs": 7914,
+      "timestampMs": 7615,
+      "confidence": null
+    },
+    {
+      "text": "otuzdan",
+      "startMs": 7983,
+      "endMs": 8535,
+      "timestampMs": 8259,
+      "confidence": null
+    },
+    {
+      "text": "fazla",
+      "startMs": 8603,
+      "endMs": 8926,
+      "timestampMs": 8765,
+      "confidence": null
+    },
+    {
+      "text": "uydu",
+      "startMs": 9018,
+      "endMs": 9317,
+      "timestampMs": 9167,
+      "confidence": null
+    },
+    {
+      "text": "saatte",
+      "startMs": 9374,
+      "endMs": 9892,
+      "timestampMs": 9633,
+      "confidence": null
+    },
+    {
+      "text": "on",
+      "startMs": 10042,
+      "endMs": 10260,
+      "timestampMs": 10151,
+      "confidence": null
+    },
+    {
+      "text": "dört",
+      "startMs": 10317,
+      "endMs": 10525,
+      "timestampMs": 10421,
+      "confidence": null
+    },
+    {
+      "text": "bin",
+      "startMs": 10594,
+      "endMs": 10743,
+      "timestampMs": 10669,
+      "confidence": null
+    },
+    {
+      "text": "kilometreyle",
+      "startMs": 10789,
+      "endMs": 11445,
+      "timestampMs": 11117,
+      "confidence": null
+    },
+    {
+      "text": "dönüyor.",
+      "startMs": 11491,
+      "endMs": 12043,
+      "timestampMs": 11767,
+      "confidence": null
+    },
+    {
+      "text": "Hepsi",
+      "startMs": 12365,
+      "endMs": 12779,
+      "timestampMs": 12572,
+      "confidence": null
+    },
+    {
+      "text": "durmadan",
+      "startMs": 12860,
+      "endMs": 13378,
+      "timestampMs": 13119,
+      "confidence": null
+    },
+    {
+      "text": "aynı",
+      "startMs": 13493,
+      "endMs": 13768,
+      "timestampMs": 13630,
+      "confidence": null
+    },
+    {
+      "text": "şeyi",
+      "startMs": 13826,
+      "endMs": 13987,
+      "timestampMs": 13906,
+      "confidence": null
+    },
+    {
+      "text": "fısıldıyor:",
+      "startMs": 14033,
+      "endMs": 14850,
+      "timestampMs": 14441,
+      "confidence": null
+    },
+    {
+      "text": "“Saat",
+      "startMs": 15200,
+      "endMs": 15589,
+      "timestampMs": 15395,
+      "confidence": null
+    },
+    {
+      "text": "şu",
+      "startMs": 15635,
+      "endMs": 15783,
+      "timestampMs": 15709,
+      "confidence": null
+    },
+    {
+      "text": "an",
+      "startMs": 15806,
+      "endMs": 15875,
+      "timestampMs": 15841,
+      "confidence": null
+    },
+    {
+      "text": "bu,",
+      "startMs": 15932,
+      "endMs": 16081,
+      "timestampMs": 16007,
+      "confidence": null
+    },
+    {
+      "text": "ben",
+      "startMs": 16104,
+      "endMs": 16253,
+      "timestampMs": 16178,
+      "confidence": null
+    },
+    {
+      "text": "de",
+      "startMs": 16310,
+      "endMs": 16367,
+      "timestampMs": 16338,
+      "confidence": null
+    },
+    {
+      "text": "buradayım.”",
+      "startMs": 16413,
+      "endMs": 16985,
+      "timestampMs": 16699,
+      "confidence": null
+    },
+    {
+      "text": "Bu",
+      "startMs": 17213,
+      "endMs": 17328,
+      "timestampMs": 17271,
+      "confidence": null
+    },
+    {
+      "text": "fısıltı",
+      "startMs": 17362,
+      "endMs": 17763,
+      "timestampMs": 17563,
+      "confidence": null
+    },
+    {
+      "text": "sana",
+      "startMs": 17809,
+      "endMs": 18015,
+      "timestampMs": 17912,
+      "confidence": null
+    },
+    {
+      "text": "ışık",
+      "startMs": 18060,
+      "endMs": 18290,
+      "timestampMs": 18175,
+      "confidence": null
+    },
+    {
+      "text": "hızıyla,",
+      "startMs": 18312,
+      "endMs": 18850,
+      "timestampMs": 18581,
+      "confidence": null
+    },
+    {
+      "text": "yaklaşık",
+      "startMs": 19022,
+      "endMs": 19468,
+      "timestampMs": 19245,
+      "confidence": null
+    },
+    {
+      "text": "yetmiş",
+      "startMs": 19536,
+      "endMs": 19891,
+      "timestampMs": 19714,
+      "confidence": null
+    },
+    {
+      "text": "milisaniyede",
+      "startMs": 19960,
+      "endMs": 20521,
+      "timestampMs": 20240,
+      "confidence": null
+    },
+    {
+      "text": "ulaşıyor.",
+      "startMs": 20554,
+      "endMs": 21139,
+      "timestampMs": 20847,
+      "confidence": null
+    },
+    {
+      "text": "Telefonun",
+      "startMs": 21310,
+      "endMs": 21722,
+      "timestampMs": 21516,
+      "confidence": null
+    },
+    {
+      "text": "bu",
+      "startMs": 21779,
+      "endMs": 21871,
+      "timestampMs": 21825,
+      "confidence": null
+    },
+    {
+      "text": "gecikmeden",
+      "startMs": 21916,
+      "endMs": 22432,
+      "timestampMs": 22174,
+      "confidence": null
+    },
+    {
+      "text": "uzaklığı",
+      "startMs": 22512,
+      "endMs": 22958,
+      "timestampMs": 22735,
+      "confidence": null
+    },
+    {
+      "text": "hesaplıyor.",
+      "startMs": 22992,
+      "endMs": 23850,
+      "timestampMs": 23421,
+      "confidence": null
+    },
+    {
+      "text": "Ama",
+      "startMs": 24200,
+      "endMs": 24408,
+      "timestampMs": 24304,
+      "confidence": null
+    },
+    {
+      "text": "saat",
+      "startMs": 24457,
+      "endMs": 24674,
+      "timestampMs": 24565,
+      "confidence": null
+    },
+    {
+      "text": "bir",
+      "startMs": 24723,
+      "endMs": 24813,
+      "timestampMs": 24768,
+      "confidence": null
+    },
+    {
+      "text": "mikrosaniye",
+      "startMs": 24862,
+      "endMs": 25376,
+      "timestampMs": 25119,
+      "confidence": null
+    },
+    {
+      "text": "şaşarsa,",
+      "startMs": 25415,
+      "endMs": 25998,
+      "timestampMs": 25706,
+      "confidence": null
+    },
+    {
+      "text": "haritada",
+      "startMs": 26146,
+      "endMs": 26591,
+      "timestampMs": 26368,
+      "confidence": null
+    },
+    {
+      "text": "üç",
+      "startMs": 26669,
+      "endMs": 26857,
+      "timestampMs": 26763,
+      "confidence": null
+    },
+    {
+      "text": "yüz",
+      "startMs": 26897,
+      "endMs": 26996,
+      "timestampMs": 26946,
+      "confidence": null
+    },
+    {
+      "text": "metre",
+      "startMs": 27054,
+      "endMs": 27252,
+      "timestampMs": 27153,
+      "confidence": null
+    },
+    {
+      "text": "kayarsın.",
+      "startMs": 27292,
+      "endMs": 27845,
+      "timestampMs": 27568,
+      "confidence": null
+    },
+    {
+      "text": "Peki",
+      "startMs": 27904,
+      "endMs": 28141,
+      "timestampMs": 28023,
+      "confidence": null
+    },
+    {
+      "text": "ya",
+      "startMs": 28200,
+      "endMs": 28339,
+      "timestampMs": 28270,
+      "confidence": null
+    },
+    {
+      "text": "uydudaki",
+      "startMs": 28408,
+      "endMs": 28773,
+      "timestampMs": 28590,
+      "confidence": null
+    },
+    {
+      "text": "saatler",
+      "startMs": 28813,
+      "endMs": 29139,
+      "timestampMs": 28976,
+      "confidence": null
+    },
+    {
+      "text": "yanlışsa?",
+      "startMs": 29188,
+      "endMs": 29850,
+      "timestampMs": 29519,
+      "confidence": null
+    }
+  ]
+}

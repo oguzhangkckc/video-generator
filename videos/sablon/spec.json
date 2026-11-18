@@ -1,0 +1,74 @@
+{
+  "title": "[Şablon] Konu sorusu?",
+  "lang": "tr",
+  "durationSec": 30,
+  "voiceover": {
+    "sections": [
+      {
+        "id": "kanca",
+        "window": [0, 5],
+        "phrases": ["[Gündelik bir sahne, sen diye.]", "[Görünmeyen şaşırtıcı gerçek.]", "Peki [asıl soru]?"]
+      },
+      {
+        "id": "adim-1",
+        "window": [5, 13],
+        "phrases": ["Peki [ilk bölümün sorusu]?", "[Somut yolculuğun ilk durağı,]", "[ilk rakamla birlikte.]", "[Neden önemli olduğu.]"]
+      },
+      {
+        "id": "adim-2",
+        "window": [13, 21],
+        "phrases": ["Peki [ikinci bölümün sorusu]?", "[Yolculuğun ikinci durağı,]", "[ikinci rakamla birlikte.]", "[Gerilimi artıran bilgi.]"]
+      },
+      {
+        "id": "doruk",
+        "window": [21, 30],
+        "phrases": ["Üç, iki, bir…", "[Tek cümlelik özet.]", "Bunun adı: [kavram]."]
+      }
+    ]
+  },
+  "marks": {
+    "hazePass": [4.6, 5.6],
+    "countdown": [{ "cue": "Üç, iki" }, { "cue": "[Tek cümlelik" }],
+    "reveal": { "cue": "Bunun adı" }
+  },
+  "curves": {
+    "height": {
+      "unit": "km",
+      "segments": [{ "from": 0, "to": 5, "values": [0, 12], "scale": "log", "logOffset": 0.05 }]
+    }
+  },
+  "layers": [
+    {
+      "type": "cityMap",
+      "visible": [{}],
+      "zoom": { "curve": "height", "eyeKm": 0.4 },
+      "rotation": { "segments": [{ "from": 0, "to": "@end", "values": [0, 14] }] },
+      "marker": { "pulse": [[0, "@end"]] }
+    },
+    { "type": "haze", "envelopes": [{ "in": [4.2, 4.9], "out": [5.1, 5.8] }] }
+  ],
+  "titles": [
+    { "top": "[KANCA 1 ÜST]", "bottom": "[KANCA 1 ALT]", "from": 0, "to": 1.7 },
+    { "top": "[KANCA 2 ÜST]", "bottom": "[KANCA 2 ALT]", "from": 1.7, "to": 3.4 },
+    { "top": "PEKİ", "bottom": "[ASIL SORU]?", "from": 3.4, "to": 5 }
+  ],
+  "labels": [
+    { "text": "[RAKAM 1]", "at": { "cue": "[Somut yolculuğun", "offset": 0.3 }, "until": 12.8, "top": 520, "size": 56, "bar": true, "sound": "tick" },
+    { "text": "[ETİKET]", "at": { "cue": "[ilk rakamla", "offset": 0.2 }, "until": 12.8, "top": 610, "size": 56, "bar": true, "sound": "tick" },
+    { "text": "[SENİN VERİN]", "at": { "cue": "[Yolculuğun ikinci", "offset": 0.2 }, "until": 20.8, "top": 560, "size": 64, "align": "center", "color": "you", "sound": "tick" },
+    { "text": "[TEHLİKE]", "at": { "cue": "[Gerilimi artıran", "offset": 0.2 }, "until": 20.8, "top": 660, "size": 48, "align": "center", "color": "danger", "sound": "error" }
+  ],
+  "notes": [{ "text": "SADELEŞTİRİLDİ", "at": 5.5, "until": 20.8, "top": 1330 }],
+  "countdown": { "from": "@countdown.start", "to": "@countdown.end", "values": ["3", "2", "1"], "label": "[NEYE KADAR]", "sound": "tick" },
+  "concept": { "at": "@reveal", "kicker": "BUNUN ADI", "name": "[KAVRAM]", "sound": "land" },
+  "darken": { "range": ["@countdown.start", "@countdown.end"], "alpha": 0.6 },
+  "counter": { "label": "[ÖLÇÜ]", "unit": "km", "curve": "height", "fadeIn": [0.2, 0.7] },
+  "sound": {
+    "beds": [{ "id": "city", "at": 0, "fadeIn": [0, 0.4], "fadeOut": [5, 6] }, { "id": "space", "at": 4.4, "fadeIn": [4.4, 6], "fadeOut": [28, 30] }],
+    "hits": [{ "id": "ping", "at": 0.05 }, { "id": "rise", "at": "@hazePass.start-0.4" }]
+  },
+  "credits": [
+    { "item": "Inter (yazı tipi)", "kind": "font", "author": "Rasmus Andersson", "license": "SIL Open Font License 1.1", "url": "https://github.com/rsms/inter" },
+    { "item": "JetBrains Mono (yazı tipi)", "kind": "font", "author": "JetBrains", "license": "SIL Open Font License 1.1", "url": "https://github.com/JetBrains/JetBrainsMono" }
+  ]
+}
