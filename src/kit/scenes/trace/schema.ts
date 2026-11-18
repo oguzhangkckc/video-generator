@@ -76,6 +76,8 @@ export const traceSchema = <T extends z.ZodType, R extends z.ZodType, N extends 
       baselineY: z.number().default(1060),
       /** Screen y where the camera's focus lands; match it with the layer this one hands off to. */
       anchorY: z.number().default(960),
+      /** Draw only inside this horizontal band (a strip under another scene) instead of the whole frame. */
+      frame: z.object({ top: z.number().min(0), height: z.number().positive() }).strict().optional(),
       /** "frame" is the unzoomed screen, "pen" the pen tip on the baseline. */
       camera: z.array(shotSchema(k, z.union([z.enum(["frame", "pen"]), z.tuple([z.number(), z.number()])]))).min(1),
       drift: driftSchema.prefault({}),

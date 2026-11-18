@@ -1,0 +1,351 @@
+{
+  "title": "Bu çizgi ne anlatıyor?",
+  "lang": "tr",
+  "durationSec": 49.5,
+  "voiceover": {
+    "sections": [
+      {
+        "id": "kanca",
+        "window": [0, 5],
+        "phrases": ["Bu çizgiyi mutlaka görmüşsündür.", "Ama okumayı kimse öğretmedi.", "Peki bu çizgi ne anlatıyor?"]
+      },
+      {
+        "id": "kaynak",
+        "window": [5, 17],
+        "phrases": [
+          "Peki bu çizgi nereden geliyor?",
+          "Göğsünün ortasından, kalbinden.",
+          "Kalbinin sağ üst köşesinde",
+          "bir hücre kümesi ateşleniyor:",
+          "dakikada altmış ila yüz kez.",
+          "Dalga kulakçıklara yayılırken",
+          "ilk küçük tepe çiziliyor: P."
+        ]
+      },
+      {
+        "id": "bekleme",
+        "window": [17, 26],
+        "phrases": [
+          "Peki ardından neden düz gidiyor?",
+          "Dalga tek bir kapıda bekliyor:",
+          "saniyenin onda biri kadar.",
+          "Kan aşağı dolsun diye.",
+          "Bu düzlük, PR bölümü."
+        ]
+      },
+      {
+        "id": "qrs",
+        "window": [26, 36],
+        "phrases": [
+          "Peki o büyük sivri tepe ne?",
+          "Kapı açılıyor, dalga hızlanıyor;",
+          "karıncıklar birden ateşleniyor.",
+          "İşte QRS: kalbin asıl vuruşu.",
+          "Sonra toparlanma dalgası: T."
+        ]
+      },
+      {
+        "id": "cihaz",
+        "window": [36, 43],
+        "phrases": [
+          "Peki cihaz nasıl duyuyor?",
+          "Elektrik cildine kadar ulaşıyor:",
+          "kalem pilin binde birinden az.",
+          "Cihazın akımı",
+          "hissedemeyeceğin kadar küçük."
+        ]
+      },
+      {
+        "id": "final",
+        "window": [43, 48],
+        "phrases": ["Yani o çizgi,", "kalbinin her atışının kaydı.", "Adı \"kalbin elektrik yazısı\":", "elektrokardiyogram."]
+      }
+    ]
+  },
+  "marks": {
+    "toFlow": [{ "cue": "Peki bu çizgi ne anlatıyor", "offset": 1.3 }, { "cue": "Peki bu çizgi ne anlatıyor", "offset": 2.3 }],
+    "fire": { "cue": "bir hücre", "offset": 0.85 },
+    "toTrace": [{ "cue": "Peki cihaz", "offset": 6.064 }, { "cue": "Peki cihaz", "offset": 6.864 }],
+    "reveal": { "cue": "elektrokardiyogram" },
+    "dim": [{ "cue": "elektrokardiyogram", "offset": -0.2 }, { "cue": "elektrokardiyogram", "offset": 0.5 }]
+  },
+  "timeline": {
+    "unit": "ms",
+    "keys": {
+      "saFire": { "value": 0, "source": "openstax" },
+      "avArrive": { "value": 50, "source": "openstax" },
+      "atriaDone": { "value": 90, "source": "klabunde-a003" },
+      "avLeave": { "value": 150, "source": "openstax" },
+      "hisDone": { "value": 175, "source": "openstax" },
+      "ventDone": { "value": 250, "source": "openstax" },
+      "tStart": { "value": 350, "source": "klabunde-a009" },
+      "tEnd": { "value": 500, "source": "klabunde-a009" }
+    }
+  },
+  "curves": {
+    "beat": {
+      "unit": "ms",
+      "segments": [
+        { "from": 0, "to": "@toFlow.start", "values": [-4730, -330] },
+        { "from": "@toFlow.start", "to": "@fire", "values": [-330, 0], "easing": "outQuad" },
+        { "from": "@fire", "to": { "cue": "Peki ardından" }, "values": ["#saFire", "#atriaDone"] },
+        { "from": { "cue": "Peki ardından" }, "to": { "cue": "Peki o büyük" }, "values": ["#atriaDone", "#avLeave"] },
+        { "from": { "cue": "Peki o büyük" }, "to": { "cue": "karıncıklar birden" }, "values": ["#avLeave", "#hisDone"] },
+        { "from": { "cue": "karıncıklar birden" }, "to": { "cue": "Sonra toparlanma" }, "values": ["#hisDone", "#ventDone"] },
+        { "from": { "cue": "Sonra toparlanma" }, "to": { "cue": "Peki cihaz" }, "values": ["#ventDone", "#tEnd"] },
+        { "from": { "cue": "Peki cihaz" }, "to": "@end", "values": ["#tEnd", 13800], "realtime": true }
+      ]
+    }
+  },
+  "layers": [
+    {
+      "type": "trace",
+      "id": "monitor",
+      "visible": [
+        { "out": ["@toFlow.end-0.15", "@toFlow.end+0.1"] },
+        { "in": ["@toTrace.end-0.25", "@toTrace.end-0.05"] }
+      ],
+      "clock": "beat",
+      "waveform": {
+        "preset": "ecg",
+        "p": { "range": ["#saFire", "#atriaDone"] },
+        "qrs": { "range": ["#hisDone", "#ventDone"] },
+        "t": { "range": ["#tStart", "#tEnd"] }
+      },
+      "grid": { "pxPerX": 0.35, "pxPerY": 140, "minorX": 40, "minorY": 0.1, "legend": "25 mm/sn · 10 mm/mV" },
+      "baselineY": 1000,
+      "anchorY": 820,
+      "camera": [
+        { "at": 0, "focus": "frame", "zoom": 1 },
+        { "at": "@toFlow.start", "focus": "frame", "zoom": 1.1 },
+        { "at": "@toFlow.end-0.15", "focus": "pen", "zoom": 12, "easing": "inCubic" },
+        { "at": "@toTrace.end+0.05", "focus": "pen", "zoom": 12 },
+        { "at": "@toTrace.end+1.2", "focus": "frame", "zoom": 1.15, "easing": "outCubic" },
+        { "at": "@end", "focus": "frame", "zoom": 1.05 }
+      ],
+      "drift": { "degPerSec": 0, "px": 6, "periodSec": 6 },
+      "beep": { "id": "monitor-beep", "ranges": [[0, "@toFlow.start"], ["@toTrace.end", "@reveal"]] }
+    },
+    {
+      "type": "flow",
+      "id": "heart",
+      "visible": [{ "in": ["@toFlow.end-0.3", "@toFlow.end-0.1"], "out": ["@toTrace.end-0.15", "@toTrace.end+0.1"] }],
+      "anchorY": 820,
+      "regions": [
+        {
+          "id": "body1",
+          "points": [[-250, -1080], [-255, -820], [-420, -740], [-700, -660], [-900, -560], [-990, -380], [-1000, -100], [-980, 300], [-960, 900], [-950, 1700], [710, 1700], [720, 900], [740, 300], [760, -100], [750, -380], [660, -560], [460, -660], [180, -740], [15, -820], [10, -1080]],
+          "fill": "faint",
+          "edge": "faint",
+          "visible": { "in": ["@toFlow.end+0.3", "@toFlow.end+1.2"], "out": [{ "cue": "Kalbinin sağ", "offset": 0.4 }, { "cue": "Kalbinin sağ", "offset": 1.2 }] }
+        },
+        {
+          "id": "body2",
+          "points": [[-250, -1080], [-255, -820], [-420, -740], [-700, -660], [-900, -560], [-990, -380], [-1000, -100], [-980, 300], [-960, 900], [-950, 1700], [710, 1700], [720, 900], [740, 300], [760, -100], [750, -380], [660, -560], [460, -660], [180, -740], [15, -820], [10, -1080]],
+          "fill": "faint",
+          "edge": "faint",
+          "visible": { "in": [{ "cue": "Peki cihaz", "offset": 0.4 }, { "cue": "Peki cihaz", "offset": 1.5 }] }
+        },
+        {
+          "id": "heart",
+          "points": [[-150, -300], [-250, -250], [-300, -130], [-295, 0], [-265, 120], [-170, 240], [-30, 320], [110, 360], [230, 300], [310, 170], [330, 20], [300, -120], [230, -240], [120, -290], [20, -270], [-70, -295]],
+          "fill": "surface",
+          "edge": "surface"
+        },
+        {
+          "id": "atria",
+          "points": [[-360, 25], [-300, 10], [-160, -30], [-20, -60], [140, -100], [320, -140], [380, -155], [380, -800], [-360, -800]],
+          "smooth": false,
+          "fill": "none",
+          "edge": "none",
+          "clipTo": "heart",
+          "sweep": { "origin": "sa", "reach": 560, "progress": { "curve": "beat", "range": ["#saFire", "#atriaDone"] } }
+        },
+        {
+          "id": "ventricles",
+          "points": [[-360, 25], [-300, 10], [-160, -30], [-20, -60], [140, -100], [320, -140], [380, -155], [380, 800], [-360, 800]],
+          "smooth": false,
+          "fill": "none",
+          "edge": "none",
+          "clipTo": "heart",
+          "sweep": { "origin": [10, 120], "reach": 380, "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } }
+        }
+      ],
+      "paths": [
+        { "id": "groove", "points": [[-300, 10], [-160, -30], [-20, -60], [140, -100], [320, -140]], "color": "surface", "opacity": 0.7, "width": 1.4 },
+        { "id": "ias", "points": [[20, -270], [0, -160], [-20, -60]], "color": "surface", "opacity": 0.7, "width": 1.4 },
+        { "id": "ivs", "points": [[-10, 12], [30, 140], [80, 280], [108, 345]], "color": "surface", "opacity": 0.7, "width": 1.4 },
+        { "id": "svc1", "points": [[-215, -282], [-218, -380], [-216, -480]], "color": "surface", "opacity": 1, "width": 1.8 },
+        { "id": "svc2", "points": [[-140, -297], [-138, -390], [-140, -480]], "color": "surface", "opacity": 1, "width": 1.8 },
+        { "id": "aorta1", "points": [[-40, -285], [-50, -380], [-5, -455], [90, -475], [175, -430]], "color": "surface", "opacity": 1, "width": 1.8 },
+        { "id": "aorta2", "points": [[35, -275], [40, -360], [85, -400], [165, -385]], "color": "surface", "opacity": 1, "width": 1.8 },
+        { "id": "clavL", "points": [[-180, -700], [-420, -745], [-660, -740]], "color": "faint", "opacity": 0.45, "width": 1.4 },
+        { "id": "clavR", "points": [[-60, -700], [180, -745], [420, -740]], "color": "faint", "opacity": 0.45, "width": 1.4 },
+        { "id": "internodal", "points": [[-178, -262], [-150, -190], [-100, -120], [-55, -85]] },
+        { "id": "bachmann", "points": [[-178, -262], [-80, -245], [60, -240], [200, -205]] },
+        { "id": "avNode", "points": [[-55, -85], [-40, -70], [-28, -50], [-18, -30]] },
+        { "id": "his", "points": [[-18, -30], [-12, -10], [-10, 12]] },
+        { "id": "rbb", "points": [[-10, 12], [-30, 100], [-25, 190], [-70, 250], [-160, 225]] },
+        { "id": "lbb", "points": [[-10, 12], [20, 90], [55, 190], [95, 290], [150, 320]] },
+        { "id": "lbbAnt", "points": [[20, 90], [120, 70], [230, 110]] },
+        { "id": "pk1", "points": [[-160, 225], [-235, 150], [-265, 50]] },
+        { "id": "pk2", "points": [[-25, 190], [-120, 200], [-200, 130]] },
+        { "id": "pk3", "points": [[150, 320], [240, 270], [300, 160], [315, 40]] },
+        { "id": "pk4", "points": [[230, 110], [290, 30], [290, -60]] },
+        { "id": "pk5", "points": [[55, 190], [170, 210], [250, 200]] }
+      ],
+      "nodes": [
+        { "id": "sa", "at": [-178, -262], "shape": "glow", "color": "you", "r": 9, "flashes": ["@fire"] },
+        { "id": "av", "at": [-40, -70], "shape": "glow", "color": "secondary", "r": 7, "lit": [[{ "cue": "Dalga tek" }, { "cue": "Kapı açılıyor" }]] },
+        { "id": "e1", "at": [-210, 60], "shape": "pad", "r": 24, "visible": { "in": [{ "cue": "Peki cihaz", "offset": 0.6 }, { "cue": "Peki cihaz", "offset": 1.6 }] } },
+        { "id": "e2", "at": [-30, 60], "shape": "pad", "r": 24, "visible": { "in": [{ "cue": "Peki cihaz", "offset": 0.6 }, { "cue": "Peki cihaz", "offset": 1.6 }] } },
+        { "id": "e3", "at": [80, 130], "shape": "pad", "r": 24, "visible": { "in": [{ "cue": "Peki cihaz", "offset": 0.6 }, { "cue": "Peki cihaz", "offset": 1.6 }] } },
+        { "id": "e4", "at": [190, 200], "shape": "pad", "r": 24, "visible": { "in": [{ "cue": "Peki cihaz", "offset": 0.6 }, { "cue": "Peki cihaz", "offset": 1.6 }] } },
+        { "id": "e5", "at": [430, 210], "shape": "pad", "r": 24, "visible": { "in": [{ "cue": "Peki cihaz", "offset": 0.6 }, { "cue": "Peki cihaz", "offset": 1.6 }] } },
+        { "id": "e6", "at": [640, 215], "shape": "pad", "r": 24, "visible": { "in": [{ "cue": "Peki cihaz", "offset": 0.6 }, { "cue": "Peki cihaz", "offset": 1.6 }] } }
+      ],
+      "signals": [
+        { "along": ["internodal"], "progress": { "curve": "beat", "range": ["#saFire", "#avArrive"] } },
+        { "along": ["bachmann"], "progress": { "curve": "beat", "range": ["#saFire", "#atriaDone"] } },
+        { "along": ["avNode"], "progress": { "curve": "beat", "range": ["#avArrive", "#avLeave"] } },
+        { "along": ["his", "rbb"], "progress": { "curve": "beat", "range": ["#avLeave", "#hisDone"] } },
+        { "along": ["his", "lbb"], "progress": { "curve": "beat", "range": ["#avLeave", "#hisDone"] } },
+        { "along": ["lbbAnt"], "progress": { "curve": "beat", "range": ["#avLeave", "#hisDone"] } },
+        { "along": ["pk1"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+        { "along": ["pk2"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+        { "along": ["pk3"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+        { "along": ["pk4"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+        { "along": ["pk5"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } }
+      ],
+      "fields": [
+        {
+          "origin": [20, 150],
+          "emits": [{ "cue": "Elektrik cildine", "offset": 0.2 }, { "cue": "Elektrik cildine", "offset": 1 }, { "cue": "Elektrik cildine", "offset": 1.8 }],
+          "duration": 1.6,
+          "maxRadius": 1000,
+          "lights": ["e1", "e2", "e3", "e4", "e5", "e6"]
+        }
+      ],
+      "highlight": [
+        { "target": "sa", "range": [{ "cue": "Kalbinin sağ", "offset": 0.3 }, "@fire"] },
+        { "target": "av", "range": [{ "cue": "Dalga tek" }, { "cue": "Peki o büyük" }] }
+      ],
+      "camera": [
+        { "at": "@toFlow.end-0.3", "focus": "sa", "zoom": 12 },
+        { "at": "@toFlow.end", "focus": "sa", "zoom": 12 },
+        { "at": { "cue": "Göğsünün", "offset": 0.6 }, "focus": [-60, 120], "zoom": 0.42, "easing": "outCubic" },
+        { "at": { "cue": "Kalbinin sağ", "offset": 0.4 }, "focus": [10, 20], "zoom": 0.95, "easing": "inOutCubic" },
+        { "at": { "cue": "bir hücre" }, "focus": "sa", "zoom": 2.2 },
+        { "at": "@fire+0.5", "focus": "sa", "zoom": 2.35, "easing": "outQuad" },
+        { "at": { "cue": "Dalga kulakçıklara" }, "focus": [-60, -160], "zoom": 1.5 },
+        { "at": { "cue": "Dalga tek" }, "focus": "av", "zoom": 2.2 },
+        { "at": { "cue": "Peki o büyük" }, "focus": "av", "zoom": 2.6 },
+        { "at": { "cue": "karıncıklar birden" }, "focus": [20, 150], "zoom": 1.3, "easing": "inOutCubic" },
+        { "at": { "cue": "Peki cihaz" }, "focus": [10, 20], "zoom": 1.0 },
+        { "at": { "cue": "Elektrik cildine", "offset": 0.3 }, "focus": [-60, 120], "zoom": 0.42, "easing": "inOutCubic" },
+        { "at": { "cue": "Cihazın akımı" }, "focus": "e5", "zoom": 1.0 },
+        { "at": "@toTrace.start", "focus": "e5", "zoom": 1.6 },
+        { "at": "@toTrace.end-0.1", "focus": "e5", "zoom": 12, "easing": "inCubic" }
+      ],
+      "drift": { "degPerSec": 0.2, "px": 10, "periodSec": 8 }
+    },
+    {
+      "type": "trace",
+      "id": "strip",
+      "visible": [{ "in": ["@fire-0.6", "@fire"], "out": ["@toTrace.start-0.4", "@toTrace.start"] }],
+      "frame": { "top": 1060, "height": 270 },
+      "clock": "beat",
+      "waveform": {
+        "preset": "ecg",
+        "p": { "range": ["#saFire", "#atriaDone"] },
+        "qrs": { "range": ["#hisDone", "#ventDone"] },
+        "t": { "range": ["#tStart", "#tEnd"] }
+      },
+      "grid": { "pxPerX": 0.275, "pxPerY": 110, "minorX": 40, "minorY": 0.1 },
+      "penX": 0.7,
+      "baselineY": 1290,
+      "camera": [{ "at": 0, "focus": "frame", "zoom": 1 }],
+      "drift": { "degPerSec": 0, "px": 0 },
+      "parts": [
+        { "text": "P", "range": ["#saFire", "#atriaDone"] },
+        { "text": "PR", "range": ["#atriaDone", "#hisDone"], "labelAt": -0.35 },
+        { "text": "QRS", "range": ["#hisDone", "#ventDone"], "labelAt": 1.45 },
+        { "text": "T", "range": ["#tStart", "#tEnd"] }
+      ],
+      "beep": { "id": "monitor-beep", "ranges": [[{ "cue": "karıncıklar birden" }, "@toTrace.start"]] }
+    }
+  ],
+  "titles": [
+    { "top": "BU ÇİZGİYİ", "bottom": "MUTLAKA GÖRDÜN", "from": 0, "to": { "cue": "Ama okumayı" } },
+    { "top": "AMA OKUMAYI", "bottom": "KİMSE ÖĞRETMEDİ", "from": { "cue": "Ama okumayı" }, "to": { "cue": "Peki bu çizgi ne anlatıyor" } },
+    { "top": "PEKİ BU ÇİZGİ", "bottom": "NE ANLATIYOR?", "from": { "cue": "Peki bu çizgi ne anlatıyor" }, "to": { "cue": "Peki bu çizgi nereden", "offset": -0.1 } }
+  ],
+  "labels": [
+    { "text": "KALP", "at": { "cue": "Göğsünün", "offset": 0.6 }, "until": { "cue": "bir hücre" }, "top": 400, "size": 48, "bar": true, "sound": "tick" },
+    { "text": "◀ SENİN SAĞIN", "at": { "cue": "Kalbinin sağ", "offset": 0.3 }, "until": { "cue": "dakikada" }, "top": 470, "size": 44, "color": "secondary", "sound": "tick" },
+    { "text": "SA DÜĞÜMÜ", "at": { "cue": "bir hücre", "offset": 0.2 }, "until": { "cue": "Peki ardından", "offset": -0.15 }, "top": 540, "size": 48, "bar": true, "sound": "tick" },
+    { "text": "DAKİKADA 60–100", "at": { "cue": "dakikada", "offset": 0.1 }, "until": { "cue": "Peki ardından", "offset": -0.15 }, "top": 610, "size": 48, "bar": true, "sound": "tick" },
+    { "text": "AV DÜĞÜMÜ", "at": { "cue": "Dalga tek", "offset": 0.4 }, "until": { "cue": "Peki o büyük", "offset": -0.15 }, "top": 400, "size": 48, "bar": true, "sound": "lock" },
+    { "text": "≈ 0,1 SN BEKLEME", "at": { "cue": "saniyenin onda", "offset": 0.2 }, "until": { "cue": "Peki o büyük", "offset": -0.15 }, "top": 470, "size": 48, "bar": true, "sound": "tick" },
+    { "text": "KARINCIKLAR DOLUYOR", "at": { "cue": "Kan aşağı", "offset": 0.1 }, "until": { "cue": "Peki o büyük", "offset": -0.15 }, "top": 540, "size": 40, "color": "secondary", "typeSpeed": 24, "bar": true, "sound": "typing" },
+    { "text": "HIS → PURKİNJE", "at": { "cue": "Kapı açılıyor", "offset": 0.2 }, "until": { "cue": "Peki cihaz", "offset": -0.15 }, "top": 400, "size": 48, "bar": true, "sound": "tick" },
+    { "text": "KARINCIKLAR", "at": { "cue": "karıncıklar birden", "offset": 0.2 }, "until": { "cue": "Peki cihaz", "offset": -0.15 }, "top": 470, "size": 48, "bar": true, "sound": "tick" },
+    { "text": "SİNYAL ≈ 1 mV", "at": { "cue": "Elektrik cildine", "offset": 0.8 }, "until": "@toTrace.start", "top": 400, "size": 48, "bar": true, "sound": "tick" },
+    { "text": "KALEM PİL: 1,5 V", "at": { "cue": "kalem pilin", "offset": 0.2 }, "until": "@toTrace.start", "top": 470, "size": 48, "bar": true, "sound": "tick" },
+    { "text": "CİHAZ AKIMI ≤ 10 µA", "at": { "cue": "Cihazın akımı", "offset": 0.1 }, "until": "@toTrace.start", "top": 540, "size": 48, "bar": true, "sound": "tick" },
+    { "text": "HİSSETME EŞİĞİ ≈ 1 mA", "at": { "cue": "hissedemeyeceğin", "offset": 0.1 }, "until": "@toTrace.start", "top": 610, "size": 48, "bar": true, "sound": "tick" },
+    { "text": "ELEKTRO · KARDİYO · GRAM", "at": "@reveal+0.6", "until": "@end+0.4", "top": 700, "size": 36, "align": "center", "color": "muted" },
+    { "text": "ELEKTRİK · KALP · YAZI", "at": "@reveal+1", "until": "@end+0.4", "top": 750, "size": 36, "align": "center", "color": "secondary", "sound": "tick" }
+  ],
+  "notes": [
+    { "text": "İZ SADELEŞTİRİLDİ", "at": 0.3, "until": "@toFlow.end", "top": 1345 },
+    { "text": "ŞEMA VE İZ SADELEŞTİRİLDİ", "at": "@toFlow.end+0.3", "until": "@toTrace.start", "top": 1345 },
+    { "text": "İZ SADELEŞTİRİLDİ", "at": "@toTrace.end", "until": "@end+0.4", "top": 1345 },
+    { "text": "DEĞERLER YAKLAŞIK", "at": "@fire+0.4", "until": "@end+0.4", "top": 1380 }
+  ],
+  "darken": { "range": "@dim", "alpha": 0.55 },
+  "concept": { "at": "@reveal+0.1", "kicker": "BUNUN ADI", "name": "ELEKTROKARDİYOGRAM", "color": "you", "top": 480, "sound": "land" },
+  "counter": {
+    "label": "ZAMAN",
+    "unit": "ms",
+    "curve": "beat",
+    "fadeIn": ["@fire", "@fire+0.4"],
+    "timeScale": { "unitPerSec": 1000 },
+    "format": { "zeroBelow": 0.5, "oneDecimalBelow": 0 }
+  },
+  "sound": {
+    "music": { "file": "kit/music/contemplation.mp3", "gain": 1, "duck": 0.5, "fadeIn": [0, 2], "fadeOut": ["@end-2", "@end"] },
+    "hits": [
+      { "id": "rise", "at": "@toFlow.start-0.2" },
+      { "id": "pulse", "at": "@fire" },
+      { "id": "dive", "at": { "cue": "Kapı açılıyor", "offset": -0.1 } },
+      { "id": "pulse", "at": { "cue": "İşte QRS" } },
+      { "id": "pulse", "at": { "cue": "Elektrik cildine", "offset": 0.2 }, "gain": 0.5 },
+      { "id": "pulse", "at": { "cue": "Elektrik cildine", "offset": 1 }, "gain": 0.35 },
+      { "id": "rise", "at": "@toTrace.start-0.2", "gain": 0.8 }
+    ]
+  },
+  "sources": [
+    { "id": "openstax", "claim": "Uyarı SA'dan AV düğümüne ~50 ms'de varır, AV düğümünde ~100 ms gecikir, His ve dallardan ~25 ms'de, Purkinje'den karıncıklara ~75 ms'de geçer; P kulakçıkların, QRS karıncıkların uyarılması, T karıncıkların toparlanmasıdır", "value": "50 / 150 / 175 / 250 ms", "url": "https://openstax.org/books/anatomy-and-physiology-2e/pages/19-2-cardiac-muscle-and-electrical-activity", "accessed": "2026-11-18", "status": "simplified", "note": "Zaman çizelgesi bölüm sürelerinin toplamıdır (250 ms); aynı kaynak toplamı ~225 ms diye de verir. Tipik değerler, kişiden kişiye değişir." },
+    { "id": "klabunde-a003", "claim": "Kulakçıkların aktivasyonu SA ateşlemesinden ~0,09 sn sonra tamamlanır; AV gecikmesi kulakçık kasılmasının bitmesine zaman tanır", "value": "90 ms", "url": "https://cvphysiology.com/arrhythmias/a003", "accessed": "2026-11-18", "status": "simplified", "note": "'Kan aşağı dolsun diye' sadeleştirmesi: kulakçık kasılması karıncıkların dolmasını tamamlar." },
+    { "id": "klabunde-a009", "claim": "P dalgası 80–100 ms, PR 0,12–0,20 sn, QRS 0,06–0,10 sn; QT 0,2–0,4 sn; kâğıt 25 mm/sn, 1 mV = 10 mm", "value": "PR 175 ms, QRS 75 ms, QT 325 ms", "url": "https://cvphysiology.com/arrhythmias/a009", "accessed": "2026-11-18", "status": "simplified", "note": "T dalgasının yeri (350–500 ms) QT aralığına oturtuldu; dalga genlikleri temsilidir." },
+    { "id": "nhlbi", "claim": "Kalp göğsün ortasında, akciğerlerin yanındadır", "value": "göğsünün ortası", "url": "https://www.nhlbi.nih.gov/health/heart/anatomy", "accessed": "2026-11-18", "status": "verified" },
+    { "id": "statpearls-sa", "claim": "SA düğümü sağ kulakçık duvarında, üst ana toplardamarın girişine yakındır", "value": "kalbinin sağ üst köşesi", "url": "https://www.statpearls.com/point-of-care/29042", "accessed": "2026-11-18", "status": "simplified", "note": "Hastanın sağı; ekranda '◀ SENİN SAĞIN' ile gösterilir." },
+    { "id": "aha", "claim": "Dinlenirken normal nabız dakikada 60–100 atımdır", "value": "60–100", "url": "https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse", "accessed": "2026-11-18", "status": "verified", "note": "Normal sinüs ritminde nabız SA düğümünün ateşleme hızına eşittir." },
+    { "id": "jove", "claim": "Deride ölçülen EKG sinyali yaklaşık 1 mV'tur", "value": "≈1 mV", "url": "https://www.jove.com/v/10473", "accessed": "2026-11-18", "status": "simplified", "note": "Tipik tepe değeri; derivasyona göre ~0,5–4 mV." },
+    { "id": "energizer", "claim": "AA alkalin kalem pilin nominal gerilimi 1,5 V'tur; 1 mV bunun binde birinden azdır", "value": "1,5 V", "url": "https://cdn.connectec.uk/Files/Products/Batteries/energizer_batteries/e91_aa_battery_datasheet.pdf", "accessed": "2026-11-18", "status": "verified", "note": "1 mV / 1,5 V ≈ 1/1500." },
+    { "id": "iec-leakage", "claim": "IEC 60601-1, kalbe doğrudan uygulanabilen (CF) parçalarda hasta sızıntı akımını normal koşulda 10 µA ile sınırlar", "value": "≤ 10 µA", "url": "https://advancedenergy.com/en-us/about/news/blog/safety-requirements-in-medical-equipment-designing-for-bf-and-cf-classifications", "accessed": "2026-11-18", "status": "simplified", "note": "Standardın kendisi değil, üretici özetinden doğrulandı; EKG elektrotları CF ya da BF sınıfındadır (BF sınırı 100 µA)." },
+    { "id": "osha", "claim": "Vücudun hissedebildiği akım eşiği yaklaşık 1 mA'dır (hafif karıncalanma)", "value": "≈1 mA", "url": "https://obis.osha.gov/dte/grant_materials/fy07/sh-16610-07/module_1-current_effect_on_human_body.doc", "accessed": "2026-11-18", "status": "simplified", "note": "OSHA eğitim materyali; bazı derlemeler eşiği 1–3 mA verir. 'Hissedemeyeceğin kadar küçük' bu karşılaştırmanın sadeleştirmesidir." },
+    { "id": "dictionary-gram", "claim": "-gram eki Yunanca grámma'dan (yazılmış ya da çizilmiş şey) gelir", "value": "gram = yazı", "url": "https://www.dictionary.com/browse/-gram", "accessed": "2026-11-18", "status": "simplified", "note": "'Kalbin elektrik yazısı' serbest çeviri." },
+    { "id": "dictionary-cardio", "claim": "cardio- Yunanca kardía'dan (kalp) gelir", "value": "kardiyo = kalp", "url": "https://www.dictionary.com/browse/cardio-", "accessed": "2026-11-18", "status": "verified" }
+  ],
+  "credits": [
+    { "item": "Contemplation (müzik)", "kind": "music", "author": "Joth", "license": "CC0 1.0 Universal", "url": "https://opengameart.org/content/contemplation-0" },
+    { "item": "Ses efektleri (eleven_text_to_sound_v2): monitor-beep, tick, lock, typing, pulse, dive, rise, land", "kind": "sfx", "author": "ElevenLabs", "license": "ElevenLabs ücretsiz plan: ticari kullanım yok, atıf koşulu Hizmet Şartları'na bağlı", "url": "https://elevenlabs.io/service-specific-terms" },
+    { "item": "Inter (yazı tipi)", "kind": "font", "author": "Rasmus Andersson", "license": "SIL Open Font License 1.1", "url": "https://github.com/rsms/inter" },
+    { "item": "JetBrains Mono (yazı tipi)", "kind": "font", "author": "JetBrains", "license": "SIL Open Font License 1.1", "url": "https://github.com/JetBrains/JetBrainsMono" },
+    { "item": "Remotion", "kind": "code", "author": "Remotion AG", "license": "Remotion License (3 kişiden büyük şirketler için şirket lisansı gerekir)", "url": "https://www.remotion.dev/license" },
+    { "item": "Kalp, iletim yolu, gövde ve EKG izi çizimleri", "kind": "image", "author": "Bu proje (flow / trace verisi)", "license": "Projeye ait, prosedürel; gerçek görüntü verisi içermez" }
+  ],
+  "styleExceptions": []
+}

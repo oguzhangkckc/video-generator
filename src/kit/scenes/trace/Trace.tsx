@@ -69,6 +69,7 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
   if (opacity <= 0) return <>{sounds}</>;
 
   const { pxPerX, pxPerY, minorX, minorY, majorEvery, legend } = layer.grid;
+  const band = layer.frame;
   const pen: Vec = [layer.penX * WIDTH, layer.baselineY];
   const anchor: Vec = [CX, layer.anchorY];
   const view = viewAt(layer.camera, (f) => (f === "frame" ? anchor : f === "pen" ? pen : f), layer.drift, t);
@@ -128,9 +129,20 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
   return (
     <>
       {sounds}
-      <AbsoluteFill style={{ opacity, background: `linear-gradient(180deg, ${COLOR.bgTop} 0%, ${COLOR.bgBottom} 100%)` }}>
+      <AbsoluteFill style={{ opacity, background: band ? undefined : `linear-gradient(180deg, ${COLOR.bgTop} 0%, ${COLOR.bgBottom} 100%)` }}>
         <svg width={WIDTH} height={HEIGHT} style={{ position: "absolute", inset: 0 }}>
           <defs>
+            {band ? (
+              <>
+                <clipPath id={`${gradientId}-band`}>
+                  <rect x={0} y={band.top} width={WIDTH} height={band.height} />
+                </clipPath>
+                <linearGradient id={`${gradientId}-bg`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor={COLOR.bgTop} />
+                  <stop offset="1" stopColor={COLOR.bgBottom} />
+                </linearGradient>
+              </>
+            ) : null}
             <linearGradient id={gradientId} gradientUnits="userSpaceOnUse" x1={pen[0] - 1100} y1={0} x2={pen[0]} y2={0}>
               <stop offset="0" stopColor={color} stopOpacity={0.1} />
               <stop offset="0.55" stopColor={color} stopOpacity={0.7} />
@@ -141,6 +153,8 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
               <stop offset="1" stopColor={COLOR.space} stopOpacity={0.85} />
             </radialGradient>
           </defs>
+          {band ? <rect x={0} y={band.top} width={WIDTH} height={band.height} fill={`url(#${gradientId}-bg)`} /> : null}
+          <g clipPath={band ? `url(#${gradientId}-band)` : undefined}>
           <g transform={worldTransform(view, anchor)}>
             <path d={minor} stroke={COLOR.gridMinor} strokeWidth={strokeAt(1, view.zoom)} vectorEffect="non-scaling-stroke" />
             <path d={major} stroke={COLOR.gridMajor} strokeWidth={strokeAt(1.6, view.zoom)} vectorEffect="non-scaling-stroke" />
@@ -154,20 +168,24 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
               <polyline key={i} points={line(from, drawnTo)} fill="none" stroke={tokenColor(part.color)} strokeOpacity={0.85 * alpha} strokeWidth={strokeAt(5, view.zoom)} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
             ))}
           </g>
-          <rect width={WIDTH} height={HEIGHT} fill={`url(#${gradientId}-vignette)`} />
+          {band ? null : <rect width={WIDTH} height={HEIGHT} fill={`url(#${gradientId}-vignette)`} />}
           {parts.map(({ part, lx, ly, alpha }, i) => (
             <text key={i} x={lx} y={ly} textAnchor="middle" fontFamily={MONO} fontWeight={700} fontSize={34} fill={tokenColor(part.color)} opacity={alpha} stroke={COLOR.space} strokeWidth={6} paintOrder="stroke">
               {part.text}
             </text>
           ))}
           <GlowDot x={penSx} y={penSy} r={MATCH_DOT_R * view.zoom} color={color} />
+          </g>
+          {band ? (
+            <path d={`M0 ${band.top}H${WIDTH}M0 ${band.top + band.height}H${WIDTH}`} stroke={COLOR.gridMajor} strokeWidth={2} />
+          ) : null}
         </svg>
         {legendAlpha > 0 ? (
           <div
             style={{
               position: "absolute",
               left: 80,
-              top: toScreen([0, pen[1]])[1] + 230,
+              top: band ? band.top + band.height - 34 : toScreen([0, pen[1]])[1] + 230,
               opacity: legendAlpha,
               fontFamily: MONO,
               fontWeight: 500,
