@@ -48,9 +48,11 @@ kullanılır.
 - **Her gövde bölümü "Peki…?" sorusuyla açılır.** Soru bir önceki bölümün bıraktığı boşluğu adlandırır. **Art arda
   iki "Peki…?" cümlesi olmaz;** kancanın sorusu bu yüzden "Peki" ile başlamaz.
 - **Kanca başlıkları seslendirmeyle aynı kelimeleri kullanır** (başlık ekrandayken söylenen kelimeler).
-- Konuşma hızı **~2,5 kelime/sn** (render sonrası genel ölçüm 2,4–2,7 aralığında olmalı): 30 sn ≈ 70 kelime, 45 sn ≈ 110,
-  60 sn ≈ 145. Bölüm bütçesi =
-  pencere süresi × 2,5 − ~1 kelime pay.
+- **Konuşma hızı** yalnızca konuşulan sürede ölçülür: **2,6–3,0 kelime/sn** (hedef 2,8). Duraklamalar bunun üstüne eklenir.
+- **Duraklamalar (nefes payı):** virgül ve iki nokta ~0,2 sn · cümle sonu ~0,4 sn · "Peki…?" sorusundan sonra ~0,6 sn ·
+  bölüm geçişi ~0,7 sn (`src/spec/pauses.ts`). Duraklamada ses yatağı ve kamera sürer; altyazı bir sonraki cümleye
+  kadar kalır, ekran boş kalmaz ve donmaz. qa: cümle aralarının ortalaması 0,35 sn'nin altındaysa hata.
+- **Kelime bütçesi** = (pencere − duraklamalar) × 2,8. 30 sn ≈ 65 kelime, 45 sn ≈ 95, 60 sn ≈ 125.
 - Cümleler kısa tutulur. Bir cümle bir altyazı sayfasıdır ve tek satıra sığmalıdır (≈ 32 karakter).
 - **Sağ ya da sol söylenen her yerde ekranda yön ipucu olur.** Anatomik görünümde izleyicinin sağı ekranın solunda
   kalır; "SENİN SAĞIN" gibi bir etiket ya da ok bunu gösterir.

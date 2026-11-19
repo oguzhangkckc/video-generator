@@ -7,15 +7,16 @@ import os from "node:os";
 import path from "node:path";
 import { bundle } from "@remotion/bundler";
 import { openBrowser, renderStill, selectComposition } from "@remotion/renderer";
-import { WORDS_PER_SECOND, wordCount } from "../src/spec/timing.ts";
+import { endsSentence } from "../src/spec/pauses.ts";
 import { parseArgs } from "./lib/args.mjs";
 import { ROOT, duration, loadSpec, outDir, requireSlug, videoDir } from "./lib/video.mjs";
 
 const SAFE_RIGHT = 960;
 const SAFE_BOTTOM = 1632;
 const FPS = 30;
-const RATE_LIMITS = [2.4, 2.7];
-const SECTION_TOLERANCE = 0.2;
+/** Words per second while speaking (pauses excluded), and the breathing-room limits between sentences. */
+const SPOKEN_RATE = [2.6, 3.0];
+const PAUSES = { shortSentence: 0.25, meanSentence: 0.35 };
 const SILENCE = { noiseDb: -70, minSec: 0.3, tailSec: 0.7 };
 /** A data line's box must be empty background: no pixel brighter than `luma` beyond these shares. */
 const CLUTTER = { luma: 70, share: 0.004, line: 0.35 };
@@ -167,24 +168,23 @@ const audio = async (sound) => {
 
   const timingFile = path.join(videoDir(slug), "timing.json");
   const rates = {};
-  if (!existsSync(timingFile)) warnings.push("konuşma hızı: timing.json yok (taslak ses hizalanmadı)");
+  if (!existsSync(timingFile)) warnings.push("konuşma: timing.json yok (taslak ses hizalanmadı)");
   else {
-    const timing = JSON.parse(readFileSync(timingFile, "utf8"));
-    const words = timing.words;
-    const overall = words.length / ((words.at(-1).endMs - words[0].startMs) / 1000);
-    rates.overall = overall;
-    const line = `konuşma hızı: genel ${overall.toFixed(2)} kelime/sn (hedef ${WORDS_PER_SECOND}, sınır ${RATE_LIMITS.join("–")})`;
-    if (overall < RATE_LIMITS[0] || overall > RATE_LIMITS[1]) errors.push(line);
-    let p = 0;
-    for (const section of rawSpec.voiceover.sections) {
-      const phrases = timing.phrases.slice(p, p + section.phrases.length);
-      p += section.phrases.length;
-      const count = section.phrases.reduce((n, text) => n + wordCount(text), 0);
-      const rate = count / (phrases.at(-1).end - phrases[0].start);
-      rates[section.id] = rate;
-      if (Math.abs(rate - WORDS_PER_SECOND) / WORDS_PER_SECOND > SECTION_TOLERANCE) {
-        warnings.push(`konuşma hızı: "${section.id}" ${rate.toFixed(2)} kelime/sn (hedef ${WORDS_PER_SECOND} ±%${SECTION_TOLERANCE * 100})`);
-      }
+    const { phrases, words } = JSON.parse(readFileSync(timingFile, "utf8"));
+    const spoken = phrases.reduce((sum, p) => sum + (p.end - p.start), 0);
+    rates.spoken = words.length / spoken;
+    if (rates.spoken < SPOKEN_RATE[0] || rates.spoken > SPOKEN_RATE[1]) {
+      warnings.push(`konuşma hızı: konuşulan sürede ${rates.spoken.toFixed(2)} kelime/sn (hedef ${SPOKEN_RATE.join("–")})`);
+    }
+    const gaps = phrases.slice(0, -1).map((p, i) => ({ p, gap: phrases[i + 1].start - p.end }));
+    const sentences = gaps.filter(({ p }) => endsSentence(p.text));
+    for (const { p, gap } of sentences) {
+      if (gap < PAUSES.shortSentence) warnings.push(`duraklama: ${fmt(p.end)} "${p.text}" sonrası ${gap.toFixed(2)} sn (en az ${PAUSES.shortSentence})`);
+    }
+    rates.meanSentencePause = sentences.length ? sentences.reduce((sum, g) => sum + g.gap, 0) / sentences.length : 0;
+    rates.minPause = gaps.length ? Math.min(...gaps.map((g) => g.gap)) : 0;
+    if (sentences.length && rates.meanSentencePause < PAUSES.meanSentence) {
+      errors.push(`duraklama: cümle aralarının ortalaması ${rates.meanSentencePause.toFixed(2)} sn (en az ${PAUSES.meanSentence})`);
     }
   }
 
@@ -228,13 +228,17 @@ writeFileSync(path.join(outDir(slug), "qa.json"), `${JSON.stringify(report, null
 const rows = [
   ["Yerleşim (çakışma, güvenli alan)", runLayout ? (errors.some((e) => /^(yerleşim|güvenli alan)/.test(e)) ? "HATA" : "temiz") : "—"],
   ["Etiket alanı (çizgi/nesne)", runLayout ? (errors.some((e) => e.startsWith("etiket alanı")) ? "HATA" : "temiz") : "—"],
-  ["Konuşma hızı", runAudio ? (errors.some((e) => e.startsWith("konuşma")) ? "HATA" : warnings.some((w) => w.startsWith("konuşma")) ? "uyarı" : "temiz") : "—"],
+  ["Konuşma hızı (konuşulan süre)", runAudio ? (warnings.some((w) => w.startsWith("konuşma")) ? "uyarı" : "temiz") : "—"],
+  ["Duraklamalar", runAudio ? (errors.some((e) => e.startsWith("duraklama")) ? "HATA" : warnings.some((w) => w.startsWith("duraklama")) ? "uyarı" : "temiz") : "—"],
   ["Dijital sessizlik", runAudio ? (errors.some((e) => e.startsWith("sessizlik")) ? "HATA" : "temiz") : "—"],
   ["Yatak sürekliliği", runAudio ? (errors.some((e) => e.startsWith("yatak")) ? "HATA" : warnings.some((w) => w.startsWith("yatak")) ? "uyarı" : "temiz") : "—"],
 ];
 console.log(`\nQA ${slug}`);
 for (const [name, result] of rows) console.log(`  ${name.padEnd(36)} ${result}`);
-if (audioResult?.rates?.overall) console.log(`  ${"Kelime/sn (genel)".padEnd(36)} ${audioResult.rates.overall.toFixed(2)}`);
+if (audioResult?.rates?.spoken) {
+  console.log(`  ${"Kelime/sn (konuşulan süre)".padEnd(36)} ${audioResult.rates.spoken.toFixed(2)}`);
+  console.log(`  ${"Cümle arası ort. / en kısa ara".padEnd(36)} ${audioResult.rates.meanSentencePause.toFixed(2)} / ${audioResult.rates.minPause.toFixed(2)} sn`);
+}
 for (const e of errors) console.log(`  ✗ ${e}`);
 for (const w of warnings) console.log(`  ! ${w}`);
 console.log(errors.length ? `\n${errors.length} hata, ${warnings.length} uyarı → ${path.relative(ROOT, outDir(slug))}/qa.json` : `\nOK (${warnings.length} uyarı)`);

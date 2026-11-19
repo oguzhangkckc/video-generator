@@ -23,6 +23,8 @@ export const soundSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, 
         )
         .default([]),
       hits: z.array(z.object({ id: SfxId, at: k.time, gain: z.number().min(0).default(1) }).strict()).default([]),
+      /** Gaps shorter than this count as speech for ducking, so beds hold steady through breaths. */
+      duckBridge: z.number().min(0).optional(),
       /** A licensed track from public/kit/music (see `npm run music -- list`). */
       music: z
         .object({

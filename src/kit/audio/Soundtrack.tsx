@@ -10,8 +10,15 @@ import { Sfx } from "./Sfx";
 type Range = [number, number];
 
 /** 0 in silence, 1 while the voice-over speaks, eased so beds dip and recover smoothly. */
-const speakingFn = (phrases: Phrase[]) => (t: number) =>
-  Math.max(0, ...phrases.map(({ start, end }) => envelope(t, [start - 0.12, start], [end + 0.05, end + 0.4])));
+const speakingFn = (phrases: Phrase[], bridge: number) => {
+  const spans: { start: number; end: number }[] = [];
+  for (const { start, end } of phrases) {
+    const last = spans.at(-1);
+    if (last && start - last.end < bridge) last.end = Math.max(last.end, end);
+    else spans.push({ start, end });
+  }
+  return (t: number) => Math.max(0, ...spans.map(({ start, end }) => envelope(t, [start - 0.12, start], [end + 0.05, end + 0.4])));
+};
 
 const fades = (fadeIn?: Range, fadeOut?: Range) => (t: number) =>
   (fadeIn ? ramp(t, fadeIn) : 1) * (fadeOut ? 1 - ramp(t, fadeOut) : 1);
@@ -37,7 +44,7 @@ type Props = { sound: Spec["sound"]; voiceover?: string; phrases: Phrase[] };
 export const Soundtrack: React.FC<Props> = ({ sound, voiceover, phrases }) => {
   const { durationInFrames, fps } = useVideoConfig();
   const end = durationInFrames / fps;
-  const speaking = speakingFn(phrases);
+  const speaking = speakingFn(phrases, sound.duckBridge ?? 0.8);
   const { music } = sound;
   const musicFrom = sec(music?.at ?? 0);
 

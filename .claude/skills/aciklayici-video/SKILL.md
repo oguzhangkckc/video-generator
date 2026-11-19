@@ -57,18 +57,19 @@ Birini gerekçesiyle öner. **Dur.**
   - kanca: 0–5 sn
   - 2–3 gövde bölümü
   - doruk ve final: son ~8 sn
-- Kelime bütçesi: bölüm penceresi × 2,5.
+- Kelime bütçesi: (bölüm penceresi − duraklamalar) × 2,8. Duraklamalar ≈ 0,7 (bölüm geçişi) + 0,6 × "Peki…?"
+  sorusu + 0,4 × cümle sonu + 0,2 × virgül/iki nokta (`src/spec/pauses.ts`).
 - STYLE kuralları:
   - izleyiciye "sen" diye hitap
   - her gövde bölümü "Peki…?" ile açılır; **art arda iki "Peki…?" cümlesi olmaz** (kancanın sorusu "Peki"siz)
   - kanca başlıkları seslendirmeyle aynı kelimeleri kullanır
-  - bölüm pencerelerini ~2,6 kelime/sn'ye göre boyutla: render sonrası genel hız 2,4–2,7 değilse qa hata verir
+  - qa konuşulan sürede 2,6–3,0 kelime/sn bekler; cümle aralarının ortalaması 0,35 sn'nin altındaysa hata verir
   - tek somut yolculuk
   - final sırası: doruk → tek cümlelik özet (kancadaki sorunun cevabı) → kavramın adı en son (ad daha önce
     söylenmez); geri sayım yalnızca gerçek bir süre/eşik için
   - sağ/sol söylenen her yerde ekranda yön ipucu planla
 - Çıktı:
-  - bölüm tablosu: pencere, bütçe, gerçek kelime sayısı
+  - bölüm tablosu: pencere, duraklama, bütçe, gerçek kelime sayısı
   - cümle cümle metin: her cümle bir altyazı sayfası, en fazla ~32 karakter
   - her rakamın hangi kaynağa dayandığı
 
@@ -149,7 +150,10 @@ Seslendirme dosyası verildiğinde:
    özeti.
 
 Seslendirme dosyası yoksa ve kullanıcı taslak ses isterse: `npm run voiceover -- build <slug> <voiceId>`. Bu
-ElevenLabs kredisi harcar ve ücretsiz planda çıkan ses ticari kullanılamaz; ikisini de önceden söyle.
+ElevenLabs kredisi harcar ve ücretsiz planda çıkan ses ticari kullanılamaz; ikisini de önceden söyle. Ses cümle
+cümle üretilir ve kurallı duraklamalarla birleştirilir (hızlandırma en fazla ×1,05; klipler `out/<slug>/vo-clips/`
+altında önbelleğe alınır). Bir bölüm sığmazsa script durup tablo basar: `--widen` ile pencereleri genişlet ya da metni
+kısaltmayı öner. İnsan kaydında `align` kurallardan kısa aralara sessizlik ekler.
 
 ## Kurallar
 

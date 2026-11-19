@@ -69,7 +69,8 @@ export const captionsSchema = z
     maxFont: z.number().positive().default(60),
     /** Defaults to layout.contentWidth. */
     maxWidth: z.number().positive().optional(),
-    lingerMs: z.number().min(0).default(450),
+    /** Long enough to bridge a section pause, so the caption line never blinks empty mid-thought. */
+    lingerMs: z.number().min(0).default(800),
   })
   .strict();
 

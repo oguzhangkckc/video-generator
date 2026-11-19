@@ -1,20 +1,34 @@
 // Word timings for a finished voice-over (human or any TTS) with Whisper, run locally through whisper.cpp.
 //   node scripts/align.mjs <slug> <audio-file> [--model large-v3-turbo] [--dry]
 // → public/videos/<slug>/vo.wav (48 kHz stereo, −14 LUFS) + videos/<slug>/timing.json
-//   --dry writes out/<slug>/align/timing.json only (no audio copy), e.g. to test against a known timing.
+//   --dry only reports; out/<slug>/align/timing.json gets the raw alignment of the input, e.g. to test against a
+//   known timing.
 // Whisper's text is only used for timing: it may spell "yirmi bin" as "20.000", so its words are aligned to the
 // script's words and the captions always show the script.
+// A gap between phrases shorter than its STYLE pause (src/spec/pauses.ts) is opened with silence, cut in at the
+// quietest point of the gap; longer gaps stay as recorded.
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { downloadWhisperModel, installWhisperCpp, transcribe } from "@remotion/install-whisper-cpp";
+import { pauseAfter } from "../src/spec/pauses.ts";
 import { parseArgs } from "./lib/args.mjs";
-import { ROOT, duration, ffmpeg, loadSpec, outDir, publicDir, requireSlug, videoDir } from "./lib/video.mjs";
+import { ROOT, SAMPLE_RATE, duration, ffmpeg, loadSpec, outDir, publicDir, readPcm, requireSlug, videoDir, writeWav } from "./lib/video.mjs";
 
 const WHISPER_VERSION = "1.7.6";
 const WHISPER_DIR = path.join(ROOT, "out/whisper/whisper.cpp");
 const MODEL_DIR = path.join(ROOT, "out/whisper/models");
 const MATCH = 0.5;
 const GAP_COST = 0.7;
+const CHANNELS = 2;
+const MIN_OPEN = 0.02;
+const QUIET_DB = -50;
+const MIN_PAUSE = 0.05;
+// Whisper's phrase ends land up to ~0.25 s late (DTW), so the real pause is searched for mostly before them.
+const SEARCH_BEFORE = 0.3;
+const SEARCH_AFTER = 0.15;
+const WIN = SAMPLE_RATE / 100;
+const HOP = WIN / 2;
+const FADE = Math.round(0.005 * SAMPLE_RATE);
 
 const { positional, flags } = parseArgs(process.argv.slice(2), { model: "string", dry: "boolean" });
 const slug = requireSlug(positional[0]);
@@ -121,42 +135,137 @@ for (let i = 0; i < script.length; ) {
   i = k;
 }
 
-const round2 = (x) => Math.round(x * 100) / 100;
 let cursor = 0;
-const timing = {
+const ranges = phrases.map((text) => [cursor, (cursor += text.split(" ").length)]);
+const sectionEnds = spec.voiceover.sections.flatMap((s) => s.phrases.map((_, i) => i === s.phrases.length - 1));
+
+const pcm = readPcm(input, { channels: CHANNELS });
+const levels = new Float32Array(Math.max(0, Math.floor((pcm.length / CHANNELS - WIN) / HOP) + 1));
+for (let k = 0; k < levels.length; k++) {
+  let energy = 0;
+  for (let j = k * HOP * CHANNELS; j < (k * HOP + WIN) * CHANNELS; j++) energy += pcm[j] * pcm[j];
+  levels[k] = 10 * Math.log10(energy / (WIN * CHANNELS) + 1e-12);
+}
+// A noisy room raises the bar above its own floor, so its room tone still counts as a pause.
+const quietDb = Math.max(QUIET_DB, [...levels].sort((x, y) => x - y)[Math.floor(levels.length * 0.05)] + 10);
+
+/** The quiet stretch (≥ MIN_PAUSE) inside [lo, hi] s nearest to [a, b] s, as [first, end) frames; null if none. */
+const pauseNear = (lo, hi, a, b) => {
+  const runs = [];
+  let run = null;
+  for (let k = Math.max(0, Math.ceil((lo * SAMPLE_RATE) / HOP)); k < levels.length && k * HOP + WIN <= hi * SAMPLE_RATE; k++) {
+    if (levels[k] < quietDb) {
+      run ??= [k * HOP, 0];
+      run[1] = k * HOP + WIN;
+    } else if (run) {
+      runs.push(run);
+      run = null;
+    }
+  }
+  if (run) runs.push(run);
+  const distance = ([s, e]) => Math.max(0, s / SAMPLE_RATE - b, a - e / SAMPLE_RATE);
+  const long = runs.filter(([s, e]) => e - s >= MIN_PAUSE * SAMPLE_RATE);
+  return long.sort((x, y) => distance(x) - distance(y) || y[1] - y[0] - (x[1] - x[0]))[0] ?? null;
+};
+
+// The pause is measured in the audio, since Whisper's gaps are too rough; a boundary with no real pause is never cut.
+const opens = [];
+const runOns = [];
+for (let i = 0, earliest = 0; i < phrases.length - 1; i++) {
+  const end = words[ranges[i][1] - 1].end;
+  const next = words[ranges[i + 1][0]].start;
+  const want = pauseAfter(phrases[i], { sectionEnd: sectionEnds[i] });
+  const lo = Math.max(earliest, words[ranges[i][0]].start, Math.min(end, next) - SEARCH_BEFORE);
+  const hi = Math.min(words[ranges[i + 1][1] - 1].end, Math.max(end, next) + SEARCH_AFTER);
+  const run = pauseNear(lo, hi, Math.min(end, next), Math.max(end, next));
+  const pause = run ? (run[1] - run[0]) / SAMPLE_RATE : next - end;
+  if (want - pause < MIN_OPEN) continue;
+  if (!run) {
+    runOns.push({ after: i, at: end });
+    continue;
+  }
+  const frame = Math.round((run[0] + run[1]) / 2);
+  opens.push({ after: i, frame, frames: Math.round((want - pause) * SAMPLE_RATE), pause, want });
+  earliest = frame / SAMPLE_RATE;
+}
+
+let delay = 0;
+const shifted = phrases.flatMap((_, i) => {
+  const out = words.slice(...ranges[i]).map((w) => ({ ...w, start: w.start + delay, end: w.end + delay }));
+  const open = opens.find((o) => o.after === i);
+  if (open) delay += open.frames / SAMPLE_RATE;
+  return out;
+});
+
+/** The recording with each open's silence cut in at its frame, faded over FADE frames on both sides of the cut. */
+const withSilences = () => {
+  const out = new Float32Array(pcm.length + opens.reduce((n, o) => n + o.frames, 0) * CHANNELS);
+  const holes = [];
+  let src = 0;
+  let dst = 0;
+  for (const o of opens) {
+    out.set(pcm.subarray(src * CHANNELS, o.frame * CHANNELS), dst * CHANNELS);
+    dst += o.frame - src;
+    holes.push([dst, dst + o.frames]);
+    dst += o.frames;
+    src = o.frame;
+  }
+  out.set(pcm.subarray(src * CHANNELS), dst * CHANNELS);
+  for (const [a, b] of holes) {
+    for (let f = 0; f < FADE; f++) {
+      for (let c = 0; c < CHANNELS; c++) {
+        if (a - 1 - f >= 0) out[(a - 1 - f) * CHANNELS + c] *= f / FADE;
+        if ((b + f) * CHANNELS + c < out.length) out[(b + f) * CHANNELS + c] *= f / FADE;
+      }
+    }
+  }
+  return out;
+};
+
+const round2 = (x) => Math.round(x * 100) / 100;
+const timingOf = (ws) => ({
   source: `whisper.cpp ${WHISPER_VERSION} ${model}`,
   audio: `videos/${slug}/vo.wav`,
-  phrases: phrases.map((text) => {
-    const span = words.slice(cursor, (cursor += text.split(" ").length));
+  phrases: phrases.map((text, i) => {
+    const span = ws.slice(...ranges[i]);
     return { text, start: round2(span[0].start), end: round2(span[span.length - 1].end) };
   }),
-  words: words.map((w) => ({
+  words: ws.map((w) => ({
     text: w.text,
     startMs: Math.round(w.start * 1000),
     endMs: Math.round(w.end * 1000),
     timestampMs: Math.round(((w.start + w.end) / 2) * 1000),
     confidence: w.confidence,
   })),
-};
+});
 
 const timingFile = flags.dry ? path.join(workDir, "timing.json") : path.join(videoDir(slug), "timing.json");
-writeFileSync(timingFile, `${JSON.stringify(timing, null, 2)}\n`);
+writeFileSync(timingFile, `${JSON.stringify(timingOf(flags.dry ? words : shifted), null, 2)}\n`);
 if (!flags.dry) {
   mkdirSync(publicDir(slug), { recursive: true });
-  ffmpeg("-i", input, "-af", "aformat=channel_layouts=stereo,loudnorm=I=-14:TP=-1.5:LRA=7,aresample=48000", "-c:a", "pcm_s16le", path.join(publicDir(slug), "vo.wav"));
+  writeWav(path.join(publicDir(slug), "vo.wav"), withSilences(), { channels: CHANNELS, filter: "loudnorm=I=-14:TP=-1.5:LRA=7,aresample=48000" });
 }
 
 const matched = anchor.filter(Boolean).length;
 console.log(`${matched}/${script.length} script words matched Whisper's (${heard.length} heard); the rest interpolated`);
+const added = opens.reduce((n, o) => n + o.frames, 0) / SAMPLE_RATE;
+console.log(
+  `${flags.dry ? "would open" : "opened"} ${opens.length} of ${phrases.length - 1} phrase gaps to the STYLE pauses, +${added.toFixed(2)} s in all`,
+);
+const after = (i) => `after "${phrases[i].length > 40 ? `${phrases[i].slice(0, 39)}…` : phrases[i]}"`.padEnd(50);
+for (const o of opens) {
+  console.log(`  ${after(o.after)} ${o.pause.toFixed(2)} → ${o.want.toFixed(2)} s, cut at ${(o.frame / SAMPLE_RATE).toFixed(2)} s`);
+}
+for (const r of runOns) console.log(`  ${after(r.after)} no pause in the audio near ${r.at.toFixed(2)} s — left as recorded`);
 let firstWord = 0;
 for (const section of spec.voiceover.sections) {
-  const start = words[firstWord].start;
+  const start = shifted[firstWord].start;
   const shift = start - section.window[0];
   console.log(`  ${section.id.padEnd(12)} starts at ${start.toFixed(2)} s (window ${section.window[0]}–${section.window[1]})${Math.abs(shift) > 0.5 ? "  ← check marks tied to this section" : ""}`);
   firstWord += section.phrases.reduce((n, p) => n + p.split(" ").length, 0);
 }
-const speechEnd = words[words.length - 1].end;
+const speechEnd = shifted[shifted.length - 1].end;
 if (speechEnd > spec.durationSec - 0.3) {
   console.log(`speech ends at ${speechEnd.toFixed(2)} s — raise durationSec to about ${Math.ceil(speechEnd + 0.5)}`);
 }
-console.log(path.relative(ROOT, timingFile));
+console.log(`${path.relative(ROOT, timingFile)}${flags.dry ? " (raw alignment of the input, before opening gaps)" : ""}`);
