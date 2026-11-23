@@ -47,6 +47,17 @@ test("composition: a small subject, an empty frame and a covered element are err
   assert.ok(errors.some((e) => e.startsWith("önemli öğe")), errors.join("\n"));
 });
 
+test("composition: an important element out of the frame is an error unless it is entering or leaving", () => {
+  const at = (y) => (y == null ? [] : [{ id: "hero", kind: "satellite", important: true, say: [], ...box(540, y) }]);
+  const run = (ys) => composition({ samples: ys.map((y, i) => sample(i * 0.25, [scene({ elements: at(y) })])), step: 0.25, labelAlign: () => "left", phrases: [] });
+  const out = (ys) => run(ys).errors.filter((e) => e.includes("kareden taşıyor"));
+  assert.equal(out([960, 10, 960, 960]).length, 0);
+  assert.equal(out([960, 10, 10, 10, 960]).length, 1, "sitting cut off at the edge");
+  assert.equal(out([960, -400, -400, -400]).length, 1, "out of the frame while it still matters");
+  assert.equal(out([null, -400, 10, 10, 960]).length, 0, "entering");
+  assert.equal(out([960, 10, 10, 10, null]).length, 0, "leaving");
+});
+
 test("composition: touching labels, a label on the line, a named element off screen", () => {
   const labels = [
     { text: "P", marker: "leader", x1: 500, y1: 900, x2: 530, y2: 940 },

@@ -57,11 +57,10 @@
     ]
   },
   "marks": {
-    "space3d": [4.6, 23.5],
-    "mapToSpace": [4.8, 5.8],
-    "riseHazeIn": [4.2, 5.4],
-    "riseHazeOut": [5.6, 6.6],
-    "lock": [11, 13],
+    "space3d": [2.9, 23.5],
+    "rise": [2.4, 3.2],
+    "mapToSpace": [3.0, 3.5],
+    "lock": [10.6, 12.6],
     "signal": 15,
     "descent": [15.4, 21.5],
     "dive": [21.5, 23.8],
@@ -77,9 +76,19 @@
     "altitude": {
       "unit": "km",
       "segments": [
-        { "from": 0, "to": 6, "values": [0, 100], "scale": "log", "logOffset": 0.05 },
-        { "from": 6, "to": 12.5, "values": [100, 20200], "scale": "log", "easing": "inOutQuad" },
+        { "from": 0, "to": "@rise.start", "values": [0, 1], "scale": "log", "logOffset": 0.05 },
+        { "from": "@rise.start", "to": "@rise.end", "values": [1, 150], "scale": "log", "easing": "inOutQuad" },
+        { "from": "@rise.end", "to": 6, "values": [150, 200], "scale": "log" },
+        { "from": 6, "to": 12.5, "values": [200, 20200], "scale": "log", "easing": "inOutQuad" },
         { "from": "@descent.start", "to": "@descent.end", "values": [20200, 700], "easing": "inQuad" },
+        { "from": "@dive.start", "to": "@dive.end", "values": [700, 0], "scale": "log", "logOffset": 0.05 }
+      ]
+    },
+    "mapAltitude": {
+      "unit": "km",
+      "segments": [
+        { "from": 0, "to": "@rise.start", "values": [0, 0.8], "scale": "log", "logOffset": 0.05 },
+        { "from": "@rise.start", "to": "@mapToSpace.end", "values": [0.8, 0.9], "scale": "log" },
         { "from": "@dive.start", "to": "@dive.end", "values": [700, 0], "scale": "log", "logOffset": 0.05 }
       ]
     }
@@ -101,8 +110,7 @@
       },
       "hero": {
         "visible": { "in": [5.6, 7.2], "out": [17.5, 18.5] },
-        "dim": { "range": [11, 12.5], "amount": 0.75 },
-        "say": ["yukarı"]
+        "dim": { "range": [11, 12.5], "amount": 0.75 }
       },
       "flash": { "at": "@signal" },
       "camera": [
@@ -110,6 +118,7 @@
           "type": "pullback",
           "from": 0,
           "progress": { "curve": "altitude", "logRange": [100, 20200] },
+          "wideRadius": 4.5,
           "sweep": { "range": [5, 11.5], "angleRad": -0.32 }
         },
         {
@@ -117,8 +126,9 @@
           "from": "@lock.start",
           "blendIn": "@lock",
           "target": "hero",
-          "aimBelow": 2.2,
-          "lift": 0.2
+          "aimBelow": 0.78,
+          "back": 2.2,
+          "lift": 0.9
         },
         {
           "type": "descend",
@@ -133,7 +143,7 @@
     {
       "type": "cityMap",
       "visible": [{ "out": "@mapToSpace" }, { "in": "@spaceToMap" }],
-      "zoom": { "curve": "altitude", "eyeKm": 0.4, "pushIn": { "range": ["@landed", "@end"], "amount": 0.15 } },
+      "zoom": { "curve": "mapAltitude", "eyeKm": 0.4, "pushIn": { "range": ["@landed", "@end"], "amount": 0.15 } },
       "rotation": {
         "unit": "deg",
         "segments": [
@@ -143,7 +153,7 @@
         ]
       },
       "marker": {
-        "exit": { "range": [4.7, 5.3] },
+        "exit": { "range": [2.9, 3.25] },
         "enter": { "at": 23.55, "haloAt": "@landed" },
         "pulse": [[0, 4.7], [24.01, "@end"]]
       },
@@ -279,11 +289,11 @@
   "sound": {
     "beds": [
       { "id": "city", "at": 0, "fadeIn": [0, 0.4], "fadeOut": "@mapToSpace" },
-      { "id": "space", "at": 4.4, "fadeIn": [4.4, 6], "fadeOut": "@darken" }
+      { "id": "space", "at": 2.6, "fadeIn": [2.6, 4], "fadeOut": "@darken" }
     ],
     "hits": [
       { "id": "ping", "at": 0.05 },
-      { "id": "rise", "at": "@riseHazeIn.start-0.2" },
+      { "id": "rise", "at": "@rise.start-0.2" },
       { "id": "lock", "at": "@lock.start" },
       { "id": "pulse", "at": "@signal" },
       { "id": "pulse", "at": "@signal+0.35", "gain": 0.75 },
@@ -409,7 +419,7 @@
     "Yerleşim, güvenli alan kuralından önceki hâliyle sabitlendi (layout: rightInset 72, contentWidth 960); sayaç, notlar, başlıklar ve altyazı sağdaki 120 px'e taşabiliyor."
   ],
   "transitions": [
-    { "at": 5.3, "from": "cityMap#1", "to": "earth", "kind": "match", "via": { "from": "marker", "to": "location" } },
+    { "at": 3.25, "from": "cityMap#1", "to": "earth", "kind": "match", "via": { "from": "marker", "to": "location" } },
     { "at": 22.9, "from": "earth", "to": "cityMap#1", "kind": "match", "via": { "from": "location", "to": "marker" } }
   ]
 }

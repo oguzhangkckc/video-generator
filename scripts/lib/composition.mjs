@@ -15,8 +15,12 @@ export const LIMITS = {
   edge: 0.02,
   /** A named element is on screen for at least this share of its phrase. */
   named: 0.5,
-  /** An important area (region, part) may have this much of itself under overlays. */
+  /** An important area (region, part) may have this much of itself under overlays, or out of the frame. */
   areaCover: 0.25,
+  /** An important element may sit partly out of the frame for at most this long… */
+  outsideHold: 0.5,
+  /** …or this long while it enters (appears outside) or leaves (stops mattering). */
+  passHold: 1,
   /** Around a transition, no frame may be emptier than this. */
   transitionEmpty: 0.6,
   /** Shape match: the two elements' centres within this share of the frame width. */
@@ -26,6 +30,7 @@ export const LIMITS = {
 };
 const W = 1080;
 const H = 1920;
+const FRAME = { x1: 0, y1: 0, x2: W, y2: H };
 const PANEL_PAD = 18;
 /**
  * Words that place something in space, with the case and possessive endings they take ("köşesinden", "sağda");
@@ -128,10 +133,32 @@ export const composition = ({ samples, step, labelAlign, phrases, transitions = 
   const cropped = spans();
   const touching = spans();
   const crossing = spans();
+  const outside = new Map();
+  let present = new Set();
+  const leave = (key, exiting) => {
+    const r = outside.get(key);
+    const hold = r.entering || exiting ? LIMITS.passHold : LIMITS.outsideHold;
+    if (r.to - r.from > hold) {
+      errors.push(`önemli öğe: ${fmt(r.from)}–${fmt(r.to)}: ${r.what} kareden taşıyor (en çok %${Math.round(r.worst * 100)}'i dışarıda, en fazla ${hold} sn)`);
+    }
+    outside.delete(key);
+  };
 
   for (const s of samples) {
     const cover = coverOf(s, labelAlign);
+    const out = new Set();
+    const now = new Set();
     for (const layer of s.scene.layers.filter((l) => l.opacity >= 0.5)) {
+      for (const e of layer.elements.filter((x) => x.important && !x.hidden)) {
+        const key = `${layer.layer}.${e.id}`;
+        now.add(key);
+        const share = 1 - coveredShare(e, [FRAME]);
+        if (isArea(e) ? share <= LIMITS.areaCover : Math.max(-e.x1, e.x2 - W, -e.y1, e.y2 - H) <= 2) continue;
+        const r = outside.get(key);
+        if (r) Object.assign(r, { to: s.t + step, worst: Math.max(r.worst, share) });
+        else outside.set(key, { from: s.t, to: s.t + step, worst: share, what: `${layer.layer} "${e.id}"`, entering: !present.has(key) });
+        out.add(key);
+      }
       const others = cover.filter((c) => !(c.kind === "strip" && c.id === layer.layer));
       for (const e of layer.elements.filter((x) => x.important && !x.hidden && onScreen(x))) {
         // A point (node, signal, pen) may not touch an overlay; an area (region, part) may be partly under one.
@@ -168,7 +195,10 @@ export const composition = ({ samples, step, labelAlign, phrases, transitions = 
       const over = Math.max((0 - b.x1) / W, (b.x2 - W) / W, (0 - b.y1) / H, (b.y2 - H) / H);
       if (over > LIMITS.edge && main.shot.kind !== "close") cropped.add(main.layer, s.t, `${main.layer} öznesi kare kenarında kırpılıyor (yakın plan değil)`);
     }
+    for (const key of [...outside.keys()]) if (!out.has(key)) leave(key, !now.has(key));
+    present = now;
   }
+  for (const key of [...outside.keys()]) leave(key, false);
   errors.push(...covered.list().map((m) => `önemli öğe: ${m}`));
   errors.push(...touching.list().map((m) => `veri etiketi: ${m}`), ...crossing.list().map((m) => `veri etiketi: ${m}`));
   warnings.push(...cropped.list().map((m) => `kenar: ${m}`));

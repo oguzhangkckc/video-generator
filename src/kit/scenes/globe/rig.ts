@@ -146,7 +146,9 @@ export const createGlobeRig = (layer: Globe, curve: (name: string) => CurveFn) =
     projector.lookAt(target);
     projector.updateMatrixWorld();
     const ndc = point.clone().project(projector);
-    return { x: ((ndc.x + 1) / 2) * WIDTH, y: ((1 - ndc.y) / 2) * HEIGHT };
+    // A point behind the camera still projects, mirrored, onto the screen.
+    const behind = point.clone().applyMatrix4(projector.matrixWorldInverse).z > 0;
+    return { x: ((ndc.x + 1) / 2) * WIDTH, y: ((1 - ndc.y) / 2) * HEIGHT, behind };
   };
 
   // The framing move (src/kit/framing.ts), a lens shift around the frame centre; set once the overlays are known.
@@ -159,7 +161,7 @@ export const createGlobeRig = (layer: Globe, curve: (name: string) => CurveFn) =
   const project = (point: THREE.Vector3, t: number) => {
     const p = rawProject(point, t);
     const [x, y] = applyAdjust([p.x, p.y], [WIDTH / 2, HEIGHT / 2], adjustAt(t));
-    return { x, y };
+    return { x, y, behind: p.behind };
   };
 
   return {

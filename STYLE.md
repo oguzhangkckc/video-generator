@@ -157,6 +157,9 @@ Sıra her zaman aynıdır:
 - Karenin **%40'ından fazlası 1 sn'den uzun süre boş** kalırsa hata. Boş: 40 px'lik hücrede yalnızca zemin görünür
   (sahnenin gradyanı, çıplak uzay, pus; üstünde karartma, panel ya da gölge olsa da). Dolgulu şekil ve silik ızgara
   içeriktir.
+- **Önemli öğe kareden taşmaz:** noktasal öğe tamamen, alan öğesi en az %75'iyle karede kalır. Kenarda kesik durmak
+  0,5 sn'den uzun sürerse hata; öğe belirirken (dışarıdan girerken) ya da önemini yitirirken çıkması 1 sn'ye kadar
+  serbest. Kameranın arkasında kalan öğe görünmüyor sayılır.
 - Görüntü **0,3 sn'den uzun donmaz** (render üzerinde ölçülür).
 - Kasıtlı bir yakın plan (`kind: "close"`) değilse özne kare kenarında kırpılmaz (uyarı).
 - **Bağlam:** seslendirmede bir yer ya da öğe adı geçiyorsa (`say` takma adları) o öğe cümlenin en az yarısı boyunca

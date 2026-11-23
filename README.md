@@ -168,7 +168,8 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
   `@remotion/layout-utils` ile ölçülür. Yazılar birbirine ya da altyazıya biniyorsa, sağdaki 120 px'e ya da alttaki
   %15'e taşıyorsa hata.
 - **Kompozisyon** (render gerekmez; sahneler her karede önemli öğelerini, öznelerini, veri etiketlerini raporlar,
-  `QA_LAYER`): önemli öğe üst yazı / şerit / altyazı altında (nokta hiç, alan en fazla %25) hata; özne < %35 yükseklik
+  `QA_LAYER`): önemli öğe üst yazı / şerit / altyazı altında (nokta hiç, alan en fazla %25) hata; önemli öğe
+  kareden taşıyor (nokta hiç, alan en fazla %25; 0,5 sn, giriş/çıkışta 1 sn) hata; özne < %35 yükseklik
   2 sn'den uzun hata; kare > %40 boş 1 sn'den uzun hata (tam boyutlu karede 40 px hücreler; zemin anahtar renge boyanıp ölçülür,
   dolgulu şekil içeriktir); özne kenarda kırpılıyor
   (yakın plan değilse) uyarı; söylenen öğe cümlenin yarısında ekranda değil hata; veri etiketleri değiyor ya da

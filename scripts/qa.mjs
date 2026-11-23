@@ -278,7 +278,7 @@ writeFileSync(path.join(outDir(slug), "qa.json"), `${JSON.stringify(report, null
 const rows = [
   ["Yerleşim (çakışma, güvenli alan)", runLayout ? (errors.some((e) => /^(yerleşim|güvenli alan)/.test(e)) ? "HATA" : "temiz") : "—"],
   ...[
-    ["Önemli öğe / üst yazı", "önemli öğe"],
+    ["Önemli öğe (üst yazı altı, kare dışı)", "önemli öğe"],
     ["Özne boyu (≥ %35)", "özne"],
     ["Boş alan (≤ %40)", "boş alan"],
     ["Kenar kırpması", "kenar"],

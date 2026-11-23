@@ -143,7 +143,7 @@ Birini gerekçesiyle öner. **Dur.**
 4. `npm run check` temiz olmalı.
 5. Kilit anları render et: her bölümün ilk saniyesi, her etiketin göründüğü an +0,3 sn, her geçişin ortası, geri
    sayım, kavram kartı, son kare. Komut: `npm run stills -- <slug> 0.5s 4s … --sheet`.
-6. **`npm run qa -- <slug> --layout` zorunlu.** Satırlar: yerleşim, önemli öğe / üst yazı, özne boyu, boş alan,
+6. **`npm run qa -- <slug> --layout` zorunlu.** Satırlar: yerleşim, önemli öğe (üst yazı altı, kare dışı), özne boyu, boş alan,
    kenar kırpması, bağlam, veri etiketleri, geçişler, kamera. Hatalar kesin: önce çekimi, özneyi ya da geçişi
    düzelt (kamera, zoom, `subject`, `say`, `transitions`), sonra tekrarla. Örnekler `out/<slug>/qa-samples.json`'da.
 7. Kareleri Read ile kendin incele ve STYLE.md kontrol listesini madde madde uygula. Uymayanları düzelt, yeniden
