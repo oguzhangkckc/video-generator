@@ -115,7 +115,8 @@ Birini gerekçesiyle öner. **Dur.**
   anlatan `marker: "leader"` (üstte, kılavuz çizgiyle).
 - **Yeni tür gerekiyorsa açıkça söyle:** mevcutlar neden yetmiyor, önerilen ad, parametreler. Onay gelirse:
   1. `src/kit/<kategori>/` altına bileşeni ve zod şemasını yeniden kullanılabilir biçimde ekle. Renk ve font yalnızca
-     `src/kit/theme.ts`'ten gelir; hikâyeye özgü her sabit bir spec parametresi olur.
+     `src/kit/theme.ts`'ten gelir; hikâyeye özgü her sabit bir spec parametresi olur. Zemini (gradyan, uzay, pus)
+     `useGround()` ile çiz; yoksa qa'nın boş alan ölçümü zemini içerik sayar.
   2. `src/spec/schema.ts` içindeki layer birleşimine ve `src/kit/registry.tsx`'e ekle.
   3. README'deki tabloya satır ekle.
   4. Regresyonu kontrol et. Değişiklikten **önce** referans yoksa üret:

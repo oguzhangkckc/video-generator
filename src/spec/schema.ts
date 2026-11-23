@@ -189,6 +189,6 @@ export type Timing = z.output<typeof Timing>;
 export const VideoProps = z.object({
   spec: VideoSpec,
   timing: Timing.nullable(),
-  /** Set only by scripts/qa.mjs: log overlay boxes, or render the layers without any overlay. */
-  qa: z.object({ probe: z.boolean().default(false), overlays: z.boolean().default(true) }).strict().optional(),
+  /** Set only by scripts/qa.mjs: log overlay boxes, render the layers without any overlay, or paint the ground in GROUND_KEY. */
+  qa: z.object({ probe: z.boolean().default(false), overlays: z.boolean().default(true), ground: z.boolean().default(false) }).strict().optional(),
 });

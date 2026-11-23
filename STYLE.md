@@ -154,8 +154,9 @@ Sıra her zaman aynıdır:
 
 - **Özne** (çekimin konusu: `subject`, yoksa kameranın baktığı bölge) karenin yüksekliğinin **%35'inden** küçük
   kalırsa ve bu **2 sn'den** uzun sürerse hata.
-- Karenin **%40'ından fazlası 1 sn'den uzun süre boş** kalırsa hata. Boş: 40 px'lik hücre düz ve karenin zemin
-  tonunda (silik ızgara, dolgulu şekil içeriktir; pus ve çıplak uzay boştur).
+- Karenin **%40'ından fazlası 1 sn'den uzun süre boş** kalırsa hata. Boş: 40 px'lik hücrede yalnızca zemin görünür
+  (sahnenin gradyanı, çıplak uzay, pus; üstünde karartma, panel ya da gölge olsa da). Dolgulu şekil ve silik ızgara
+  içeriktir.
 - Görüntü **0,3 sn'den uzun donmaz** (render üzerinde ölçülür).
 - Kasıtlı bir yakın plan (`kind: "close"`) değilse özne kare kenarında kırpılmaz (uyarı).
 - **Bağlam:** seslendirmede bir yer ya da öğe adı geçiyorsa (`say` takma adları) o öğe cümlenin en az yarısı boyunca

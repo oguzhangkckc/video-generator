@@ -4,6 +4,7 @@ import { Sfx } from "../../audio/Sfx";
 import type { CurveFn } from "../../curves";
 import { CX, HEIGHT, WIDTH } from "../../format";
 import { adjustFor, currentShot, shotKind, useFraming } from "../../framing";
+import { groundGradient, useGround } from "../../ground";
 import { stripBox } from "../../overlays/boxes";
 import { COLOR, MONO, tokenColor } from "../../theme";
 import { ramp, useTime, windowAlpha } from "../../time";
@@ -40,6 +41,7 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
   const { fps, durationInFrames } = useVideoConfig();
   const gradientId = `trace-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const framing = useFraming();
+  const ground = useGround();
   const clock = curve(layer.clock);
   const wave = useMemo(() => waveform(layer.waveform), [layer.waveform]);
   const beeps = useMemo(
@@ -106,7 +108,7 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
   return (
     <>
       {sounds}
-      <AbsoluteFill style={{ opacity, background: clipped ? undefined : `linear-gradient(180deg, ${COLOR.bgTop} 0%, ${COLOR.bgBottom} 100%)` }}>
+      <AbsoluteFill style={{ opacity, background: clipped ? undefined : groundGradient(ground) }}>
         <svg width={WIDTH} height={HEIGHT} style={{ position: "absolute", inset: 0 }}>
           <defs>
             {clipped ? (
@@ -115,8 +117,8 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
                   <rect x={area.x1} y={area.y1} width={area.x2 - area.x1} height={area.y2 - area.y1} rx={panel ? 16 : 0} />
                 </clipPath>
                 <linearGradient id={`${gradientId}-bg`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stopColor={COLOR.bgTop} />
-                  <stop offset="1" stopColor={COLOR.bgBottom} />
+                  <stop offset="0" stopColor={ground.top} />
+                  <stop offset="1" stopColor={ground.bottom} />
                 </linearGradient>
               </>
             ) : null}
@@ -126,8 +128,8 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
               <stop offset="1" stopColor={color} stopOpacity={1} />
             </linearGradient>
             <radialGradient id={`${gradientId}-vignette`} cx="50%" cy="50%" r="75%">
-              <stop offset="0.55" stopColor={COLOR.space} stopOpacity={0} />
-              <stop offset="1" stopColor={COLOR.space} stopOpacity={0.85} />
+              <stop offset="0.55" stopColor={ground.space} stopOpacity={0} />
+              <stop offset="1" stopColor={ground.space} stopOpacity={0.85} />
             </radialGradient>
           </defs>
           {panel ? <rect x={area.x1} y={area.y1} width={area.x2 - area.x1} height={area.y2 - area.y1} rx={16} fill={COLOR.labelBackdrop} /> : null}

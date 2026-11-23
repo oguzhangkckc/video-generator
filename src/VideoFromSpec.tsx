@@ -9,6 +9,7 @@ import { DataLabel, NoteLabel } from "./kit/overlays/DataLabel";
 import { HookTitle } from "./kit/overlays/HookTitle";
 import { CX, CY } from "./kit/format";
 import { FramingContext, adjustFor, logReport, type Framing } from "./kit/framing";
+import { GroundContext, groundOf } from "./kit/ground";
 import { globeElements } from "./kit/scenes/globe/Globe";
 import { layerName } from "./spec/scenes";
 import { LayoutContext } from "./kit/layout";
@@ -19,7 +20,6 @@ import { LabelBackdrop } from "./kit/overlays/LabelBackdrop";
 import { LayerView } from "./kit/registry";
 import { createGlobeRig } from "./kit/scenes/globe/rig";
 import { RigContext } from "./kit/scenes/globe/rig-context";
-import { COLOR } from "./kit/theme";
 import { Darken } from "./kit/transitions/Darken";
 import { resolveVideo } from "./spec/resolve";
 import type { Layer, VideoProps } from "./spec/schema";
@@ -63,7 +63,8 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
     <RigContext.Provider value={rigs}>
       <LayoutContext.Provider value={s.layout}>
       <FramingContext.Provider value={framing}>
-      <AbsoluteFill lang={s.lang} style={{ backgroundColor: COLOR.space }}>
+      <GroundContext.Provider value={Boolean(qa?.ground)}>
+      <AbsoluteFill lang={s.lang} style={{ backgroundColor: groundOf(Boolean(qa?.ground)).space }}>
         <Soundtrack sound={s.sound} voiceover={video.voiceoverAudio} phrases={video.phrases} />
         {s.layers.map((layer, i) => (strips(layer) ? null : <LayerView key={`layer-${i}`} layer={layer} video={video} index={i} />))}
         {s.layers.map((layer, i) => (strips(layer) ? <LayerView key={`strip-${i}`} layer={layer} video={video} index={i} /> : null))}
@@ -96,6 +97,7 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
         )}
         {qa?.probe ? <QaProbe video={video} /> : null}
       </AbsoluteFill>
+      </GroundContext.Provider>
       </FramingContext.Provider>
       </LayoutContext.Provider>
     </RigContext.Provider>

@@ -18,6 +18,7 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import type { LayerOf } from "../../../spec/schema";
 import { HEIGHT, WIDTH } from "../../format";
 import { currentShot, pointBox, useFraming, type SceneElement, type SceneReport } from "../../framing";
+import { useGround } from "../../ground";
 import { COLOR, GLOW_STOPS } from "../../theme";
 import { envelope, ramp, sec, windowAlpha } from "../../time";
 import { CAMERA, type GlobeRig } from "./rig";
@@ -350,6 +351,7 @@ const GlobeScene: React.FC<{ layer: Globe; startFrame: number; name: string }> =
   const t = (frame + startFrame) / fps;
   const rig = useRig(layer.id);
   const { report: log } = useFraming();
+  const { space } = useGround();
   const texture = useTexture(layer.texture);
   const glow = useMemo(makeGlowTexture, []);
   const cameraRadius = rig.cameraAt(t).position.length();
@@ -357,10 +359,10 @@ const GlobeScene: React.FC<{ layer: Globe; startFrame: number; name: string }> =
   // Close to the surface the texture is magnified ~50×; soften it so texels read as haze, not blocks.
   const blur = ramp(cameraRadius - 1, [0.02, 0.15], [14, 0], Easing.linear);
   // Mount the canvas only with the texture in hand, so its own first-frame wait already includes it.
-  if (!texture) return <AbsoluteFill style={{ backgroundColor: COLOR.space }} />;
+  if (!texture) return <AbsoluteFill style={{ backgroundColor: space }} />;
 
   return (
-    <AbsoluteFill style={{ backgroundColor: COLOR.space, filter: blur > 0.1 ? `blur(${blur.toFixed(2)}px)` : undefined }}>
+    <AbsoluteFill style={{ backgroundColor: space, filter: blur > 0.1 ? `blur(${blur.toFixed(2)}px)` : undefined }}>
       <ThreeCanvas width={width} height={height} flat gl={{ antialias: true }} camera={CAMERA}>
         <CameraRig t={t} rig={rig} />
         <ambientLight intensity={0.45} />

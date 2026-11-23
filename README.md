@@ -126,7 +126,8 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
 **Yeni tür eklemek:**
 
 1. Bileşeni ve zod şemasını `src/kit/<kategori>/` altına koyun. Renk ve font yalnızca `src/kit/theme.ts`'ten gelir;
-   hikâyeye özgü her sabit bir parametre olur.
+   hikâyeye özgü her sabit bir parametre olur. Zemin (gradyan, uzay, pus) `useGround()` ile çizilir: qa boş alanı
+   ölçerken zemini anahtar renge boyar; sabit renkle çizilen zemin içerik sayılır.
 2. Türü `src/spec/schema.ts`'teki layer birleşimine ve `src/kit/registry.tsx`'e ekleyin; TypeScript eksik kaydı
    yakalar.
 3. Bu tabloya bir satır ekleyin.
@@ -168,7 +169,8 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
   %15'e taşıyorsa hata.
 - **Kompozisyon** (render gerekmez; sahneler her karede önemli öğelerini, öznelerini, veri etiketlerini raporlar,
   `QA_LAYER`): önemli öğe üst yazı / şerit / altyazı altında (nokta hiç, alan en fazla %25) hata; özne < %35 yükseklik
-  2 sn'den uzun hata; kare > %40 boş 1 sn'den uzun hata (tam boyutlu karede 40 px hücreler); özne kenarda kırpılıyor
+  2 sn'den uzun hata; kare > %40 boş 1 sn'den uzun hata (tam boyutlu karede 40 px hücreler; zemin anahtar renge boyanıp ölçülür,
+  dolgulu şekil içeriktir); özne kenarda kırpılıyor
   (yakın plan değilse) uyarı; söylenen öğe cümlenin yarısında ekranda değil hata; veri etiketleri değiyor ya da
   çizgiyi kesiyor hata; şekil eşleştirme öğeleri aynı yerde değil, içinden geçişte kare dolmuyor, geçişte kare > %60
   boş hata. Render varsa 0,3 sn'den uzun donma hata. Örnekler: `out/<slug>/qa-samples.json`.

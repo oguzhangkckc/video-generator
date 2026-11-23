@@ -3,6 +3,7 @@ import { AbsoluteFill } from "remotion";
 import type { CurveFn } from "../../curves";
 import { CX, HEIGHT, WIDTH } from "../../format";
 import { adjustFor, currentShot, shotKind, useFraming } from "../../framing";
+import { groundGradient, useGround } from "../../ground";
 import { COLOR, EDGE, SURFACE, tokenColor, type ColorToken } from "../../theme";
 import { envelope, ramp, useTime, windowAlpha } from "../../time";
 import { strokeAt, worldTransform } from "../camera2d/camera";
@@ -16,6 +17,7 @@ const pathColor = (c: ColorToken | "surface" | "faint") => (c === "surface" || c
 /** Diagram scene: regions, paths, nodes and the signals that travel through them. */
 export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn; name: string }> = ({ layer, curve, name }) => {
   const t = useTime();
+  const ground = useGround();
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const geo = useMemo(() => flowGeometry(layer), [layer]);
   const framing = useFraming();
@@ -46,7 +48,7 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
   const dotR = (r: number) => r * view.zoom;
 
   return (
-    <AbsoluteFill style={{ opacity, background: `linear-gradient(180deg, ${COLOR.bgTop} 0%, ${COLOR.bgBottom} 100%)` }}>
+    <AbsoluteFill style={{ opacity, background: groundGradient(ground) }}>
       <svg width={WIDTH} height={HEIGHT} style={{ position: "absolute", inset: 0 }}>
         <defs>
           {layer.regions.map((r) => (

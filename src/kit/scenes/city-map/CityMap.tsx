@@ -5,6 +5,7 @@ import type { CurveFn } from "../../curves";
 import { curveFn } from "../../curves";
 import { CX, CY, HEIGHT, WIDTH } from "../../format";
 import { IDENTITY, pointBox, useFraming } from "../../framing";
+import { groundGradient, useGround } from "../../ground";
 import { COLOR } from "../../theme";
 import { EASING, ramp, sec, useTime, windowAlpha } from "../../time";
 import { LAYOUTS, buildCity } from "./layouts";
@@ -20,6 +21,7 @@ type CityMapLayer = LayerOf<"cityMap">;
 /** Top-down stylised city with a location marker; the zoom follows a curve (camera height in km). */
 export const CityMap: React.FC<{ layer: CityMapLayer; curve: (name: string) => CurveFn; name: string }> = ({ layer, curve, name }) => {
   const t = useTime();
+  const ground = useGround();
   const { fps } = useVideoConfig();
   const { report } = useFraming();
   const city = useMemo(() => buildCity(layer.seed), [layer.seed]);
@@ -77,7 +79,7 @@ export const CityMap: React.FC<{ layer: CityMapLayer; curve: (name: string) => C
   const cityGlow = 0.55 * ramp(scale, [0.04, 0.35], [1, 0], Easing.linear);
 
   return (
-    <AbsoluteFill style={{ opacity, background: `linear-gradient(180deg, ${COLOR.bgTop} 0%, ${COLOR.bgBottom} 100%)` }}>
+    <AbsoluteFill style={{ opacity, background: groundGradient(ground) }}>
       <svg width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} style={{ position: "absolute", inset: 0 }}>
         <defs>
           <radialGradient id="map-fade" cx={0} cy={0} r={MAP_R} gradientUnits="userSpaceOnUse">

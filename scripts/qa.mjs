@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { bundle } from "@remotion/bundler";
 import { openBrowser, renderStill, selectComposition } from "@remotion/renderer";
+import { GROUND_KEY } from "../src/kit/ground.ts";
 import { quantityMismatches } from "../src/spec/quantities.ts";
 import { parseArgs } from "./lib/args.mjs";
 import { composition } from "./lib/composition.mjs";
@@ -21,8 +22,8 @@ const FPS = 30;
 const SPOKEN_RATE = [2.6, 3.0];
 const PAUSES = { shortSentence: 0.25, meanSentence: 0.35 };
 const SILENCE = { noiseDb: -70, minSec: 0.3, tailSec: 0.7 };
-/** An empty cell is flat (luma spread ≤ spread) and within `tone` of the frame's background luma. */
-const EMPTY = { spread: 6, tone: 10 };
+/** Ground under darken, a panel or a shadow is GROUND_KEY darkened; minShade keeps near-black content (water) out. */
+const GROUND = { tolerance: 12, minShade: 0.1 };
 /** Longer than this with no change on screen is a freeze (ffmpeg freezedetect noise in dB). */
 const FREEZE = { seconds: 0.3, noiseDb: -60 };
 
@@ -95,38 +96,31 @@ const probe = async (frame, qa, output) => {
 
 const overlap = (a, b) => Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1) > 2 && Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1) > 2;
 
-/**
- * Share of a full-size frame that is empty: 40 px cells that are flat and of the frame's own background tone (the
- * most common flat tone), so a flat filled shape or a fine grid is content but a haze or bare space is not.
- */
+/** Share of a full-size frame that is empty: 40 px cells showing nothing but ground (rendered in GROUND_KEY). */
 const emptyShare = (png) => {
   const [W, H, C] = [1080, 1920, 40];
-  const { stdout } = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-i", png, "-vf", `scale=${W}:${H},format=gray`, "-f", "rawvideo", "-"], {
+  const { stdout } = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-i", png, "-vf", `scale=${W}:${H}`, "-pix_fmt", "rgb24", "-f", "rawvideo", "-"], {
     maxBuffer: 64 * 1024 * 1024,
   });
-  if (stdout.length < W * H) return null;
-  const cells = [];
+  if (stdout.length < W * H * 3) return null;
+  const [kr, kg, kb] = GROUND_KEY;
+  const kk = kr * kr + kg * kg + kb * kb;
+  const isGround = (i) => {
+    const [r, g, b] = [stdout[i], stdout[i + 1], stdout[i + 2]];
+    const k = (r * kr + g * kg + b * kb) / kk;
+    return k >= GROUND.minShade && (r - k * kr) ** 2 + (g - k * kg) ** 2 + (b - k * kb) ** 2 <= GROUND.tolerance ** 2;
+  };
+  let empty = 0;
   for (let cy = 0; cy < H; cy += C) {
     for (let cx = 0; cx < W; cx += C) {
-      let lo = 255;
-      let hi = 0;
-      let sum = 0;
-      for (let y = cy; y < cy + C; y++) {
-        for (let x = cx; x < cx + C; x++) {
-          const v = stdout[y * W + x];
-          if (v < lo) lo = v;
-          if (v > hi) hi = v;
-          sum += v;
-        }
+      let ground = true;
+      for (let y = cy; y < cy + C && ground; y++) {
+        for (let x = cx; x < cx + C && ground; x++) ground = isGround((y * W + x) * 3);
       }
-      cells.push({ flat: hi - lo <= EMPTY.spread, mean: sum / (C * C) });
+      if (ground) empty++;
     }
   }
-  const bins = new Map();
-  for (const c of cells.filter((x) => x.flat)) bins.set(Math.round(c.mean / 4), (bins.get(Math.round(c.mean / 4)) ?? 0) + 1);
-  if (bins.size === 0) return 0;
-  const ground = 4 * [...bins.entries()].sort((a, b) => b[1] - a[1])[0][0];
-  return cells.filter((c) => c.flat && Math.abs(c.mean - ground) <= EMPTY.tone).length / cells.length;
+  return empty / ((W / C) * (H / C));
 };
 
 const layout = async () => {
@@ -148,7 +142,7 @@ const layout = async () => {
     let empty = null;
     if (i % 2 === 0) {
       const full = path.join(tmp, "full.png");
-      await probe(frame, { probe: false }, full);
+      await probe(frame, { probe: false, ground: true }, full);
       empty = emptyShare(full);
     }
     if (scene) samples.push({ t: boxes.t, boxes: boxes.boxes, scene, empty });

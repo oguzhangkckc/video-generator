@@ -8,6 +8,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { LayerOf } from "../../../spec/schema";
 import { HEIGHT, WIDTH } from "../../format";
 import { IDENTITY, pointBox, useFraming, type SceneElement, type SceneReport } from "../../framing";
+import { groundGradient, useGround } from "../../ground";
 import { COLOR, tokenColor } from "../../theme";
 import { EASING, envelope, ramp, sec, windowAlpha } from "../../time";
 
@@ -210,7 +211,7 @@ const Scene: React.FC<{ layer: Model3DLayer; startFrame: number; name: string }>
   const model = useModel(layer.file);
   const { report: log } = useFraming();
   const opacity = windowAlpha(t, layer.fade);
-  const background = `linear-gradient(180deg, ${COLOR.bgTop} 0%, ${COLOR.bgBottom} 100%)`;
+  const background = groundGradient(useGround());
   if (!model) return <AbsoluteFill style={{ background, opacity }} />;
   if (log) log(report(layer, model, t, name));
 
