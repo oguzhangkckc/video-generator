@@ -1,6 +1,7 @@
 // Composition checks (STYLE.md "Kompozisyon", "Yerleşim", "Veri çizgisi etiketleri") over qa probe samples:
 // what each scene reported (QaProbe QA_SCENE), the overlay boxes (QA_BOXES) and how empty each frame looked.
 // Pure, so it can be tested with made-up samples.
+import { covered as coveredShare, isArea } from "../../src/kit/framing.ts";
 import { mentions } from "../../src/spec/sentences.ts";
 
 export const LIMITS = {
@@ -14,6 +15,8 @@ export const LIMITS = {
   edge: 0.02,
   /** A named element is on screen for at least this share of its phrase. */
   named: 0.5,
+  /** An important area (region, part) may have this much of itself under overlays. */
+  areaCover: 0.25,
   /** Around a transition, no frame may be emptier than this. */
   transitionEmpty: 0.6,
   /** Shape match: the two elements' centres within this share of the frame width. */
@@ -129,9 +132,15 @@ export const composition = ({ samples, step, labelAlign, phrases, transitions = 
   for (const s of samples) {
     const cover = coverOf(s, labelAlign);
     for (const layer of s.scene.layers.filter((l) => l.opacity >= 0.5)) {
-      for (const e of layer.elements.filter((x) => x.important && onScreen(x))) {
-        for (const c of cover) {
-          if (c.kind === "strip" && c.id === layer.layer) continue;
+      const others = cover.filter((c) => !(c.kind === "strip" && c.id === layer.layer));
+      for (const e of layer.elements.filter((x) => x.important && !x.hidden && onScreen(x))) {
+        // A point (node, signal, pen) may not touch an overlay; an area (region, part) may be partly under one.
+        if (isArea(e)) {
+          const share = coveredShare(clip(e), others);
+          if (share > LIMITS.areaCover) covered.add(`${layer.layer}.${e.id}`, s.t, `${layer.layer} "${e.id}" bölgesinin %${Math.round(share * 100)}'i üst yazıların altında (en fazla %${LIMITS.areaCover * 100})`);
+          continue;
+        }
+        for (const c of others) {
           if (overlap(clip(e), c, 2)) covered.add(`${layer.layer}.${e.id}|${c.id}`, s.t, `${layer.layer} "${e.id}" ${c.kind === "caption" ? "altyazının" : `${c.id}`} altında kalıyor`);
         }
       }
@@ -177,7 +186,8 @@ export const composition = ({ samples, step, labelAlign, phrases, transitions = 
   }
 
   const emptySeries = samples.filter((s) => s.empty != null).map((s) => ({ t: s.t, v: s.empty }));
-  for (const r of runs(emptySeries, (v) => v > LIMITS.emptyMax, step, Math.max)) {
+  const emptyStep = emptySeries.length > 1 ? emptySeries[1].t - emptySeries[0].t : step;
+  for (const r of runs(emptySeries, (v) => v > LIMITS.emptyMax, emptyStep, Math.max)) {
     if (r.to - r.from > LIMITS.emptyHold) errors.push(`boş alan: ${fmt(r.from)}–${fmt(r.to)}: karenin %${Math.round(r.worst * 100)}'i boş (en fazla %${LIMITS.emptyMax * 100}, ${LIMITS.emptyHold} sn)`);
   }
 
@@ -188,7 +198,8 @@ export const composition = ({ samples, step, labelAlign, phrases, transitions = 
       const cover = coverOf(s, labelAlign);
       for (const layer of s.scene.layers) {
         for (const e of layer.elements.filter((x) => x.say.some((a) => mentions(p.text, a)))) {
-          const seen = layer.opacity >= 0.5 && onScreen(e) && !cover.some((c) => !(c.kind === "strip" && c.id === layer.layer) && overlap(clip(e), c, 2));
+          const others = cover.filter((c) => !(c.kind === "strip" && c.id === layer.layer));
+          const seen = layer.opacity >= 0.5 && !e.hidden && onScreen(e) && coveredShare(clip(e), others) < 0.5;
           const n = named.get(`${layer.layer}.${e.id}`) ?? { seen: 0 };
           n.seen += seen ? 1 : 0;
           named.set(`${layer.layer}.${e.id}`, n);

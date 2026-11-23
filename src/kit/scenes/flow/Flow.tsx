@@ -27,10 +27,10 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
   const adjust = adjustFor(framing, name, importantAt, [CX, layer.anchorY], t);
   const st = flowState(layer, geo, curve, t, adjust);
   const { place, progressAt, view, anchor, toScreen, lit, signals, arrivals } = st;
-  if (framing.reports) {
+  if (framing.report) {
     const elements = flowElements(layer, geo, st, t, framing.spokenAt(t));
     const shot = currentShot(layer.camera, t);
-    framing.reports.set(name, {
+    framing.report({
       layer: name,
       type: "flow",
       opacity,
@@ -49,11 +49,6 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
     <AbsoluteFill style={{ opacity, background: `linear-gradient(180deg, ${COLOR.bgTop} 0%, ${COLOR.bgBottom} 100%)` }}>
       <svg width={WIDTH} height={HEIGHT} style={{ position: "absolute", inset: 0 }}>
         <defs>
-          {layer.frame ? (
-            <clipPath id={`${uid}-band`}>
-              <rect x={0} y={layer.frame.top} width={WIDTH} height={layer.frame.height} />
-            </clipPath>
-          ) : null}
           {layer.regions.map((r) => (
             <clipPath key={r.id} id={`${uid}-${r.id}`}>
               <path d={toPath(geo.regions.get(r.id)!, true)} />
@@ -61,7 +56,6 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
           ))}
         </defs>
 
-        <g clipPath={layer.frame ? `url(#${uid}-band)` : undefined}>
         <g transform={worldTransform(view, anchor)}>
           {layer.regions.map((r) => {
             const a = r.visible ? windowAlpha(t, r.visible) : 1;
@@ -184,14 +178,6 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
             </g>
           );
         })}
-        </g>
-        {layer.frame ? (
-          <path
-            d={`M0 ${layer.frame.top}H${WIDTH}M0 ${layer.frame.top + layer.frame.height}H${WIDTH}`}
-            stroke={COLOR.gridMajor}
-            strokeWidth={2}
-          />
-        ) : null}
       </svg>
     </AbsoluteFill>
   );

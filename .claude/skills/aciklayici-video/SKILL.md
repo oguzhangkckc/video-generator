@@ -100,9 +100,19 @@ Birini gerekçesiyle öner. **Dur.**
     `videos/demo-*`)
   - üst yazılar: `titles`, `labels`, `notes`, `counter`, `countdown`, `concept`, `darken`, `captions`
   - ses: `beds` (`loop`), `hits`, `music`
-- İlk yakın plandan önce nesnenin yerini gösteren geniş plan koy.
-- Zaman çizelgesi tablosu ver: aralık | bölüm | katman / geçiş | kamera hareketi | ekran yazısı | efekt. Kamera hiç
-  durmaz, sahneler kesmeyle değil geçişle bağlanır.
+- Sahne her zaman tüm kareyi kullanır; bant yok. Bir veri çizgisi başka bir sahnenin altında duracaksa `trace` +
+  `panel` (koyu zeminli veri şeridi) olur.
+- İlk yakın plandan önce nesnenin yerini gösteren en az 1 sn'lik geniş plan koy; ölçek değiştiren her geçişte önce
+  geniş, sonra yakın plan.
+- Zaman çizelgesi tablosu ver: aralık | bölüm | katman | **çekim türü** (geniş / orta / yakın) | **özne** (≥ %35
+  yükseklik) | kamera hareketi | **önemli öğeler** | ekran yazısı | **geçiş türü ve gerekçe** | efekt. Kamera hiç
+  durmaz.
+- Seslendirmede geçen her yer ve öğe adını bir sahne öğesine bağla (`say`: "kalp", "sağ üst köşe"); o öğe cümlenin
+  en az yarısı boyunca ekranda olmalı.
+- Sahne değişimleri `transitions` ile: önce içinden geçme (`through`), sonra şekil eşleştirme (`match`), renk
+  parlaması (`flash`, haze) yalnızca son çare ve gerekçeyle. Neredeyse boş kareye eriyerek geçme.
+- Veri çizgisi parçaları: aralık anlatan `marker: "bracket"` (çizginin altında köşeli parantez), nokta ya da dalga
+  anlatan `marker: "leader"` (üstte, kılavuz çizgiyle).
 - **Yeni tür gerekiyorsa açıkça söyle:** mevcutlar neden yetmiyor, önerilen ad, parametreler. Onay gelirse:
   1. `src/kit/<kategori>/` altına bileşeni ve zod şemasını yeniden kullanılabilir biçimde ekle. Renk ve font yalnızca
      `src/kit/theme.ts`'ten gelir; hikâyeye özgü her sabit bir spec parametresi olur.
@@ -132,8 +142,9 @@ Birini gerekçesiyle öner. **Dur.**
 4. `npm run check` temiz olmalı.
 5. Kilit anları render et: her bölümün ilk saniyesi, her etiketin göründüğü an +0,3 sn, her geçişin ortası, geri
    sayım, kavram kartı, son kare. Komut: `npm run stills -- <slug> 0.5s 4s … --sheet`.
-6. **`npm run qa -- <slug> --layout` zorunlu.** Çakışan, altyazıya binen ya da güvenli alana taşan yazı varsa
-   düzelt ve tekrarla; parlak çizgi uyarılarını karelerde kontrol et.
+6. **`npm run qa -- <slug> --layout` zorunlu.** Satırlar: yerleşim, önemli öğe / üst yazı, özne boyu, boş alan,
+   kenar kırpması, bağlam, veri etiketleri, geçişler, kamera. Hatalar kesin: önce çekimi, özneyi ya da geçişi
+   düzelt (kamera, zoom, `subject`, `say`, `transitions`), sonra tekrarla. Örnekler `out/<slug>/qa-samples.json`'da.
 7. Kareleri Read ile kendin incele ve STYLE.md kontrol listesini madde madde uygula. Uymayanları düzelt, yeniden
    render et.
 8. Kullanıcıya `out/<slug>/stills/sheet.png` dosyasını ve gerekirse önemli tekil kareleri göster. **qa sonuç

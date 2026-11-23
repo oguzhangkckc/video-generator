@@ -7,7 +7,10 @@ import { Countdown } from "./kit/overlays/Countdown";
 import { Counter } from "./kit/overlays/Counter";
 import { DataLabel, NoteLabel } from "./kit/overlays/DataLabel";
 import { HookTitle } from "./kit/overlays/HookTitle";
-import { FramingContext, type Framing } from "./kit/framing";
+import { CX, CY } from "./kit/format";
+import { FramingContext, adjustFor, logReport, type Framing } from "./kit/framing";
+import { globeElements } from "./kit/scenes/globe/Globe";
+import { layerName } from "./spec/scenes";
 import { LayoutContext } from "./kit/layout";
 import { reservedZones } from "./kit/overlays/boxes";
 import { QaProbe } from "./kit/qa/QaProbe";
@@ -19,7 +22,7 @@ import { RigContext } from "./kit/scenes/globe/rig-context";
 import { COLOR } from "./kit/theme";
 import { Darken } from "./kit/transitions/Darken";
 import { resolveVideo } from "./spec/resolve";
-import type { Layer, LayerOf, VideoProps } from "./spec/schema";
+import type { Layer, VideoProps } from "./spec/schema";
 
 /**
  * Scene layers in spec order, then data strips (traces with a panel), then the overlays in a fixed order: labels,
@@ -35,17 +38,24 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
       return cache.get(key)!;
     };
     const spokenAt = (t: number) => video.phrases.find((p) => t >= p.start && t <= p.end)?.text ?? "";
-    return { enabled: video.spec.layout.framing, zonesAt, spokenAt, reports: qa?.probe ? new Map() : null };
+    return { enabled: video.spec.layout.framing, zonesAt, spokenAt, report: qa?.probe ? logReport : null };
   }, [video, qa?.probe]);
   const strips = (layer: Layer) => layer.type === "trace" && Boolean(layer.panel);
   const rigs = useMemo(
     () =>
       Object.fromEntries(
-        video.spec.layers
-          .filter((l): l is LayerOf<"globe"> => l.type === "globe")
-          .map((l) => [l.id, createGlobeRig(l, video.curve)]),
+        video.spec.layers.flatMap((l, i) => {
+          if (l.type !== "globe") return [];
+          const rig = createGlobeRig(l, video.curve);
+          const name = layerName(l, i);
+          // The planet moves aside (lens shift) for its satellite and location, like a 2D scene for its elements.
+          rig.setFraming((t) =>
+            adjustFor(framing, name, (u) => globeElements(l, rig, u, rig.rawProject).filter((e) => e.important), [CX, CY], t),
+          );
+          return [[l.id, rig]];
+        }),
       ),
-    [video],
+    [video, framing],
   );
   const s = video.spec;
 

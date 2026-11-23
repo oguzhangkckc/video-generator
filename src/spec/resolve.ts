@@ -8,6 +8,7 @@ import { speedLabel } from "../kit/overlays/Counter";
 import { needsReading, splitToken, unreadable } from "./lexicon.ts";
 import { KEY_REF, MARK_REF } from "./primitives";
 import { ResolvedSpec, Timing, VideoSpec, type LayerOf, type Spec } from "./schema";
+import { sceneFindings } from "./scenes";
 import { endsOnQuestionWord, sentencesOf } from "./sentences.ts";
 import {
   captionPages,
@@ -307,6 +308,8 @@ const checkTimeline = (raw: RawSpec, spec: Spec, curve: (name: string) => CurveF
 };
 
 const check = (spec: Spec) => {
+  const scenes = sceneFindings(spec);
+  if (scenes.length) fail("scenes", scenes.join("\n  "));
   const sfx = new Set(Object.keys(catalog));
   const needSfx = (id: string | undefined, where: string) => {
     if (id !== undefined && !sfx.has(id)) fail(where, `unknown sound "${id}" — add it to src/kit/audio/sfx-catalog.json`);

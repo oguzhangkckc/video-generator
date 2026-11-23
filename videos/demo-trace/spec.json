@@ -4,7 +4,11 @@
   "durationSec": 8,
   "voiceover": {
     "sections": [
-      { "id": "demo", "window": [0, 8], "phrases": ["Kalem bir saat eğrisini izler.", "Ağır çekimde parçalar adını alır."] }
+      {
+        "id": "demo",
+        "window": [0, 8],
+        "phrases": ["Kalem bir saat eğrisini izler.", "Ağır çekimde parçalar adını alır."]
+      }
     ]
   },
   "marks": { "slow": [2.5, 6.5] },
@@ -40,9 +44,9 @@
         "qrs": { "range": ["#qrsStart", "#qrsEnd"] },
         "t": { "range": ["#tStart", "#tEnd"] }
       },
-      "grid": { "legend": "25 mm/sn · 10 mm/mV" },
+      "grid": { "legend": "25 mm/sn · 10 mm/mV", "pxPerX": 1.2, "pxPerY": 480 },
       "camera": [
-        { "at": 0, "focus": "frame", "zoom": 1 },
+        { "at": 0, "focus": "frame", "zoom": 1, "kind": "wide" },
         { "at": 3, "focus": "pen", "zoom": 1.7 },
         { "at": 6.5, "focus": "pen", "zoom": 1.8 },
         { "at": 8, "focus": "frame", "zoom": 1.05 }
@@ -53,7 +57,9 @@
         { "text": "QRS", "range": ["#qrsStart", "#qrsEnd"] },
         { "text": "T", "range": ["#tStart", "#tEnd"] }
       ],
-      "beep": { "id": "monitor-beep", "ranges": [[0, 8]] }
+      "beep": { "id": "monitor-beep", "ranges": [[0, 8]] },
+      "baselineY": 1300,
+      "anchorY": 1150
     }
   ],
   "counter": {
@@ -64,18 +70,56 @@
     "timeScale": { "unitPerSec": 1000 },
     "format": { "zeroBelow": 0.5, "oneDecimalBelow": 0 }
   },
-  "sound": {
-    "beds": [{ "id": "space", "at": 0, "fadeIn": [0, 1], "fadeOut": [7, 8] }]
-  },
+  "sound": { "beds": [{ "id": "space", "at": 0, "fadeIn": [0, 1], "fadeOut": [7, 8] }] },
   "sources": [
-    { "id": "klabunde-ekg", "claim": "P dalgası 80–100 ms; QRS 60–100 ms; kâğıt 25 mm/sn, 1 mV = 10 mm", "value": "P 0–90, QRS 160–230 ms", "url": "https://cvphysiology.com/arrhythmias/a009", "accessed": "2026-11-18", "status": "simplified", "note": "Şematik bir atım: aralıklar tipik değerlere oturtuldu." },
-    { "id": "klabunde-qt", "claim": "T dalgası karıncıkların toparlanmasıdır; QRS'ten sonra gelir", "value": "T 330–490 ms", "url": "https://cvphysiology.com/arrhythmias/a009", "accessed": "2026-11-18", "status": "simplified", "note": "T dalgasının yeri şematik; demo amaçlı." }
+    {
+      "id": "klabunde-ekg",
+      "claim": "P dalgası 80–100 ms; QRS 60–100 ms; kâğıt 25 mm/sn, 1 mV = 10 mm",
+      "value": "P 0–90, QRS 160–230 ms",
+      "url": "https://cvphysiology.com/arrhythmias/a009",
+      "accessed": "2026-11-18",
+      "status": "simplified",
+      "note": "Şematik bir atım: aralıklar tipik değerlere oturtuldu."
+    },
+    {
+      "id": "klabunde-qt",
+      "claim": "T dalgası karıncıkların toparlanmasıdır; QRS'ten sonra gelir",
+      "value": "T 330–490 ms",
+      "url": "https://cvphysiology.com/arrhythmias/a009",
+      "accessed": "2026-11-18",
+      "status": "simplified",
+      "note": "T dalgasının yeri şematik; demo amaçlı."
+    }
   ],
   "credits": [
-    { "item": "Ses efektleri (eleven_text_to_sound_v2): monitor-beep, space", "kind": "sfx", "author": "ElevenLabs", "license": "ElevenLabs ücretsiz plan: ticari kullanım yok", "url": "https://elevenlabs.io/service-specific-terms" },
-    { "item": "Inter (yazı tipi)", "kind": "font", "author": "Rasmus Andersson", "license": "SIL Open Font License 1.1", "url": "https://github.com/rsms/inter" },
-    { "item": "JetBrains Mono (yazı tipi)", "kind": "font", "author": "JetBrains", "license": "SIL Open Font License 1.1", "url": "https://github.com/JetBrains/JetBrainsMono" },
-    { "item": "Remotion", "kind": "code", "author": "Remotion AG", "license": "Remotion License", "url": "https://www.remotion.dev/license" }
+    {
+      "item": "Ses efektleri (eleven_text_to_sound_v2): monitor-beep, space",
+      "kind": "sfx",
+      "author": "ElevenLabs",
+      "license": "ElevenLabs ücretsiz plan: ticari kullanım yok",
+      "url": "https://elevenlabs.io/service-specific-terms"
+    },
+    {
+      "item": "Inter (yazı tipi)",
+      "kind": "font",
+      "author": "Rasmus Andersson",
+      "license": "SIL Open Font License 1.1",
+      "url": "https://github.com/rsms/inter"
+    },
+    {
+      "item": "JetBrains Mono (yazı tipi)",
+      "kind": "font",
+      "author": "JetBrains",
+      "license": "SIL Open Font License 1.1",
+      "url": "https://github.com/JetBrains/JetBrainsMono"
+    },
+    {
+      "item": "Remotion",
+      "kind": "code",
+      "author": "Remotion AG",
+      "license": "Remotion License",
+      "url": "https://www.remotion.dev/license"
+    }
   ],
   "styleExceptions": ["Tür demosu: STYLE'ın kanca, bölüm ve final akışı uygulanmaz."]
 }

@@ -76,8 +76,6 @@ export const traceSchema = <T extends z.ZodType, R extends z.ZodType, N extends 
       baselineY: z.number().default(1060),
       /** Screen y where the camera's focus lands; match it with the layer this one hands off to. */
       anchorY: z.number().default(960),
-      /** Draw only inside this horizontal band (a strip under another scene) instead of the whole frame. */
-      frame: z.object({ top: z.number().min(0), height: z.number().positive() }).strict().optional(),
       /**
        * A data strip on top of the scenes: drawn in a dark panel across the frame at `top` (an overlay, like the
        * label panels; the camera keeps other scenes' important elements clear of it). Without it the trace is a scene.

@@ -21,7 +21,7 @@ type CityMapLayer = LayerOf<"cityMap">;
 export const CityMap: React.FC<{ layer: CityMapLayer; curve: (name: string) => CurveFn; name: string }> = ({ layer, curve, name }) => {
   const t = useTime();
   const { fps } = useVideoConfig();
-  const { reports } = useFraming();
+  const { report } = useFraming();
   const city = useMemo(() => buildCity(layer.seed), [layer.seed]);
   const rotationAt = useMemo(() => (layer.rotation ? curveFn(layer.rotation) : () => 0), [layer.rotation]);
   const { water, avenues, bridges } = LAYOUTS[layer.layout];
@@ -61,8 +61,8 @@ export const CityMap: React.FC<{ layer: CityMapLayer; curve: (name: string) => C
   const blink = 0.5 + 0.5 * Math.sin((t * 2 * Math.PI) / 1.2);
   const pulse = (t % 1.4) / 1.4;
   // qa: the map fills the frame and is its own subject; the marker is what matters on it.
-  if (reports) {
-    reports.set(name, {
+  if (report) {
+    report({
       layer: name,
       type: "cityMap",
       opacity,

@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type { LayerOf } from "../../../spec/schema";
 import type { CurveFn } from "../../curves";
 import { HEIGHT, WIDTH } from "../../format";
+import { IDENTITY, applyAdjust, type Adjust } from "../../framing";
 import { EASING, ramp } from "../../time";
 
 const DEG = Math.PI / 180;
@@ -137,8 +138,8 @@ export const createGlobeRig = (layer: Globe, curve: (name: string) => CurveFn) =
 
   const projector = new THREE.PerspectiveCamera(CAMERA.fov, WIDTH / HEIGHT, CAMERA.near, CAMERA.far);
 
-  /** Screen position (px) of a 3D point as seen by the camera at time t — lets 2D overlays track 3D objects. */
-  const project = (point: THREE.Vector3, t: number) => {
+  /** Screen position (px) of a 3D point as the written camera sees it at time t, before any framing move. */
+  const rawProject = (point: THREE.Vector3, t: number) => {
     const { position, target, up } = cameraAt(t);
     projector.position.copy(position);
     projector.up.copy(up);
@@ -148,7 +149,35 @@ export const createGlobeRig = (layer: Globe, curve: (name: string) => CurveFn) =
     return { x: ((ndc.x + 1) / 2) * WIDTH, y: ((1 - ndc.y) / 2) * HEIGHT };
   };
 
-  return { location, orbitR, orbitNode, orbitPoint, orbitNormal, satU, heroPos, heroVel, cameraAt, anchor, project };
+  // The framing move (src/kit/framing.ts), a lens shift around the frame centre; set once the overlays are known.
+  let adjustAt: (t: number) => Adjust = () => IDENTITY;
+  const setFraming = (f: (t: number) => Adjust) => {
+    adjustAt = f;
+  };
+
+  /** Screen position (px) of a 3D point at time t, framing move included — lets 2D overlays track 3D objects. */
+  const project = (point: THREE.Vector3, t: number) => {
+    const p = rawProject(point, t);
+    const [x, y] = applyAdjust([p.x, p.y], [WIDTH / 2, HEIGHT / 2], adjustAt(t));
+    return { x, y };
+  };
+
+  return {
+    location,
+    orbitR,
+    orbitNode,
+    orbitPoint,
+    orbitNormal,
+    satU,
+    heroPos,
+    heroVel,
+    cameraAt,
+    anchor,
+    project,
+    rawProject,
+    adjustAt: (t: number) => adjustAt(t),
+    setFraming,
+  };
 };
 
 export type GlobeRig = ReturnType<typeof createGlobeRig>;

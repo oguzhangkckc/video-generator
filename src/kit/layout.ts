@@ -10,5 +10,5 @@ export const SAFE = { right: WIDTH - 120, bottom: Math.round(HEIGHT * 0.85) } as
  */
 export type Layout = { rightInset: number; contentWidth: number; labelBackdrop: boolean; framing: boolean };
 
-export const LayoutContext = createContext<Layout>({ rightInset: 132, contentWidth: 840, labelBackdrop: true, framing: false });
+export const LayoutContext = createContext<Layout>({ rightInset: 132, contentWidth: 840, labelBackdrop: true, framing: true });
 export const useLayout = () => useContext(LayoutContext);

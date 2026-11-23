@@ -21,8 +21,8 @@ const FPS = 30;
 const SPOKEN_RATE = [2.6, 3.0];
 const PAUSES = { shortSentence: 0.25, meanSentence: 0.35 };
 const SILENCE = { noiseDb: -70, minSec: 0.3, tailSec: 0.7 };
-/** An empty cell is flat (luma spread ≤ spread) and dark (≤ luma): background only. */
-const EMPTY = { spread: 12, luma: 70 };
+/** An empty cell is flat (luma spread ≤ spread) and within `tone` of the frame's background luma. */
+const EMPTY = { spread: 6, tone: 10 };
 /** Longer than this with no change on screen is a freeze (ffmpeg freezedetect noise in dB). */
 const FREEZE = { seconds: 0.3, noiseDb: -60 };
 
@@ -67,6 +67,8 @@ const probe = async (frame, qa, output) => {
   const inputProps = { qa };
   const composition = await selectComposition({ serveUrl, id: slug, inputProps, puppeteerInstance: instance, chromiumOptions });
   const logs = { boxes: null, spec: null, scene: null };
+  // A scene logs again when it renders again (a 3D model that loaded): the last report per layer counts.
+  const layers = new Map();
   await renderStill({
     serveUrl,
     composition,
@@ -81,40 +83,50 @@ const probe = async (frame, qa, output) => {
       if (text.startsWith("QA_BOXES ")) logs.boxes = JSON.parse(text.slice(9));
       if (text.startsWith("QA_SPEC ")) logs.spec = JSON.parse(text.slice(8));
       if (text.startsWith("QA_SCENE ")) logs.scene = JSON.parse(text.slice(9));
+      if (text.startsWith("QA_LAYER ")) {
+        const r = JSON.parse(text.slice(9));
+        layers.set(r.layer, r);
+      }
     },
   });
+  if (logs.scene) logs.scene.layers = [...layers.values()];
   return { ...logs, durationInFrames: composition.durationInFrames };
 };
 
 const overlap = (a, b) => Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1) > 2 && Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1) > 2;
 
 /**
- * Share of the frame that is empty: 40 px cells (10 px in the quarter-size probe) that are flat and dark, i.e.
- * nothing but background.
+ * Share of a full-size frame that is empty: 40 px cells that are flat and of the frame's own background tone (the
+ * most common flat tone), so a flat filled shape or a fine grid is content but a haze or bare space is not.
  */
 const emptyShare = (png) => {
-  const { stdout } = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-i", png, "-vf", "scale=270:480,format=gray", "-f", "rawvideo", "-"], {
-    maxBuffer: 16 * 1024 * 1024,
+  const [W, H, C] = [1080, 1920, 40];
+  const { stdout } = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-i", png, "-vf", `scale=${W}:${H},format=gray`, "-f", "rawvideo", "-"], {
+    maxBuffer: 64 * 1024 * 1024,
   });
-  if (stdout.length < 270 * 480) return null;
-  let empty = 0;
-  let cells = 0;
-  for (let cy = 0; cy < 480; cy += 10) {
-    for (let cx = 0; cx < 270; cx += 10) {
+  if (stdout.length < W * H) return null;
+  const cells = [];
+  for (let cy = 0; cy < H; cy += C) {
+    for (let cx = 0; cx < W; cx += C) {
       let lo = 255;
       let hi = 0;
-      for (let y = cy; y < cy + 10; y++) {
-        for (let x = cx; x < cx + 10; x++) {
-          const v = stdout[y * 270 + x];
+      let sum = 0;
+      for (let y = cy; y < cy + C; y++) {
+        for (let x = cx; x < cx + C; x++) {
+          const v = stdout[y * W + x];
           if (v < lo) lo = v;
           if (v > hi) hi = v;
+          sum += v;
         }
       }
-      cells++;
-      if (hi - lo <= EMPTY.spread && hi <= EMPTY.luma) empty++;
+      cells.push({ flat: hi - lo <= EMPTY.spread, mean: sum / (C * C) });
     }
   }
-  return empty / cells;
+  const bins = new Map();
+  for (const c of cells.filter((x) => x.flat)) bins.set(Math.round(c.mean / 4), (bins.get(Math.round(c.mean / 4)) ?? 0) + 1);
+  if (bins.size === 0) return 0;
+  const ground = 4 * [...bins.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  return cells.filter((c) => c.flat && Math.abs(c.mean - ground) <= EMPTY.tone).length / cells.length;
 };
 
 const layout = async () => {
@@ -128,11 +140,18 @@ const layout = async () => {
   const overlaps = spans();
   const unsafe = spans();
   const samples = [];
-  for (const frame of frames) {
+  for (const [i, frame] of frames.entries()) {
     const png = path.join(tmp, "probe.png");
     const { boxes, scene } = frame === 0 ? first : await probe(frame, { probe: true }, png);
     if (!boxes) continue;
-    if (scene) samples.push({ t: boxes.t, boxes: boxes.boxes, scene, empty: emptyShare(png) });
+    // Emptiness needs the full-size frame (fine lines vanish at probe size); every other sample is enough.
+    let empty = null;
+    if (i % 2 === 0) {
+      const full = path.join(tmp, "full.png");
+      await probe(frame, { probe: false }, full);
+      empty = emptyShare(full);
+    }
+    if (scene) samples.push({ t: boxes.t, boxes: boxes.boxes, scene, empty });
     for (const b of boxes.boxes) {
       if (b.x2 > SAFE_RIGHT + 0.5) unsafe.add(`${b.id}:right`, boxes.t, `${b.id} "${b.text}" reaches x ${Math.round(b.x2)} (right safe area starts at ${SAFE_RIGHT})`);
       if (b.y2 > SAFE_BOTTOM + 0.5) unsafe.add(`${b.id}:bottom`, boxes.t, `${b.id} "${b.text}" reaches y ${Math.round(b.y2)} (bottom safe area starts at ${SAFE_BOTTOM})`);
@@ -147,6 +166,8 @@ const layout = async () => {
   }
   errors.push(...overlaps.list().map((m) => `yerleşim: ${m}`), ...unsafe.list().map((m) => `güvenli alan: ${m}`));
 
+  mkdirSync(outDir(slug), { recursive: true });
+  writeFileSync(path.join(outDir(slug), "qa-samples.json"), JSON.stringify(samples));
   const labelAlign = (id) => rawSpec.labels[Number(/\[(\d+)\]/.exec(id)?.[1])]?.align ?? "left";
   const found = composition({
     samples,

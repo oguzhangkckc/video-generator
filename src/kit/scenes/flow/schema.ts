@@ -125,10 +125,11 @@ export const flowSchema = <T extends z.ZodType, R extends z.ZodType, N extends z
       highlight: z.array(z.object({ target: id, range: k.range }).strict()).default([]),
       camera: z.array(shotSchema(k, place)).min(1),
       drift: driftSchema.prefault({}),
-      /** Screen y where the camera's focus lands; match it with the layer this one hands off to. */
+      /**
+       * Screen y where the camera's focus lands before framing moves it; match it with the layer this one hands off
+       * to. The scene always fills the frame (STYLE: no bands).
+       */
       anchorY: z.number().default(960),
-      /** Draw only inside this horizontal band, leaving the rest of the frame to data lines and other layers. */
-      frame: z.object({ top: z.number().min(0), height: z.number().positive() }).strict().optional(),
     })
     .strict();
 };

@@ -4,7 +4,11 @@
   "durationSec": 10,
   "voiceover": {
     "sections": [
-      { "id": "demo", "window": [0, 10], "phrases": ["Kamera modelin etrafında döner.", "Parçalar vurgulanır, ayrılır, kesilir."] }
+      {
+        "id": "demo",
+        "window": [0, 10],
+        "phrases": ["Kamera modelin etrafında döner.", "Parçalar vurgulanır, ayrılır, kesilir."]
+      }
     ]
   },
   "layers": [
@@ -13,10 +17,10 @@
       "window": [0, 10],
       "file": "kit/models/flight-helmet.glb",
       "camera": [
-        { "at": 0, "azimuth": 20, "elevation": 10, "distance": 4.4 },
-        { "at": 3, "azimuth": 55, "elevation": 12, "distance": 3.2, "target": "Lenses_low" },
-        { "at": 6.2, "azimuth": 95, "elevation": 16, "distance": 4.6 },
-        { "at": 10, "azimuth": 140, "elevation": 14, "distance": 5.2 }
+        { "at": 0, "azimuth": 20, "elevation": 10, "distance": 3 },
+        { "at": 3, "azimuth": 55, "elevation": 12, "distance": 2.4, "target": "Lenses_low" },
+        { "at": 6.2, "azimuth": 95, "elevation": 16, "distance": 3.2 },
+        { "at": 10, "azimuth": 140, "elevation": 14, "distance": 3.4 }
       ],
       "highlight": [
         { "part": "Lenses_low", "color": "you", "range": [1.8, 4.4] },
@@ -27,22 +31,89 @@
     }
   ],
   "labels": [
-    { "text": "LENSLER", "at": 2, "until": 4.4, "top": 470, "size": 52, "bar": true, "color": "you", "sound": "tick" },
-    { "text": "HORTUM", "at": 4.5, "until": 6.4, "top": 560, "size": 52, "bar": true, "sound": "tick" },
-    { "text": "KESİT", "at": 6.5, "until": 8.3, "top": 650, "size": 52, "bar": true, "sound": "tick" },
-    { "text": "PATLATMA", "at": 8.5, "until": 10, "top": 740, "size": 52, "bar": true, "sound": "tick" }
+    {
+      "text": "LENSLER",
+      "at": 2,
+      "until": 4.4,
+      "top": 470,
+      "size": 52,
+      "bar": true,
+      "color": "you",
+      "sound": "tick"
+    },
+    {
+      "text": "HORTUM",
+      "at": 4.5,
+      "until": 6.4,
+      "top": 560,
+      "size": 52,
+      "bar": true,
+      "sound": "tick"
+    },
+    {
+      "text": "KESİT",
+      "at": 6.5,
+      "until": 8.3,
+      "top": 650,
+      "size": 52,
+      "bar": true,
+      "sound": "tick"
+    },
+    {
+      "text": "PATLATMA",
+      "at": 8.5,
+      "until": 10,
+      "top": 740,
+      "size": 52,
+      "bar": true,
+      "sound": "tick"
+    }
   ],
   "notes": [{ "text": "ÖLÇEKLİ DEĞİL", "at": 0.3, "until": 10, "top": 300 }],
-  "sound": {
-    "beds": [{ "id": "space", "at": 0, "fadeIn": [0, 1], "fadeOut": [9, 10] }]
-  },
+  "sound": { "beds": [{ "id": "space", "at": 0, "fadeIn": [0, 1], "fadeOut": [9, 10] }] },
   "credits": [
-    { "item": "Flight Helmet (3D model; dokular 1024 px'e küçültülüp GLB'ye paketlendi)", "kind": "model", "author": "Gary Hsu (Khronos glTF-Sample-Assets)", "license": "CC0 1.0 Universal", "url": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/FlightHelmet" },
-    { "item": "three.js", "kind": "code", "author": "three.js yazarları", "license": "MIT", "url": "https://github.com/mrdoob/three.js" },
-    { "item": "Ses efektleri (eleven_text_to_sound_v2): tick, space", "kind": "sfx", "author": "ElevenLabs", "license": "ElevenLabs ücretsiz plan: ticari kullanım yok", "url": "https://elevenlabs.io/service-specific-terms" },
-    { "item": "Inter (yazı tipi)", "kind": "font", "author": "Rasmus Andersson", "license": "SIL Open Font License 1.1", "url": "https://github.com/rsms/inter" },
-    { "item": "JetBrains Mono (yazı tipi)", "kind": "font", "author": "JetBrains", "license": "SIL Open Font License 1.1", "url": "https://github.com/JetBrains/JetBrainsMono" },
-    { "item": "Remotion", "kind": "code", "author": "Remotion AG", "license": "Remotion License", "url": "https://www.remotion.dev/license" }
+    {
+      "item": "Flight Helmet (3D model; dokular 1024 px'e küçültülüp GLB'ye paketlendi)",
+      "kind": "model",
+      "author": "Gary Hsu (Khronos glTF-Sample-Assets)",
+      "license": "CC0 1.0 Universal",
+      "url": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/FlightHelmet"
+    },
+    {
+      "item": "three.js",
+      "kind": "code",
+      "author": "three.js yazarları",
+      "license": "MIT",
+      "url": "https://github.com/mrdoob/three.js"
+    },
+    {
+      "item": "Ses efektleri (eleven_text_to_sound_v2): tick, space",
+      "kind": "sfx",
+      "author": "ElevenLabs",
+      "license": "ElevenLabs ücretsiz plan: ticari kullanım yok",
+      "url": "https://elevenlabs.io/service-specific-terms"
+    },
+    {
+      "item": "Inter (yazı tipi)",
+      "kind": "font",
+      "author": "Rasmus Andersson",
+      "license": "SIL Open Font License 1.1",
+      "url": "https://github.com/rsms/inter"
+    },
+    {
+      "item": "JetBrains Mono (yazı tipi)",
+      "kind": "font",
+      "author": "JetBrains",
+      "license": "SIL Open Font License 1.1",
+      "url": "https://github.com/JetBrains/JetBrainsMono"
+    },
+    {
+      "item": "Remotion",
+      "kind": "code",
+      "author": "Remotion AG",
+      "license": "Remotion License",
+      "url": "https://www.remotion.dev/license"
+    }
   ],
   "styleExceptions": ["Tür demosu: STYLE'ın kanca, bölüm ve final akışı uygulanmaz."]
 }

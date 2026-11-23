@@ -109,9 +109,10 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
 | ↳ `camera[]` | ilkel çekimler: `pullback` (yüzeyden geniş plana, eğriyle), `follow` (uyduyu arkadan, dönerek), `descend` (önceki çekimden konuma iniş); `blendIn` ile yumuşak geçiş | `from`, çekime göre `progress` / `curve` / `blendIn` |
 | `cityMap` | prosedürel, soyut gece şehri ve konum işaretçisi; zoom bir eğriyi izler; işaretçi kayabilir (hata) | `visible[]`, `zoom`, `rotation`, `marker`, `offset`, `seed` |
 | `model3d` | GLB model (`public/kit/models`, lisansı `<id>.json`'da): kamera anahtar kareleri (yörünge açısı, yükseklik, uzaklık, hedef parça), parça vurgulama (renk anlamıyla), kesit düzlemi, patlatma. Parça adları ve `credits` kaydı `npm run check`'te doğrulanır | `window`, `file`, `camera[]`, `orbitDegPerSec`, `highlight[]`, `dimOthers`, `section`, `explode` |
-| `flow` | 2D şema: bölgeler (dolgu, kaynaktan yayılan renk), yollar, düğümler (`glow`/`dot`/`ring`/`pad`), yollar boyunca ilerleyen sinyaller, alan halkaları | `regions[]`, `paths[]`, `nodes[]`, `signals[]`, `fields[]`, `highlight[]`, `camera[]`, `drift`, `anchorY` |
-| `trace` | monitör/grafik çizgisi; kalem bir saat eğrisini izler (gerçek zaman ya da ağır çekim). Dalga biçimi parametre: `ecg` ön ayarı, `sine`, `square`, `saw`, `samples`. `parts` çizilirken adlandırılır (P, QRS, T…) | `clock`, `waveform`, `grid`, `parts[]`, `penX`, `baselineY`, `anchorY`, `camera[]`, `beep` |
-| ↳ `camera[]` (2D) | flow ve trace'in ortak düz kamerası (`camera2d`): `{ at, focus, zoom, rotate, easing }` + `drift` (asla donmaz). **Şekil eşleştirme:** iki katman aynı `anchorY` ve zoom'da odak noktasını gösterince turuncu nokta (`MATCH_DOT_R`) birebir örtüşür | `focus`: düğüm adı, `"pen"` / `"frame"` ya da `[x, y]` |
+| `flow` | 2D şema (tam ekran): bölgeler (dolgu, kaynaktan yayılan renk), yollar, düğümler (`glow`/`dot`/`ring`/`pad`), yollar boyunca ilerleyen sinyaller, alan halkaları. Öğelere `say` takma adları (seslendirme onları söylerken önemli ve ekranda) | `regions[]`, `paths[]`, `nodes[]`, `signals[]`, `fields[]`, `highlight[]`, `camera[]`, `drift`, `anchorY`, `say` |
+| `trace` | monitör/grafik çizgisi; kalem bir saat eğrisini izler (gerçek zaman ya da ağır çekim). Dalga biçimi parametre: `ecg` ön ayarı, `sine`, `square`, `saw`, `samples`. `parts` çizilirken adlandırılır: `marker: "leader"` (üstte, kılavuzla) ya da `"bracket"` (altta, köşeli parantezle). `panel: { top, height }` ile sahne değil, koyu zeminli veri şeridi | `clock`, `waveform`, `grid`, `parts[]`, `penX`, `baselineY`, `anchorY`, `camera[]`, `beep`, `panel` |
+| ↳ `camera[]` (2D) | flow ve trace'in ortak düz kamerası (`camera2d`): `{ at, focus, zoom, rotate, easing, kind, subject }` + `drift` (asla donmaz). `kind`: wide/medium/close (yoksa zoom'dan); `subject`: çekimin konusu (qa ≥ %35). Kamera önemli öğeleri panel/şerit/altyazıdan kendiliğinden uzak tutar (`layout.framing`, `src/kit/framing.ts`) | `focus`: düğüm adı, `"pen"` / `"frame"` ya da `[x, y]` |
+| ↳ `transitions[]` | iki sahnenin örtüştüğü her an: `{ at, from, to, kind: "through" \| "match" \| "flash", via: { from, to }, why }`; `npm run check` beyansız geçişi ve gerekçesiz `flash`'ı reddeder. **Şekil eşleştirme:** `via` öğeleri o anda aynı yerde (qa ölçer) | katman adı: `id`, yoksa `tür#sıra` |
 | `haze` | **nesnenin içinden geçme:** atmosfer pusu | `envelopes[]` |
 | `speedLines` | ışık hızı çizgileri | `envelope` |
 | `signalPass` | **halkanın içinden geçme:** bir küredeki 3D noktadan çıkıp kameradan geçen halkalar | `anchor` {`layer`, `point`}, `emits[]` |
@@ -164,7 +165,13 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
 
 - **Yerleşim** (render gerekmez): her 0,25 sn'de bir kare tarayıcıda açılır, üst yazıların kutuları
   `@remotion/layout-utils` ile ölçülür. Yazılar birbirine ya da altyazıya biniyorsa, sağdaki 120 px'e ya da alttaki
-  %15'e taşıyorsa hata. Üst yazılar kapatılmış karede bir etiket kutusunun içinden parlak çizgi geçiyorsa uyarı.
+  %15'e taşıyorsa hata.
+- **Kompozisyon** (render gerekmez; sahneler her karede önemli öğelerini, öznelerini, veri etiketlerini raporlar,
+  `QA_LAYER`): önemli öğe üst yazı / şerit / altyazı altında (nokta hiç, alan en fazla %25) hata; özne < %35 yükseklik
+  2 sn'den uzun hata; kare > %40 boş 1 sn'den uzun hata (tam boyutlu karede 40 px hücreler); özne kenarda kırpılıyor
+  (yakın plan değilse) uyarı; söylenen öğe cümlenin yarısında ekranda değil hata; veri etiketleri değiyor ya da
+  çizgiyi kesiyor hata; şekil eşleştirme öğeleri aynı yerde değil, içinden geçişte kare dolmuyor, geçişte kare > %60
+  boş hata. Render varsa 0,3 sn'den uzun donma hata. Örnekler: `out/<slug>/qa-samples.json`.
 - **Seslendirme** (`vo.wav` üzerinde, dinleyicinin duyduğu gibi): konuşulan sürede 2,6–3,0 kelime/sn dışındaysa
   uyarı; cümle sonu arası 0,25 sn'den kısaysa uyarı, ortalaması 0,35 sn'nin altındaysa hata; sonda +2 yarım tondan
   fazla yükselen ya da 60 ms'den kısa sönen cümle uyarı (insan kaydında "yeniden kaydet"); birimli bir etiket

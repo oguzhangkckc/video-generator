@@ -9,7 +9,7 @@ import { COLOR, MONO, tokenColor } from "../../theme";
 import { ramp, useTime, windowAlpha } from "../../time";
 import { strokeAt, worldTransform } from "../camera2d/camera";
 import { GlowDot, MATCH_DOT_R } from "../camera2d/GlowDot";
-import { traceElements, traceLabels, traceLine, traceState, LABEL_SIZE, type TraceLayer } from "./model";
+import { traceElements, traceLabels, traceLine, traceState, type TraceLayer } from "./model";
 import { waveform, type Waveform } from "./waveform";
 
 const beepTimes = (layer: TraceLayer, clock: CurveFn, wave: Waveform, fps: number, frames: number) => {
@@ -54,27 +54,26 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
   if (opacity <= 0) return <>{sounds}</>;
 
   const { pxPerY, minorX, minorY, majorEvery, legend } = layer.grid;
-  const band = layer.frame;
   const panel = layer.panel ? stripBox(layer.panel) : null;
-  const area = panel ?? (band ? { x1: 0, y1: band.top, x2: WIDTH, y2: band.top + band.height } : { x1: 0, y1: 0, x2: WIDTH, y2: HEIGHT });
+  const area = panel ?? { x1: 0, y1: 0, x2: WIDTH, y2: HEIGHT };
   // A data strip is itself an overlay: only a scene trace moves out of the way of the others.
   const adjust = panel
     ? { dx: 0, dy: 0, s: 1 }
     : adjustFor(framing, name, (u) => traceElements(traceState(layer, wave, clock, u), framing.spokenAt(u)).filter((e) => e.important), [CX, layer.anchorY], t);
   const st = traceState(layer, wave, clock, t, adjust);
   const { pen, view, anchor, toScreen, now, xAt, xFrom, points, parts, penScreen, reach, left } = st;
-  if (framing.reports) {
-    const elements = traceElements(st, framing.spokenAt(t));
+  const { subject, line } = traceLine(st, area);
+  const labels = traceLabels(st, line);
+  if (framing.report) {
     const shot = currentShot(layer.camera, t);
-    const { subject, line } = traceLine(st, area);
-    framing.reports.set(name, {
+    framing.report({
       layer: name,
       type: panel ? "strip" : "trace",
       opacity,
       shot: { kind: shotKind(shot), subject: shot.subject },
       subject,
-      elements,
-      labels: traceLabels(st),
+      elements: traceElements(st, framing.spokenAt(t)),
+      labels,
       line,
       adjust,
     });
@@ -102,7 +101,7 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
   }
 
   const legendAlpha = legend ? ramp(view.zoom, [1.15, 1.5], [1, 0]) : 0;
-  const clipped = Boolean(band || panel);
+  const clipped = Boolean(panel);
 
   return (
     <>
@@ -131,11 +130,7 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
               <stop offset="1" stopColor={COLOR.space} stopOpacity={0.85} />
             </radialGradient>
           </defs>
-          {panel ? (
-            <rect x={area.x1} y={area.y1} width={area.x2 - area.x1} height={area.y2 - area.y1} rx={16} fill={COLOR.labelBackdrop} />
-          ) : band ? (
-            <rect x={0} y={band.top} width={WIDTH} height={band.height} fill={`url(#${gradientId}-bg)`} />
-          ) : null}
+          {panel ? <rect x={area.x1} y={area.y1} width={area.x2 - area.x1} height={area.y2 - area.y1} rx={16} fill={COLOR.labelBackdrop} /> : null}
           <g clipPath={clipped ? `url(#${gradientId}-band)` : undefined}>
             <g transform={worldTransform(view, anchor)}>
               <path d={minor} stroke={COLOR.gridMinor} strokeWidth={strokeAt(1, view.zoom)} vectorEffect="non-scaling-stroke" />
@@ -151,16 +146,25 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
               ))}
             </g>
             {clipped ? null : <rect width={WIDTH} height={HEIGHT} fill={`url(#${gradientId}-vignette)`} />}
-            {parts.map(({ part, lx, ly, alpha, glow }, i) => (
-              <text key={i} x={lx} y={ly} textAnchor="middle" fontFamily={MONO} fontWeight={700} fontSize={LABEL_SIZE * (1 + 0.4 * glow)} fill={glow > 0 ? COLOR.text : tokenColor(part.color)} opacity={Math.max(alpha, glow)} stroke={glow > 0 ? tokenColor(part.color) : COLOR.space} strokeWidth={6} paintOrder="stroke">
-                {part.text}
-              </text>
-            ))}
+            {labels.map((l, i) => {
+              const ink = tokenColor(l.color as Parameters<typeof tokenColor>[0]);
+              const a = Math.max(l.alpha, l.glow);
+              return (
+                <g key={i} opacity={a}>
+                  {l.leader ? (
+                    <line x1={l.leader[0][0]} y1={l.leader[0][1]} x2={l.leader[1][0]} y2={l.leader[1][1]} stroke={ink} strokeOpacity={0.7} strokeWidth={2} />
+                  ) : null}
+                  {l.bracket ? (
+                    <path d={`M${l.bracket.x1} ${l.bracket.y - 12}V${l.bracket.y}H${l.bracket.x2}V${l.bracket.y - 12}`} fill="none" stroke={ink} strokeWidth={2.5} />
+                  ) : null}
+                  <text x={(l.x1 + l.x2) / 2} y={l.y2} textAnchor="middle" fontFamily={MONO} fontWeight={700} fontSize={l.size} fill={l.glow > 0 ? COLOR.text : ink} stroke={l.glow > 0 ? ink : COLOR.space} strokeWidth={6} paintOrder="stroke">
+                    {l.text}
+                  </text>
+                </g>
+              );
+            })}
             <GlowDot x={penScreen[0]} y={penScreen[1]} r={MATCH_DOT_R * view.zoom} color={color} />
           </g>
-          {band ? (
-            <path d={`M0 ${band.top}H${WIDTH}M0 ${band.top + band.height}H${WIDTH}`} stroke={COLOR.gridMajor} strokeWidth={2} />
-          ) : null}
         </svg>
         {legendAlpha > 0 ? (
           <div

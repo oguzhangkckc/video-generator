@@ -208,11 +208,11 @@ const Scene: React.FC<{ layer: Model3DLayer; startFrame: number; name: string }>
   const { width, height, fps } = useVideoConfig();
   const t = (frame + startFrame) / fps;
   const model = useModel(layer.file);
-  const { reports } = useFraming();
+  const { report: log } = useFraming();
   const opacity = windowAlpha(t, layer.fade);
   const background = `linear-gradient(180deg, ${COLOR.bgTop} 0%, ${COLOR.bgBottom} 100%)`;
   if (!model) return <AbsoluteFill style={{ background, opacity }} />;
-  if (reports) reports.set(name, report(layer, model, t, name));
+  if (log) log(report(layer, model, t, name));
 
   return (
     <AbsoluteFill style={{ background, opacity }}>

@@ -7,22 +7,12 @@
     "sections": [
       {
         "id": "kanca",
-        "window": [
-          0,
-          5.66
-        ],
-        "phrases": [
-          "Bu çizgiyi mutlaka görmüşsündür.",
-          "Ama okumayı kimse öğretmedi.",
-          "Bu çizgi ne anlatıyor?"
-        ]
+        "window": [0, 5.66],
+        "phrases": ["Bu çizgiyi mutlaka görmüşsündür.", "Ama okumayı kimse öğretmedi.", "Bu çizgi ne anlatıyor?"]
       },
       {
         "id": "cihaz",
-        "window": [
-          5.66,
-          16.12
-        ],
+        "window": [5.66, 16.12],
         "phrases": [
           "Peki cihaz bunu nasıl duyuyor?",
           "Göğsündeki elektrotlarla.",
@@ -34,10 +24,7 @@
       },
       {
         "id": "kaynak",
-        "window": [
-          16.12,
-          27.24
-        ],
+        "window": [16.12, 27.24],
         "phrases": [
           "Peki bu elektrik nereden geliyor?",
           "Kalbinin sağ üst köşesinden.",
@@ -49,10 +36,7 @@
       },
       {
         "id": "bekleme",
-        "window": [
-          27.24,
-          37.11
-        ],
+        "window": [27.24, 37.11],
         "phrases": [
           "Peki ardından neden düz gidiyor?",
           "Dalga tek bir kapıda bekliyor:",
@@ -63,10 +47,7 @@
       },
       {
         "id": "qrs",
-        "window": [
-          37.11,
-          49.2
-        ],
+        "window": [37.11, 49.2],
         "phrases": [
           "Peki ya o büyük sivri tepe?",
           "Kapı açılıyor, dalga hızlanıyor;",
@@ -78,10 +59,7 @@
       },
       {
         "id": "final",
-        "window": [
-          49.2,
-          57.15
-        ],
+        "window": [49.2, 57.15],
         "phrases": [
           "Küçük tepe: kulakçıklar,",
           "düzlük: bekleme,",
@@ -94,150 +72,42 @@
     ]
   },
   "marks": {
-    "toBody": [
-      {
-        "cue": "Bu çizgi ne anlatıyor",
-        "offset": 1.2
-      },
-      {
-        "cue": "Bu çizgi ne anlatıyor",
-        "offset": 2.2
-      }
-    ],
-    "dive": [
-      {
-        "cue": "Peki bu elektrik",
-        "offset": 0.2
-      },
-      {
-        "cue": "Kalbinin sağ",
-        "offset": 0.3
-      }
-    ],
-    "fire": {
-      "cue": "Bir hücre",
-      "offset": 0.85
-    },
-    "qrsGo": {
-      "cue": "Kapı açılıyor"
-    },
-    "peak": {
-      "cue": "İşte QRS"
-    },
-    "summary": {
-      "cue": "Küçük tepe"
-    },
-    "reveal": {
-      "cue": "elektrokardiyogram"
-    }
+    "toBody": [{ "cue": "Bu çizgi ne anlatıyor", "offset": 1.2 }, { "cue": "Bu çizgi ne anlatıyor", "offset": 2.2 }],
+    "dive": [{ "cue": "Peki bu elektrik", "offset": 0.2 }, { "cue": "Kalbinin sağ", "offset": 0.3 }],
+    "fire": { "cue": "Bir hücre", "offset": 0.85 },
+    "qrsGo": { "cue": "Kapı açılıyor" },
+    "peak": { "cue": "İşte QRS" },
+    "summary": { "cue": "Küçük tepe" },
+    "reveal": { "cue": "elektrokardiyogram" }
   },
   "timeline": {
     "unit": "ms",
     "keys": {
-      "saFire": {
-        "value": 0,
-        "source": "openstax"
-      },
-      "avArrive": {
-        "value": 50,
-        "source": "openstax"
-      },
-      "atriaDone": {
-        "value": 90,
-        "source": "klabunde-a003"
-      },
-      "avLeave": {
-        "value": 150,
-        "source": "openstax"
-      },
-      "hisDone": {
-        "value": 175,
-        "source": "openstax"
-      },
-      "ventDone": {
-        "value": 250,
-        "source": "openstax"
-      },
-      "tStart": {
-        "value": 350,
-        "source": "klabunde-a009"
-      },
-      "tEnd": {
-        "value": 500,
-        "source": "klabunde-a009"
-      }
+      "saFire": { "value": 0, "source": "openstax" },
+      "avArrive": { "value": 50, "source": "openstax" },
+      "atriaDone": { "value": 90, "source": "klabunde-a003" },
+      "avLeave": { "value": 150, "source": "openstax" },
+      "hisDone": { "value": 175, "source": "openstax" },
+      "ventDone": { "value": 250, "source": "openstax" },
+      "tStart": { "value": 350, "source": "klabunde-a009" },
+      "tEnd": { "value": 500, "source": "klabunde-a009" }
     }
   },
   "curves": {
     "beat": {
       "unit": "ms",
       "segments": [
+        { "from": 0, "to": "@toBody.start", "values": [-5130, -330] },
+        { "from": "@toBody.start", "to": "@fire", "values": [-330, 0], "easing": "outQuad" },
+        { "from": "@fire", "to": { "cue": "Peki ardından" }, "values": ["#saFire", "#atriaDone"] },
         {
-          "from": 0,
-          "to": "@toBody.start",
-          "values": [
-            -5130,
-            -330
-          ]
+          "from": { "cue": "Peki ardından" },
+          "to": { "cue": "Peki ya o büyük" },
+          "values": ["#atriaDone", "#avLeave"]
         },
-        {
-          "from": "@toBody.start",
-          "to": "@fire",
-          "values": [
-            -330,
-            0
-          ],
-          "easing": "outQuad"
-        },
-        {
-          "from": "@fire",
-          "to": {
-            "cue": "Peki ardından"
-          },
-          "values": [
-            "#saFire",
-            "#atriaDone"
-          ]
-        },
-        {
-          "from": {
-            "cue": "Peki ardından"
-          },
-          "to": {
-            "cue": "Peki ya o büyük"
-          },
-          "values": [
-            "#atriaDone",
-            "#avLeave"
-          ]
-        },
-        {
-          "from": {
-            "cue": "Peki ya o büyük"
-          },
-          "to": "@qrsGo",
-          "values": [
-            "#avLeave",
-            "#avLeave"
-          ]
-        },
-        {
-          "from": "@qrsGo",
-          "to": "@summary",
-          "values": [
-            "#avLeave",
-            "#tEnd"
-          ]
-        },
-        {
-          "from": "@summary",
-          "to": "@end",
-          "values": [
-            "#tEnd",
-            560
-          ],
-          "easing": "outQuad"
-        }
+        { "from": { "cue": "Peki ya o büyük" }, "to": "@qrsGo", "values": ["#avLeave", "#avLeave"] },
+        { "from": "@qrsGo", "to": "@summary", "values": ["#avLeave", "#tEnd"] },
+        { "from": "@summary", "to": "@end", "values": ["#tEnd", 560], "easing": "outQuad" }
       ]
     }
   },
@@ -245,1596 +115,435 @@
     {
       "type": "trace",
       "id": "monitor",
-      "visible": [
-        {
-          "out": [
-            "@toBody.end-0.15",
-            "@toBody.end+0.1"
-          ]
-        }
-      ],
+      "visible": [{ "out": ["@toBody.end-0.15", "@toBody.end+0.1"] }],
       "clock": "beat",
       "waveform": {
         "preset": "ecg",
-        "p": {
-          "range": [
-            "#saFire",
-            "#atriaDone"
-          ]
-        },
-        "qrs": {
-          "range": [
-            "#hisDone",
-            "#ventDone"
-          ]
-        },
-        "t": {
-          "range": [
-            "#tStart",
-            "#tEnd"
-          ]
-        }
+        "p": { "range": ["#saFire", "#atriaDone"] },
+        "qrs": { "range": ["#hisDone", "#ventDone"] },
+        "t": { "range": ["#tStart", "#tEnd"] }
       },
-      "grid": {
-        "pxPerX": 0.35,
-        "pxPerY": 140,
-        "minorX": 40,
-        "minorY": 0.1,
-        "legend": "25 mm/sn · 10 mm/mV"
-      },
-      "baselineY": 1050,
+      "grid": { "pxPerX": 1.15, "pxPerY": 460, "minorX": 40, "minorY": 0.1, "legend": "25 mm/sn · 10 mm/mV" },
+      "baselineY": 1250,
       "anchorY": 870,
       "camera": [
-        {
-          "at": 0,
-          "focus": "frame",
-          "zoom": 1
-        },
-        {
-          "at": "@toBody.start",
-          "focus": "frame",
-          "zoom": 1.1
-        },
-        {
-          "at": "@toBody.end-0.15",
-          "focus": "pen",
-          "zoom": 12,
-          "easing": "inCubic"
-        }
+        { "at": 0, "focus": "frame", "zoom": 1, "kind": "wide" },
+        { "at": "@toBody.start", "focus": "frame", "zoom": 1.1 },
+        { "at": "@toBody.end-0.15", "focus": "pen", "zoom": 4, "easing": "inCubic" }
       ],
-      "drift": {
-        "degPerSec": 0,
-        "px": 6,
-        "periodSec": 6
-      },
-      "beep": {
-        "id": "monitor-beep",
-        "ranges": [
-          [
-            0,
-            "@toBody.start"
-          ]
-        ]
-      }
+      "drift": { "degPerSec": 0, "px": 6, "periodSec": 6 },
+      "beep": { "id": "monitor-beep", "ranges": [[0, "@toBody.start"]] }
     },
     {
       "type": "flow",
       "id": "body",
-      "visible": [
-        {
-          "in": [
-            "@toBody.end-0.3",
-            "@toBody.end-0.1"
-          ]
-        }
-      ],
+      "visible": [{ "in": ["@toBody.end-0.3", "@toBody.end-0.1"] }],
       "anchorY": 870,
-      "frame": {
-        "top": 690,
-        "height": 360
-      },
       "regions": [
         {
           "id": "skin",
           "points": [
-            [
-              -300,
-              -700
-            ],
-            [
-              -700,
-              -660
-            ],
-            [
-              -900,
-              -560
-            ],
-            [
-              -990,
-              -380
-            ],
-            [
-              -1000,
-              -100
-            ],
-            [
-              -980,
-              300
-            ],
-            [
-              -960,
-              900
-            ],
-            [
-              -950,
-              1700
-            ],
-            [
-              710,
-              1700
-            ],
-            [
-              720,
-              900
-            ],
-            [
-              740,
-              300
-            ],
-            [
-              760,
-              -100
-            ],
-            [
-              750,
-              -380
-            ],
-            [
-              660,
-              -560
-            ],
-            [
-              460,
-              -660
-            ],
-            [
-              60,
-              -700
-            ]
+            [-300, -700],
+            [-700, -660],
+            [-900, -560],
+            [-990, -380],
+            [-1000, -100],
+            [-980, 300],
+            [-960, 900],
+            [-950, 1700],
+            [710, 1700],
+            [720, 900],
+            [740, 300],
+            [760, -100],
+            [750, -380],
+            [660, -560],
+            [460, -660],
+            [60, -700]
           ],
           "fill": "skin",
           "edge": "faint",
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] },
+          "say": ["göğüs", "göğs"]
         },
         {
           "id": "heart",
           "points": [
-            [
-              -150,
-              -300
-            ],
-            [
-              -250,
-              -250
-            ],
-            [
-              -300,
-              -130
-            ],
-            [
-              -295,
-              0
-            ],
-            [
-              -265,
-              120
-            ],
-            [
-              -170,
-              240
-            ],
-            [
-              -30,
-              320
-            ],
-            [
-              110,
-              360
-            ],
-            [
-              230,
-              300
-            ],
-            [
-              310,
-              170
-            ],
-            [
-              330,
-              20
-            ],
-            [
-              300,
-              -120
-            ],
-            [
-              230,
-              -240
-            ],
-            [
-              120,
-              -290
-            ],
-            [
-              20,
-              -270
-            ],
-            [
-              -70,
-              -295
-            ]
+            [-150, -300],
+            [-250, -250],
+            [-300, -130],
+            [-295, 0],
+            [-265, 120],
+            [-170, 240],
+            [-30, 320],
+            [110, 360],
+            [230, 300],
+            [310, 170],
+            [330, 20],
+            [300, -120],
+            [230, -240],
+            [120, -290],
+            [20, -270],
+            [-70, -295]
           ],
           "fill": "surface",
           "edge": "surface",
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "visible": { "in": [{ "cue": "Göğsündeki", "offset": 0.4 }, { "cue": "Göğsündeki", "offset": 1 }] },
+          "say": ["kalp"]
         },
         {
           "id": "atria",
           "points": [
-            [
-              -360,
-              25
-            ],
-            [
-              -300,
-              10
-            ],
-            [
-              -160,
-              -30
-            ],
-            [
-              -20,
-              -60
-            ],
-            [
-              140,
-              -100
-            ],
-            [
-              320,
-              -140
-            ],
-            [
-              380,
-              -155
-            ],
-            [
-              380,
-              -800
-            ],
-            [
-              -360,
-              -800
-            ]
+            [-360, 25],
+            [-300, 10],
+            [-160, -30],
+            [-20, -60],
+            [140, -100],
+            [320, -140],
+            [380, -155],
+            [380, -800],
+            [-360, -800]
           ],
           "smooth": false,
           "fill": "none",
           "edge": "none",
           "clipTo": "heart",
-          "sweep": {
-            "origin": "sa",
-            "reach": 560,
-            "progress": {
-              "curve": "beat",
-              "range": [
-                "#saFire",
-                "#atriaDone"
-              ]
-            }
-          }
+          "sweep": { "origin": "sa", "reach": 560, "progress": { "curve": "beat", "range": ["#saFire", "#atriaDone"] } },
+          "say": ["kulakçık"]
         },
         {
           "id": "ventricles",
           "points": [
-            [
-              -360,
-              25
-            ],
-            [
-              -300,
-              10
-            ],
-            [
-              -160,
-              -30
-            ],
-            [
-              -20,
-              -60
-            ],
-            [
-              140,
-              -100
-            ],
-            [
-              320,
-              -140
-            ],
-            [
-              380,
-              -155
-            ],
-            [
-              380,
-              800
-            ],
-            [
-              -360,
-              800
-            ]
+            [-360, 25],
+            [-300, 10],
+            [-160, -30],
+            [-20, -60],
+            [140, -100],
+            [320, -140],
+            [380, -155],
+            [380, 800],
+            [-360, 800]
           ],
           "smooth": false,
           "fill": "none",
           "edge": "none",
           "clipTo": "heart",
-          "sweep": {
-            "origin": [
-              10,
-              120
-            ],
-            "reach": 380,
-            "progress": {
-              "curve": "beat",
-              "range": [
-                "#hisDone",
-                "#ventDone"
-              ]
-            }
-          }
+          "sweep": { "origin": [10, 120], "reach": 380, "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+          "say": ["karıncık", "aşağı"]
         }
       ],
       "paths": [
         {
           "id": "groove",
-          "points": [
-            [
-              -300,
-              10
-            ],
-            [
-              -160,
-              -30
-            ],
-            [
-              -20,
-              -60
-            ],
-            [
-              140,
-              -100
-            ],
-            [
-              320,
-              -140
-            ]
-          ],
+          "points": [[-300, 10], [-160, -30], [-20, -60], [140, -100], [320, -140]],
           "color": "surface",
           "opacity": 0.7,
           "width": 1.4,
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "ias",
-          "points": [
-            [
-              20,
-              -270
-            ],
-            [
-              0,
-              -160
-            ],
-            [
-              -20,
-              -60
-            ]
-          ],
+          "points": [[20, -270], [0, -160], [-20, -60]],
           "color": "surface",
           "opacity": 0.7,
           "width": 1.4,
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "ivs",
-          "points": [
-            [
-              -10,
-              12
-            ],
-            [
-              30,
-              140
-            ],
-            [
-              80,
-              280
-            ],
-            [
-              108,
-              345
-            ]
-          ],
+          "points": [[-10, 12], [30, 140], [80, 280], [108, 345]],
           "color": "surface",
           "opacity": 0.7,
           "width": 1.4,
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "internodal",
-          "points": [
-            [
-              -178,
-              -262
-            ],
-            [
-              -150,
-              -190
-            ],
-            [
-              -100,
-              -120
-            ],
-            [
-              -55,
-              -85
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "points": [[-178, -262], [-150, -190], [-100, -120], [-55, -85]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "bachmann",
-          "points": [
-            [
-              -178,
-              -262
-            ],
-            [
-              -80,
-              -245
-            ],
-            [
-              60,
-              -240
-            ],
-            [
-              200,
-              -205
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "points": [[-178, -262], [-80, -245], [60, -240], [200, -205]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "avNode",
-          "points": [
-            [
-              -55,
-              -85
-            ],
-            [
-              -40,
-              -70
-            ],
-            [
-              -28,
-              -50
-            ],
-            [
-              -18,
-              -30
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "points": [[-55, -85], [-40, -70], [-28, -50], [-18, -30]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "his",
-          "points": [
-            [
-              -18,
-              -30
-            ],
-            [
-              -12,
-              -10
-            ],
-            [
-              -10,
-              12
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "points": [[-18, -30], [-12, -10], [-10, 12]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "rbb",
-          "points": [
-            [
-              -10,
-              12
-            ],
-            [
-              -30,
-              100
-            ],
-            [
-              -25,
-              190
-            ],
-            [
-              -70,
-              250
-            ],
-            [
-              -160,
-              225
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "points": [[-10, 12], [-30, 100], [-25, 190], [-70, 250], [-160, 225]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "lbb",
-          "points": [
-            [
-              -10,
-              12
-            ],
-            [
-              20,
-              90
-            ],
-            [
-              55,
-              190
-            ],
-            [
-              95,
-              290
-            ],
-            [
-              150,
-              320
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "points": [[-10, 12], [20, 90], [55, 190], [95, 290], [150, 320]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "lbbAnt",
-          "points": [
-            [
-              20,
-              90
-            ],
-            [
-              120,
-              70
-            ],
-            [
-              230,
-              110
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "points": [[20, 90], [120, 70], [230, 110]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "pk1",
-          "points": [
-            [
-              -160,
-              225
-            ],
-            [
-              -235,
-              150
-            ],
-            [
-              -265,
-              50
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "points": [[-160, 225], [-235, 150], [-265, 50]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "pk2",
-          "points": [
-            [
-              -25,
-              190
-            ],
-            [
-              -120,
-              200
-            ],
-            [
-              -200,
-              130
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "points": [[-25, 190], [-120, 200], [-200, 130]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "pk3",
-          "points": [
-            [
-              150,
-              320
-            ],
-            [
-              240,
-              270
-            ],
-            [
-              300,
-              160
-            ],
-            [
-              315,
-              40
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "points": [[150, 320], [240, 270], [300, 160], [315, 40]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "pk4",
-          "points": [
-            [
-              230,
-              110
-            ],
-            [
-              290,
-              30
-            ],
-            [
-              290,
-              -60
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "points": [[230, 110], [290, 30], [290, -60]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "pk5",
-          "points": [
-            [
-              55,
-              190
-            ],
-            [
-              170,
-              210
-            ],
-            [
-              250,
-              200
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "points": [[55, 190], [170, 210], [250, 200]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] }
         },
         {
           "id": "cable1",
-          "points": [
-            [
-              -210,
-              60
-            ],
-            [
-              -210,
-              320
-            ],
-            [
-              -24,
-              700
-            ],
-            [
-              120,
-              1400
-            ]
-          ],
+          "points": [[-210, 60], [-210, 320], [-24, 700], [120, 1400]],
           "color": "muted",
           "opacity": 0.75,
           "width": 3,
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] }
         },
         {
           "id": "cable2",
-          "points": [
-            [
-              -30,
-              60
-            ],
-            [
-              -30,
-              320
-            ],
-            [
-              48,
-              700
-            ],
-            [
-              120,
-              1400
-            ]
-          ],
+          "points": [[-30, 60], [-30, 320], [48, 700], [120, 1400]],
           "color": "muted",
           "opacity": 0.75,
           "width": 3,
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] }
         },
         {
           "id": "cable3",
-          "points": [
-            [
-              80,
-              130
-            ],
-            [
-              80,
-              390
-            ],
-            [
-              92,
-              700
-            ],
-            [
-              120,
-              1400
-            ]
-          ],
+          "points": [[80, 130], [80, 390], [92, 700], [120, 1400]],
           "color": "muted",
           "opacity": 0.75,
           "width": 3,
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] }
         },
         {
           "id": "cable4",
-          "points": [
-            [
-              190,
-              200
-            ],
-            [
-              190,
-              460
-            ],
-            [
-              136,
-              700
-            ],
-            [
-              120,
-              1400
-            ]
-          ],
+          "points": [[190, 200], [190, 460], [136, 700], [120, 1400]],
           "color": "muted",
           "opacity": 0.75,
           "width": 3,
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] }
         },
         {
           "id": "cable5",
-          "points": [
-            [
-              430,
-              210
-            ],
-            [
-              430,
-              470
-            ],
-            [
-              232,
-              700
-            ],
-            [
-              120,
-              1400
-            ]
-          ],
+          "points": [[430, 210], [430, 470], [232, 700], [120, 1400]],
           "color": "muted",
           "opacity": 0.75,
           "width": 3,
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] }
         },
         {
           "id": "cable6",
-          "points": [
-            [
-              640,
-              215
-            ],
-            [
-              640,
-              475
-            ],
-            [
-              316,
-              700
-            ],
-            [
-              120,
-              1400
-            ]
-          ],
+          "points": [[640, 215], [640, 475], [316, 700], [120, 1400]],
           "color": "muted",
           "opacity": 0.75,
           "width": 3,
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] }
         }
       ],
       "nodes": [
         {
           "id": "sa",
-          "at": [
-            -178,
-            -262
-          ],
+          "at": [-178, -262],
           "shape": "glow",
           "color": "you",
           "r": 9,
-          "flashes": [
-            "@fire"
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "flashes": ["@fire"],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] },
+          "say": ["sağ üst köşe"]
         },
         {
           "id": "av",
-          "at": [
-            -40,
-            -70
-          ],
+          "at": [-40, -70],
           "shape": "glow",
           "color": "secondary",
           "r": 7,
-          "lit": [
-            [
-              {
-                "cue": "Dalga tek"
-              },
-              "@qrsGo"
-            ]
-          ],
-          "visible": {
-            "in": [
-              "@dive.start+0.6",
-              "@dive.end-0.4"
-            ]
-          }
+          "lit": [[{ "cue": "Dalga tek" }, "@qrsGo"]],
+          "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] },
+          "say": ["kapı"]
         },
         {
           "id": "e1",
-          "at": [
-            -210,
-            60
-          ],
+          "at": [-210, 60],
           "shape": "pad",
           "r": 24,
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] },
+          "say": ["elektrot"]
         },
         {
           "id": "e2",
-          "at": [
-            -30,
-            60
-          ],
+          "at": [-30, 60],
           "shape": "pad",
           "r": 24,
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] },
+          "say": ["elektrot"]
         },
         {
           "id": "e3",
-          "at": [
-            80,
-            130
-          ],
+          "at": [80, 130],
           "shape": "pad",
           "r": 24,
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] },
+          "say": ["elektrot"]
         },
         {
           "id": "e4",
-          "at": [
-            190,
-            200
-          ],
+          "at": [190, 200],
           "shape": "pad",
           "r": 24,
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] },
+          "say": ["elektrot"]
         },
         {
           "id": "e5",
-          "at": [
-            430,
-            210
-          ],
+          "at": [430, 210],
           "shape": "pad",
           "r": 24,
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] },
+          "say": ["elektrot"]
         },
         {
           "id": "e6",
-          "at": [
-            640,
-            215
-          ],
+          "at": [640, 215],
           "shape": "pad",
           "r": 24,
-          "visible": {
-            "out": [
-              "@dive.start+0.4",
-              "@dive.start+1.4"
-            ]
-          }
+          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] },
+          "say": ["elektrot"]
         }
       ],
       "signals": [
-        {
-          "along": [
-            "internodal"
-          ],
-          "progress": {
-            "curve": "beat",
-            "range": [
-              "#saFire",
-              "#avArrive"
-            ]
-          }
-        },
-        {
-          "along": [
-            "bachmann"
-          ],
-          "progress": {
-            "curve": "beat",
-            "range": [
-              "#saFire",
-              "#atriaDone"
-            ]
-          }
-        },
-        {
-          "along": [
-            "avNode"
-          ],
-          "progress": {
-            "curve": "beat",
-            "range": [
-              "#avArrive",
-              "#avLeave"
-            ]
-          }
-        },
-        {
-          "along": [
-            "his",
-            "rbb"
-          ],
-          "progress": {
-            "curve": "beat",
-            "range": [
-              "#avLeave",
-              "#hisDone"
-            ]
-          }
-        },
-        {
-          "along": [
-            "his",
-            "lbb"
-          ],
-          "progress": {
-            "curve": "beat",
-            "range": [
-              "#avLeave",
-              "#hisDone"
-            ]
-          }
-        },
-        {
-          "along": [
-            "lbbAnt"
-          ],
-          "progress": {
-            "curve": "beat",
-            "range": [
-              "#avLeave",
-              "#hisDone"
-            ]
-          }
-        },
-        {
-          "along": [
-            "pk1"
-          ],
-          "progress": {
-            "curve": "beat",
-            "range": [
-              "#hisDone",
-              "#ventDone"
-            ]
-          }
-        },
-        {
-          "along": [
-            "pk2"
-          ],
-          "progress": {
-            "curve": "beat",
-            "range": [
-              "#hisDone",
-              "#ventDone"
-            ]
-          }
-        },
-        {
-          "along": [
-            "pk3"
-          ],
-          "progress": {
-            "curve": "beat",
-            "range": [
-              "#hisDone",
-              "#ventDone"
-            ]
-          }
-        },
-        {
-          "along": [
-            "pk4"
-          ],
-          "progress": {
-            "curve": "beat",
-            "range": [
-              "#hisDone",
-              "#ventDone"
-            ]
-          }
-        },
-        {
-          "along": [
-            "pk5"
-          ],
-          "progress": {
-            "curve": "beat",
-            "range": [
-              "#hisDone",
-              "#ventDone"
-            ]
-          }
-        }
+        { "along": ["internodal"], "progress": { "curve": "beat", "range": ["#saFire", "#avArrive"] } },
+        { "along": ["bachmann"], "progress": { "curve": "beat", "range": ["#saFire", "#atriaDone"] } },
+        { "along": ["avNode"], "progress": { "curve": "beat", "range": ["#avArrive", "#avLeave"] } },
+        { "along": ["his", "rbb"], "progress": { "curve": "beat", "range": ["#avLeave", "#hisDone"] } },
+        { "along": ["his", "lbb"], "progress": { "curve": "beat", "range": ["#avLeave", "#hisDone"] } },
+        { "along": ["lbbAnt"], "progress": { "curve": "beat", "range": ["#avLeave", "#hisDone"] } },
+        { "along": ["pk1"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+        { "along": ["pk2"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+        { "along": ["pk3"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+        { "along": ["pk4"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+        { "along": ["pk5"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } }
       ],
       "fields": [
         {
-          "origin": [
-            20,
-            150
-          ],
+          "origin": [20, 150],
           "emits": [
-            {
-              "cue": "Kalbinin elektriği",
-              "offset": 0.2
-            },
-            {
-              "cue": "Kalbinin elektriği",
-              "offset": 1
-            },
-            {
-              "cue": "Kalbinin elektriği",
-              "offset": 1.8
-            }
+            { "cue": "Kalbinin elektriği", "offset": 0.2 },
+            { "cue": "Kalbinin elektriği", "offset": 1 },
+            { "cue": "Kalbinin elektriği", "offset": 1.8 }
           ],
           "duration": 1.6,
           "maxRadius": 900,
-          "lights": [
-            "e1",
-            "e2",
-            "e3",
-            "e4",
-            "e5",
-            "e6"
-          ]
+          "lights": ["e1", "e2", "e3", "e4", "e5", "e6"]
         }
       ],
       "highlight": [
-        {
-          "target": "sa",
-          "range": [
-            {
-              "cue": "Kalbinin sağ",
-              "offset": 0.4
-            },
-            "@fire"
-          ]
-        },
-        {
-          "target": "av",
-          "range": [
-            {
-              "cue": "Dalga tek"
-            },
-            {
-              "cue": "Peki ya o büyük"
-            }
-          ]
-        }
+        { "target": "sa", "range": [{ "cue": "Kalbinin sağ", "offset": 0.4 }, "@fire"] },
+        { "target": "av", "range": [{ "cue": "Dalga tek" }, { "cue": "Peki ya o büyük" }] }
       ],
       "camera": [
+        { "at": "@toBody.end-0.3", "focus": "e2", "zoom": 4, "subject": ["skin"] },
+        { "at": "@toBody.end", "focus": "e2", "zoom": 4, "subject": ["skin"] },
         {
-          "at": "@toBody.end-0.3",
-          "focus": "e2",
-          "zoom": 12
-        },
-        {
-          "at": "@toBody.end",
-          "focus": "e2",
-          "zoom": 12
-        },
-        {
-          "at": {
-            "cue": "Göğsündeki",
-            "offset": 0.4
-          },
-          "focus": [
-            200,
-            140
-          ],
+          "at": { "cue": "Göğsündeki", "offset": 0.4 },
+          "focus": [200, 140],
           "zoom": 0.42,
-          "easing": "outCubic"
+          "easing": "outCubic",
+          "subject": ["skin"]
         },
-        {
-          "at": {
-            "cue": "Cihazın kendi"
-          },
-          "focus": [
-            80,
-            120
-          ],
-          "zoom": 0.6
-        },
-        {
-          "at": "@dive.start",
-          "focus": "e2",
-          "zoom": 1.4
-        },
-        {
-          "at": "@dive.start+1.1",
-          "focus": "e2",
-          "zoom": 4.5,
-          "easing": "inCubic"
-        },
-        {
-          "at": "@dive.end",
-          "focus": [
-            10,
-            20
-          ],
-          "zoom": 0.55,
-          "easing": "outCubic"
-        },
-        {
-          "at": {
-            "cue": "Bir hücre"
-          },
-          "focus": "sa",
-          "zoom": 2.2
-        },
-        {
-          "at": "@fire+0.5",
-          "focus": "sa",
-          "zoom": 2.35,
-          "easing": "outQuad"
-        },
-        {
-          "at": {
-            "cue": "Dalga kulakçıklara"
-          },
-          "focus": [
-            -60,
-            -160
-          ],
-          "zoom": 1.2
-        },
-        {
-          "at": {
-            "cue": "Dalga tek"
-          },
-          "focus": "av",
-          "zoom": 2
-        },
-        {
-          "at": {
-            "cue": "Peki ya o büyük"
-          },
-          "focus": "av",
-          "zoom": 2.3
-        },
-        {
-          "at": {
-            "cue": "karıncıklar birden"
-          },
-          "focus": [
-            20,
-            150
-          ],
-          "zoom": 1.1,
-          "easing": "inOutCubic"
-        },
-        {
-          "at": "@summary",
-          "focus": [
-            10,
-            30
-          ],
-          "zoom": 0.55
-        }
+        { "at": { "cue": "Cihazın kendi" }, "focus": [80, 120], "zoom": 0.6, "subject": ["skin"] },
+        { "at": "@dive.start", "focus": [40, 80], "zoom": 0.7, "subject": ["heart"] },
+        { "at": "@dive.end", "focus": [10, 20], "zoom": 1.1, "easing": "inOutCubic" },
+        { "at": { "cue": "Bir hücre" }, "focus": "sa", "zoom": 2.2 },
+        { "at": "@fire+0.5", "focus": "sa", "zoom": 2.35, "easing": "outQuad" },
+        { "at": { "cue": "Dalga kulakçıklara" }, "focus": [-60, -160], "zoom": 1.2 },
+        { "at": { "cue": "Dalga tek" }, "focus": "av", "zoom": 2 },
+        { "at": { "cue": "Peki ya o büyük" }, "focus": "av", "zoom": 2.3 },
+        { "at": { "cue": "karıncıklar birden" }, "focus": [20, 150], "zoom": 1.1, "easing": "inOutCubic" },
+        { "at": "@summary", "focus": [10, 30], "zoom": 1.1 }
       ],
-      "drift": {
-        "degPerSec": 0.15,
-        "px": 8,
-        "periodSec": 8
-      }
-    },
-    {
-      "type": "haze",
-      "envelopes": [
-        {
-          "in": [
-            "@dive.start+0.5",
-            "@dive.start+1.0"
-          ],
-          "out": [
-            "@dive.start+1.1",
-            "@dive.start+1.7"
-          ]
-        }
-      ]
+      "drift": { "degPerSec": 0.15, "px": 8, "periodSec": 8 }
     },
     {
       "type": "trace",
       "id": "strip",
-      "visible": [
-        {
-          "in": [
-            "@fire-0.6",
-            "@fire"
-          ]
-        }
-      ],
-      "frame": {
-        "top": 1060,
-        "height": 270
-      },
+      "visible": [{ "in": ["@fire-0.6", "@fire"] }],
       "clock": "beat",
       "waveform": {
         "preset": "ecg",
-        "p": {
-          "range": [
-            "#saFire",
-            "#atriaDone"
-          ]
-        },
-        "qrs": {
-          "range": [
-            "#hisDone",
-            "#ventDone"
-          ]
-        },
-        "t": {
-          "range": [
-            "#tStart",
-            "#tEnd"
-          ]
-        }
+        "p": { "range": ["#saFire", "#atriaDone"] },
+        "qrs": { "range": ["#hisDone", "#ventDone"] },
+        "t": { "range": ["#tStart", "#tEnd"] }
       },
-      "grid": {
-        "pxPerX": 0.275,
-        "pxPerY": 110,
-        "minorX": 40,
-        "minorY": 0.1
-      },
+      "grid": { "pxPerX": 0.275, "pxPerY": 90, "minorX": 40, "minorY": 0.1 },
       "penX": 0.7,
-      "baselineY": 1290,
-      "anchorY": 1195,
+      "baselineY": 1258,
+      "anchorY": 1215,
       "camera": [
-        {
-          "at": 0,
-          "focus": "frame",
-          "zoom": 1
-        },
-        {
-          "at": "@summary",
-          "focus": "frame",
-          "zoom": 1
-        },
-        {
-          "at": "@summary+1.2",
-          "focus": [
-            700,
-            1195
-          ],
-          "zoom": 1.2,
-          "easing": "inOutCubic"
-        },
-        {
-          "at": "@end",
-          "focus": [
-            700,
-            1195
-          ],
-          "zoom": 1.25
-        }
+        { "at": 0, "focus": "frame", "zoom": 1 },
+        { "at": "@summary", "focus": "frame", "zoom": 1 },
+        { "at": "@summary+1.2", "focus": [700, 1258], "zoom": 1.1, "easing": "inOutCubic" },
+        { "at": "@end", "focus": [700, 1258], "zoom": 1.12 }
       ],
-      "drift": {
-        "degPerSec": 0,
-        "px": 0
-      },
+      "drift": { "degPerSec": 0, "px": 0 },
       "parts": [
-        {
-          "text": "P",
-          "range": [
-            "#saFire",
-            "#atriaDone"
-          ],
-          "lit": [
-            [
-              {
-                "cue": "Küçük tepe"
-              },
-              "@end+1"
-            ]
-          ]
-        },
+        { "text": "P", "range": ["#saFire", "#atriaDone"], "lit": [[{ "cue": "Küçük tepe" }, "@end+1"]] },
         {
           "text": "PR",
-          "range": [
-            "#atriaDone",
-            "#hisDone"
-          ],
-          "labelAt": 0.8,
-          "lit": [
-            [
-              {
-                "cue": "düzlük"
-              },
-              "@end+1"
-            ]
-          ]
+          "range": ["#atriaDone", "#hisDone"],
+          "lit": [[{ "cue": "düzlük" }, "@end+1"]],
+          "marker": "bracket"
         },
-        {
-          "text": "QRS",
-          "range": [
-            "#hisDone",
-            "#ventDone"
-          ],
-          "labelAt": 1.45,
-          "lit": [
-            [
-              {
-                "cue": "sivri tepe"
-              },
-              "@end+1"
-            ]
-          ]
-        },
-        {
-          "text": "T",
-          "range": [
-            "#tStart",
-            "#tEnd"
-          ],
-          "lit": [
-            [
-              {
-                "cue": "son dalga"
-              },
-              "@end+1"
-            ]
-          ]
-        }
+        { "text": "QRS", "range": ["#hisDone", "#ventDone"], "lit": [[{ "cue": "sivri tepe" }, "@end+1"]] },
+        { "text": "T", "range": ["#tStart", "#tEnd"], "lit": [[{ "cue": "son dalga" }, "@end+1"]] }
       ],
-      "beep": {
-        "id": "monitor-beep",
-        "ranges": [
-          [
-            {
-              "cue": "karıncıklar birden"
-            },
-            "@summary"
-          ]
-        ]
-      }
+      "beep": { "id": "monitor-beep", "ranges": [[{ "cue": "karıncıklar birden" }, "@summary"]] },
+      "panel": { "top": 1036, "height": 334 }
     }
   ],
   "titles": [
-    {
-      "top": "BU ÇİZGİYİ",
-      "bottom": "MUTLAKA GÖRMÜŞSÜNDÜR",
-      "from": 0,
-      "to": {
-        "cue": "Ama okumayı"
-      }
-    },
+    { "top": "BU ÇİZGİYİ", "bottom": "MUTLAKA GÖRMÜŞSÜNDÜR", "from": 0, "to": { "cue": "Ama okumayı" } },
     {
       "top": "AMA OKUMAYI",
       "bottom": "KİMSE ÖĞRETMEDİ",
-      "from": {
-        "cue": "Ama okumayı"
-      },
-      "to": {
-        "cue": "Bu çizgi ne anlatıyor"
-      }
+      "from": { "cue": "Ama okumayı" },
+      "to": { "cue": "Bu çizgi ne anlatıyor" }
     },
     {
       "top": "BU ÇİZGİ",
       "bottom": "NE ANLATIYOR?",
-      "from": {
-        "cue": "Bu çizgi ne anlatıyor"
-      },
-      "to": {
-        "cue": "Peki cihaz",
-        "offset": -0.1
-      }
+      "from": { "cue": "Bu çizgi ne anlatıyor" },
+      "to": { "cue": "Peki cihaz", "offset": -0.1 }
     }
   ],
   "labels": [
     {
       "text": "SİNYAL ≈ 1 mV",
-      "at": {
-        "cue": "Kalbinin elektriği",
-        "offset": 0.6
-      },
+      "at": { "cue": "Kalbinin elektriği", "offset": 0.6 },
       "until": "@dive.start",
       "top": 400,
       "size": 48,
@@ -1843,10 +552,7 @@
     },
     {
       "text": "KALEM PİL: 1,5 V",
-      "at": {
-        "cue": "gerilimi, kalem",
-        "offset": 0.7
-      },
+      "at": { "cue": "gerilimi, kalem", "offset": 0.7 },
       "until": "@dive.start",
       "top": 470,
       "size": 48,
@@ -1855,10 +561,7 @@
     },
     {
       "text": "CİHAZ AKIMI ≤ 10 µA",
-      "at": {
-        "cue": "Cihazın kendi",
-        "offset": 0.2
-      },
+      "at": { "cue": "Cihazın kendi", "offset": 0.2 },
       "until": "@dive.start",
       "top": 540,
       "size": 48,
@@ -1867,10 +570,7 @@
     },
     {
       "text": "HİSSETME EŞİĞİ ≈ 1 mA",
-      "at": {
-        "cue": "hissedemeyeceğin",
-        "offset": 0.1
-      },
+      "at": { "cue": "hissedemeyeceğin", "offset": 0.1 },
       "until": "@dive.start",
       "top": 610,
       "size": 48,
@@ -1879,14 +579,8 @@
     },
     {
       "text": "◀ SENİN SAĞIN",
-      "at": {
-        "cue": "Kalbinin sağ",
-        "offset": 0.3
-      },
-      "until": {
-        "cue": "Peki ardından",
-        "offset": -0.15
-      },
+      "at": { "cue": "Kalbinin sağ", "offset": 0.3 },
+      "until": { "cue": "Peki ardından", "offset": -0.15 },
       "top": 400,
       "size": 44,
       "color": "secondary",
@@ -1894,14 +588,8 @@
     },
     {
       "text": "SA DÜĞÜMÜ",
-      "at": {
-        "cue": "Bir hücre",
-        "offset": 0.2
-      },
-      "until": {
-        "cue": "Peki ardından",
-        "offset": -0.15
-      },
+      "at": { "cue": "Bir hücre", "offset": 0.2 },
+      "until": { "cue": "Peki ardından", "offset": -0.15 },
       "top": 470,
       "size": 48,
       "bar": true,
@@ -1909,14 +597,8 @@
     },
     {
       "text": "DAKİKADA 60–100",
-      "at": {
-        "cue": "dakikada",
-        "offset": 0.1
-      },
-      "until": {
-        "cue": "Peki ardından",
-        "offset": -0.15
-      },
+      "at": { "cue": "dakikada", "offset": 0.1 },
+      "until": { "cue": "Peki ardından", "offset": -0.15 },
       "top": 540,
       "size": 48,
       "bar": true,
@@ -1924,14 +606,8 @@
     },
     {
       "text": "AV DÜĞÜMÜ",
-      "at": {
-        "cue": "Dalga tek",
-        "offset": 0.4
-      },
-      "until": {
-        "cue": "Peki ya o büyük",
-        "offset": -0.15
-      },
+      "at": { "cue": "Dalga tek", "offset": 0.4 },
+      "until": { "cue": "Peki ya o büyük", "offset": -0.15 },
       "top": 400,
       "size": 48,
       "bar": true,
@@ -1939,14 +615,8 @@
     },
     {
       "text": "≈ 0,1 SN BEKLEME",
-      "at": {
-        "cue": "saniyenin onda",
-        "offset": 0.2
-      },
-      "until": {
-        "cue": "Peki ya o büyük",
-        "offset": -0.15
-      },
+      "at": { "cue": "saniyenin onda", "offset": 0.2 },
+      "until": { "cue": "Peki ya o büyük", "offset": -0.15 },
       "top": 470,
       "size": 48,
       "bar": true,
@@ -1954,14 +624,8 @@
     },
     {
       "text": "KARINCIKLAR DOLUYOR",
-      "at": {
-        "cue": "Kan aşağı",
-        "offset": 0.1
-      },
-      "until": {
-        "cue": "Peki ya o büyük",
-        "offset": -0.15
-      },
+      "at": { "cue": "Kan aşağı", "offset": 0.1 },
+      "until": { "cue": "Peki ya o büyük", "offset": -0.15 },
       "top": 540,
       "size": 40,
       "color": "secondary",
@@ -1971,10 +635,7 @@
     },
     {
       "text": "HIS → PURKİNJE",
-      "at": {
-        "cue": "Kapı açılıyor",
-        "offset": 0.2
-      },
+      "at": { "cue": "Kapı açılıyor", "offset": 0.2 },
       "until": "@summary-0.15",
       "top": 400,
       "size": 48,
@@ -1983,10 +644,7 @@
     },
     {
       "text": "KARINCIKLAR",
-      "at": {
-        "cue": "karıncıklar birden",
-        "offset": 0.2
-      },
+      "at": { "cue": "karıncıklar birden", "offset": 0.2 },
       "until": "@summary-0.15",
       "top": 470,
       "size": 48,
@@ -1995,10 +653,7 @@
     },
     {
       "text": "KASILMA SONRA GELİR",
-      "at": {
-        "cue": "Kas bir an",
-        "offset": 0.2
-      },
+      "at": { "cue": "Kas bir an", "offset": 0.2 },
       "until": "@summary-0.15",
       "top": 540,
       "size": 40,
@@ -2027,24 +682,9 @@
     }
   ],
   "notes": [
-    {
-      "text": "İZ SADELEŞTİRİLDİ",
-      "at": 0.3,
-      "until": "@toBody.end",
-      "top": 1345
-    },
-    {
-      "text": "ŞEMA VE İZ SADELEŞTİRİLDİ",
-      "at": "@toBody.end+0.3",
-      "until": "@end+0.4",
-      "top": 1345
-    },
-    {
-      "text": "DEĞERLER YAKLAŞIK",
-      "at": "@fire+0.4",
-      "until": "@end+0.4",
-      "top": 1380
-    }
+    { "text": "İZ SADELEŞTİRİLDİ", "at": 0.3, "until": "@toBody.end", "top": 1345 },
+    { "text": "ŞEMA VE İZ SADELEŞTİRİLDİ", "at": "@toBody.end+0.3", "until": "@end+0.4", "top": 1384 },
+    { "text": "DEĞERLER YAKLAŞIK", "at": "@fire+0.4", "until": "@end+0.4", "top": 1410 }
   ],
   "concept": {
     "at": "@reveal+0.1",
@@ -2058,74 +698,27 @@
     "label": "ZAMAN",
     "unit": "ms",
     "curve": "beat",
-    "fadeIn": [
-      "@fire",
-      "@fire+0.4"
-    ],
+    "fadeIn": ["@fire", "@fire+0.4"],
     "until": "@summary",
-    "timeScale": {
-      "unitPerSec": 1000
-    },
-    "format": {
-      "zeroBelow": 0.5,
-      "oneDecimalBelow": 0
-    }
+    "timeScale": { "unitPerSec": 1000 },
+    "format": { "zeroBelow": 0.5, "oneDecimalBelow": 0 }
   },
   "sound": {
     "music": {
       "file": "kit/music/contemplation.mp3",
       "gain": 1.38,
       "duck": 0.5,
-      "fadeIn": [
-        0,
-        2
-      ],
-      "fadeOut": [
-        "@end-2",
-        "@end"
-      ]
+      "fadeIn": [0, 2],
+      "fadeOut": ["@end-2", "@end"]
     },
     "hits": [
-      {
-        "id": "rise",
-        "at": "@toBody.start-0.2"
-      },
-      {
-        "id": "pulse",
-        "at": {
-          "cue": "Kalbinin elektriği",
-          "offset": 0.2
-        },
-        "gain": 0.5
-      },
-      {
-        "id": "pulse",
-        "at": {
-          "cue": "Kalbinin elektriği",
-          "offset": 1
-        },
-        "gain": 0.35
-      },
-      {
-        "id": "dive",
-        "at": "@dive.start"
-      },
-      {
-        "id": "pulse",
-        "at": "@fire"
-      },
-      {
-        "id": "dive",
-        "at": {
-          "cue": "Kapı açılıyor",
-          "offset": -0.1
-        },
-        "gain": 0.7
-      },
-      {
-        "id": "pulse",
-        "at": "@peak"
-      }
+      { "id": "rise", "at": "@toBody.start-0.2" },
+      { "id": "pulse", "at": { "cue": "Kalbinin elektriği", "offset": 0.2 }, "gain": 0.5 },
+      { "id": "pulse", "at": { "cue": "Kalbinin elektriği", "offset": 1 }, "gain": 0.35 },
+      { "id": "dive", "at": "@dive.start" },
+      { "id": "pulse", "at": "@fire" },
+      { "id": "dive", "at": { "cue": "Kapı açılıyor", "offset": -0.1 }, "gain": 0.7 },
+      { "id": "pulse", "at": "@peak" }
     ]
   },
   "sources": [
@@ -2294,5 +887,6 @@
       "license": "Projeye ait, prosedürel; gerçek görüntü verisi içermez"
     }
   ],
-  "styleExceptions": []
+  "styleExceptions": [],
+  "transitions": [{ "at": "@toBody.end", "from": "monitor", "to": "body", "kind": "match", "via": { "from": "pen", "to": "e2" } }]
 }

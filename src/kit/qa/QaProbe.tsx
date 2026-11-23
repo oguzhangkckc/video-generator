@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import type { Video } from "../../spec/resolve";
 import { sceneFindings } from "../../spec/scenes";
-import { useFraming } from "../framing";
+
 import { useLayout } from "../layout";
 import { overlayBoxes, reservedZones } from "../overlays/boxes";
 
@@ -16,15 +16,14 @@ export const QaProbe: React.FC<{ video: Video }> = ({ video }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const layout = useLayout();
-  const { reports } = useFraming();
   useEffect(() => {
     const t = frame / fps;
     console.log(`QA_BOXES ${JSON.stringify({ t, boxes: overlayBoxes(video, t, layout) })}`);
-    console.log(`QA_SCENE ${JSON.stringify({ t, zones: reservedZones(video, t, layout), layers: [...(reports?.values() ?? [])] })}`);
+    console.log(`QA_SCENE ${JSON.stringify({ t, zones: reservedZones(video, t, layout) })}`);
     const { sound, durationSec, labels } = video.spec;
     const shown = labels.map(({ text, at }) => ({ text, at }));
     const findings = sceneFindings(video.spec);
     console.log(`QA_SPEC ${JSON.stringify({ sound, durationSec, phrases: video.phrases, labels: shown, findings, transitions: video.spec.transitions })}`);
-  }, [frame, fps, video, layout, reports]);
+  }, [frame, fps, video, layout]);
   return null;
 };

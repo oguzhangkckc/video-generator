@@ -109,12 +109,17 @@ Sıra her zaman aynıdır:
 ## Kamera ve geçişler
 
 - **Kamera hiç durmaz.** Sabit görünen planlarda bile yavaş bir dönüş, yaklaşma ya da kayma vardır.
-- **Önce bağlam, sonra detay:** ilk yakın plandan önce nesnenin nerede olduğunu gösteren bir geniş plan gelir
-  (kalpten önce göğüs, uydudan önce gezegen).
-- **Düz kesme yoktur.** Sahneler kamera hareketiyle birbirine bağlanır:
-  - **nesnenin içinden geçme:** atmosfer pusu (`haze`), halkanın içinden geçiş (`signalPass`)
-  - **şekil eşleştirme:** bir sahnedeki biçim diğerindekine oturur (`ringShrink`: halka → işaretçi)
-- **Kararma** (`darken`) yalnızca finalde kullanılır.
+- **Önce bağlam, sonra detay:** ilk yakın plandan önce nesnenin nerede olduğunu gösteren en az 1 sn'lik bir geniş
+  plan gelir (kalpten önce göğüs, uydudan önce gezegen). Ölçek değiştiren her geçişte önce geniş, sonra yakın plan.
+  Çekim türü (`kind`: wide / medium / close) yazılmazsa zoom'dan okunur (< 0,8 geniş, ≥ 2 yakın); `npm run check`
+  geniş plansız yakın planı reddeder (bir `match`/`through` geçişinin indiği açılış hariç).
+- **Düz kesme yoktur.** İki sahnenin ekranda örtüştüğü her an `transitions` altında yazılır (`npm run check`):
+  1. **İçinden geçme** (`through`): kamera nesneye girer, kare onunla dolar, sonraki sahne eşleşen öğeden açılır.
+     Aynı sahne içinde dıştan içe iniş de böyledir (göğüsten kalbe): kesintisiz yaklaşma, dış katman söner.
+  2. **Şekil eşleştirme** (`match`): bir sahnedeki öğe diğerindekiyle aynı yerde, aynı boyda (qa ±%5 ölçer).
+  3. **Renk parlaması** (`flash`, `haze`): yalnızca son çare, `why` gerekçesiyle.
+  Neredeyse boş bir kareye eriyerek geçilmez: geçişin ±0,6 sn'sinde kare %60'tan fazla boş olamaz (qa).
+- **Kararma** (`darken`) yalnızca finalde kullanılır ve altındaki sahneyi tamamen kapatmaz.
 - Sayaç, harita zoom'u ve 3D kamera aynı eğriden (`curves`) beslenir. Ekranda gördüğün yükseklik ile sayaçtaki
   değer her zaman tutarlıdır.
 
@@ -132,12 +137,39 @@ Sıra her zaman aynıdır:
 
 - **Sayaç** sağ üstte, sabit (`counter`).
 - **Altyazı** yüksekliğin **%77'sinde**, tek satır karaoke: söylenen kelime beyaz, sıradakiler gri.
-- Veri satırları üst yarıda (`top` ≈ 380–850), sütunun arkasında yarı saydam koyu bir zemin olur (`layout.labelBackdrop`).
-  **Etiket kutusuna hiçbir çizim girmez:** sahne, etiket sütununu boş bırakacak şekilde kadrajlanır; `npm run qa` bunu
-  hata olarak denetler. Notlar sağ altta (`top` ≈ 1330).
+- **Sahne her zaman tüm kareyi kullanır;** sabit bir bant ya da pencere yoktur. Koyu zeminli etiket panelleri
+  (`layout.labelBackdrop`), veri şeritleri (`trace` + `panel`) ve altyazı sahnenin üstüne bindirilir.
+- Veri satırları üst yarıda (`top` ≈ 380–850). **Önemli öğe panele girmez:** her sahne o anki önemli öğelerini
+  bildirir (yanan düğüm, ilerleyen sinyal, vurgulanan bölge, kalem, adı söylenen öğe) ve kamera onları panel, şerit
+  ve altyazı bölgelerinin dışında tutar (`src/kit/framing.ts`; panel belirmeden 0,6 sn önce yumuşakça yer açar).
+  Noktasal öğe üst yazıya hiç değmez, alan öğesinin en fazla %25'i örtülebilir; panelin arkasında kalan arka plan
+  çizgileri sorun değildir. `npm run qa` ihlali hata sayar. Notlar sağ altta.
 - **Güvenli alanlar:** alt %15 (≈ 1630 px altı) ve sağ kenarın son 120 px'i platform arayüzü için boş kalır.
   Okunması gereken hiçbir şey oraya konmaz. Varsayılan `layout` (sağ boşluk 132 px, ortalanmış genişlik 840 px) bunu
   sağlar; `npm run qa` taşan ya da çakışan her yazıyı hata olarak bildirir.
+
+## Kompozisyon
+
+`npm run qa` her 0,25 sn'de ölçer:
+
+- **Özne** (çekimin konusu: `subject`, yoksa kameranın baktığı bölge) karenin yüksekliğinin **%35'inden** küçük
+  kalırsa ve bu **2 sn'den** uzun sürerse hata.
+- Karenin **%40'ından fazlası 1 sn'den uzun süre boş** kalırsa hata. Boş: 40 px'lik hücre düz ve karenin zemin
+  tonunda (silik ızgara, dolgulu şekil içeriktir; pus ve çıplak uzay boştur).
+- Görüntü **0,3 sn'den uzun donmaz** (render üzerinde ölçülür).
+- Kasıtlı bir yakın plan (`kind: "close"`) değilse özne kare kenarında kırpılmaz (uyarı).
+- **Bağlam:** seslendirmede bir yer ya da öğe adı geçiyorsa (`say` takma adları) o öğe cümlenin en az yarısı boyunca
+  karede ve üst yazıların dışında görünür (hata). Konum sözü ("köşe", "üst", "yörünge"…) geçip hiçbir öğeye bağlı
+  değilse uyarı.
+
+## Veri çizgisi etiketleri
+
+- Etiketler birbirine değmez ve veri çizgisinin üstünden geçmez.
+- Bir **aralığı** anlatan etiket (süre, bölüm: PR) taban çizgisinin altında **köşeli parantezle** gösterilir
+  (`marker: "bracket"`).
+- Tek bir **noktayı** ya da dalgayı anlatan etiket (P, QRS, T) çizginin üstüne konur ve kısa bir **kılavuz çizgiyle**
+  tepesine bağlanır (`marker: "leader"`). Çakışan etiketler yana kayar ya da bir sıra yukarı çıkar.
+- qa: etiket teması, çizgiyi kesme ve kılavuzun başka etikete değmesi hatadır.
 
 ## Ses
 
@@ -170,7 +202,10 @@ Still kareler incelenirken (skill adım e) her madde tek tek kontrol edilir:
 
 - [ ] İlk 5 sn: 3 başlık, her biri ~2 sn, birlikte bir soru; başlıklar seslendirmenin kelimeleri; ilk kare okunuyor.
 - [ ] Art arda iki "Peki…?" yok; doruk son üçte birde, ardından 8 sn'den uzun bölüm yok.
-- [ ] Etiket sütununa çizim girmiyor; bir bölüm içinde sayacın hız etiketi değişmiyor.
+- [ ] Sahne tüm kareyi kullanıyor; önemli öğe panele, şeride ya da altyazıya girmiyor; bir bölüm içinde sayacın hız
+      etiketi değişmiyor.
+- [ ] Özne ≥ %35, kare ≤ %40 boş, donma yok; söylenen yer o anda ekranda.
+- [ ] Veri etiketleri değmiyor, çizgiyi kesmiyor; aralıklar köşeli parantezle altta, noktalar kılavuzla üstte.
 - [ ] Kancadaki soru finalde açıkça cevaplanıyor.
 - [ ] Her bölüm "Peki…?" ile açılıyor; izleyiciye "sen" deniyor.
 - [ ] Kelime sayısı bütçenin içinde ((pencere − duraklamalar) × 2,8); hiçbir altyazı satırı taşmıyor.
@@ -179,7 +214,8 @@ Still kareler incelenirken (skill adım e) her madde tek tek kontrol edilir:
 - [ ] 2–3 sn'de bir yeni rakam/etiket var; aynı anda en fazla 4 veri satırı.
 - [ ] Renkler anlamına uygun: turuncu = senin verin, kırmızı = tehlike, camgöbeği = ikincil.
 - [ ] Hiçbir yazı güvenli alanlara (alt %15, sağ 120 px) ya da altyazının üstüne binmiyor; işaretçiyi örtmüyor.
-- [ ] Hiçbir karede kamera donmuyor; sahne değişimleri geçişle bağlı, düz kesme yok.
+- [ ] Hiçbir karede kamera donmuyor; her sahne değişimi `transitions`'ta (içinden geçme > şekil eşleştirme >
+      gerekçeli parlama), boş kareye erime yok.
 - [ ] İlk yakın plandan önce nesnenin yerini gösteren geniş plan var; sağ/sol söylenen yerde yön ipucu var.
 - [ ] Sayaç kaynaklı çizelgeden besleniyor, 3 sn'den uzun donmuyor, yavaş/hızlı akışta etiket var.
 - [ ] Ölçeksiz ya da sadeleştirilmiş her görselde not var; her rakamın kaynağı `sources`'ta.

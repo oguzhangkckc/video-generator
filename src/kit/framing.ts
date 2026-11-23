@@ -46,15 +46,55 @@ export const moveBox = (b: Box, anchor: Vec, a: Adjust): Box => {
 };
 
 export const overlaps = (a: Box, b: Box, gap = 0) => a.x1 < b.x2 + gap && a.x2 > b.x1 - gap && a.y1 < b.y2 + gap && a.y2 > b.y1 - gap;
+
+/** Past this size an element is an area (a region, a drawn part), else a point (a node, a signal, the pen). */
+export const AREA_PX = 120;
+/** An area may have this much of itself under overlays; a point none. */
+export const AREA_COVER = 0.2;
+export const isArea = (b: Box) => Math.max(b.x2 - b.x1, b.y2 - b.y1) > AREA_PX;
+
+/** Share of `b` that the boxes cover (overlaps between covers counted once per pixel row, approximately). */
+export const covered = (b: Box, covers: Box[]) => {
+  const area = Math.max(1, (b.x2 - b.x1) * (b.y2 - b.y1));
+  const rows = 24;
+  let sum = 0;
+  for (let i = 0; i < rows; i++) {
+    const y = b.y1 + ((i + 0.5) * (b.y2 - b.y1)) / rows;
+    const spans = covers.filter((c) => c.y1 <= y && c.y2 >= y).map((c) => [Math.max(b.x1, c.x1), Math.min(b.x2, c.x2)]).filter(([x1, x2]) => x2 > x1);
+    spans.sort((p, q) => p[0] - q[0]);
+    let reach = b.x1;
+    for (const [x1, x2] of spans) {
+      sum += Math.max(0, x2 - Math.max(x1, reach));
+      reach = Math.max(reach, x2);
+    }
+  }
+  return (sum * ((b.y2 - b.y1) / rows)) / area;
+};
+
 const fits = (b: Box) => b.x1 >= MARGIN && b.x2 <= WIDTH - MARGIN && b.y1 >= MARGIN && b.y2 <= HEIGHT - MARGIN;
+/** A point stays inside the frame and off every zone; an area keeps most of itself in view and uncovered. */
+const placed = (b: Box, zones: Box[]) => {
+  if (!isArea(b)) return fits(b) && zones.every((z) => !overlaps(b, z, GAP));
+  const frame = { x1: 0, y1: 0, x2: WIDTH, y2: HEIGHT };
+  const outside = 1 - covered(b, [frame]);
+  return outside <= AREA_COVER && covered(b, zones) <= AREA_COVER;
+};
 
 /**
  * The smallest move that puts every important box inside the frame and clear of every zone; identity when the
  * shot is already clear, and also when nothing fits (qa then reports the overlap instead of the camera jumping).
  */
 export const solve = (important: Box[], zones: Box[], anchor: Vec): Adjust => {
+  const all = place(important, zones, anchor);
+  if (all) return all;
+  // When an area cannot be placed, the points (a node, a signal, the pen) still come out from under the overlays.
+  const points = important.filter((b) => !isArea(b));
+  return (points.length < important.length && place(points, zones, anchor)) || IDENTITY;
+};
+
+const place = (important: Box[], zones: Box[], anchor: Vec): Adjust | null => {
   if (important.length === 0) return IDENTITY;
-  const clear = (boxes: Box[]) => boxes.every((b) => fits(b) && zones.every((z) => !overlaps(b, z, GAP)));
+  const clear = (boxes: Box[]) => boxes.every((b) => placed(b, zones));
   if (clear(important)) return IDENTITY;
   for (const s of SCALES) {
     const scaled = important.map((b) => moveBox(b, anchor, { dx: 0, dy: 0, s }));
@@ -66,7 +106,7 @@ export const solve = (important: Box[], zones: Box[], anchor: Vec): Adjust => {
       if (clear(moved)) return { dx, dy, s };
     }
   }
-  return IDENTITY;
+  return null;
 };
 
 /** The solved move averaged around t (dx, dy linear, scale in log space): smooth, and early for what is coming. */
@@ -90,10 +130,18 @@ export const smoothAdjust = (raw: (t: number) => Adjust, t: number): Adjust => {
 
 export type ShotKind = "wide" | "medium" | "close";
 
-/** An element a scene draws, in screen px; `important` ones are kept clear of the overlays. */
-export type SceneElement = Box & { id: string; kind: string; important: boolean; say: string[] };
+/**
+ * An element a scene draws, in screen px; `important` ones are kept clear of the overlays. `hidden`: not shown at
+ * this moment (reported anyway, so qa can tell that a named element is missing).
+ */
+export type SceneElement = Box & { id: string; kind: string; important: boolean; say: string[]; hidden?: boolean };
 /** A text label drawn by a scene on a data line, with the leader line that ties it to its point, if any. */
-export type SceneLabel = Box & { text: string; marker: "bracket" | "leader"; leader?: [Vec, Vec] };
+export type SceneLabel = Box & {
+  text: string;
+  marker: "bracket" | "leader";
+  leader?: [Vec, Vec];
+  bracket?: { x1: number; x2: number; y: number };
+};
 export type SceneReport = {
   layer: string;
   type: string;
@@ -115,11 +163,15 @@ export type Framing = {
   zonesAt: (t: number) => Box[];
   /** The phrase being spoken at t ("" in a pause). */
   spokenAt: (t: number) => string;
-  /** qa only: scenes put what they drew this frame here. */
-  reports: Map<string, SceneReport> | null;
+  /**
+   * qa only: a scene reports what it drew each time it renders (a 3D scene renders again once its model loads);
+   * scripts/qa.mjs keeps the last report per layer.
+   */
+  report: ((r: SceneReport) => void) | null;
 };
 
-export const FramingContext = createContext<Framing>({ enabled: false, zonesAt: () => [], spokenAt: () => "", reports: null });
+export const FramingContext = createContext<Framing>({ enabled: false, zonesAt: () => [], spokenAt: () => "", report: null });
+export const logReport = (r: SceneReport) => console.log(`QA_LAYER ${JSON.stringify(r)}`);
 export const useFraming = () => useContext(FramingContext);
 
 /** Solved moves on the grid, per video (a new Framing comes with every spec change) and per scene. */

@@ -8,6 +8,7 @@ import { textWidth, type Box } from "../../overlays/geometry";
 import { MONO } from "../../theme";
 import { envelope, ramp } from "../../time";
 import { project, viewAt, type View, type Vec } from "../camera2d/camera";
+import { placeLabels } from "./labels";
 import type { Waveform } from "./waveform";
 
 export type TraceLayer = LayerOf<"trace">;
@@ -102,12 +103,28 @@ export const traceLine = (st: TraceState, area: Box): { subject: Box | null; lin
   return { subject: clip(pointsBox(seen), area), line: seen.filter((_, i) => i % every === 0) };
 };
 
-/** The part labels as drawn: centred over each part (each its own text box). */
-export const traceLabels = (st: TraceState): SceneLabel[] =>
-  st.parts
-    .filter((p) => Math.max(p.alpha, p.glow) > 0.05)
-    .map((p) => {
-      const size = LABEL_SIZE * (1 + 0.4 * p.glow);
-      const w = textWidth(p.part.text, MONO, size, 700);
-      return { text: p.part.text, marker: p.part.marker, x1: p.lx - w / 2, y1: p.ly - size * 0.8, x2: p.lx + w / 2, y2: p.ly + size * 0.2 };
-    });
+/** Cap height of the mono label font, as a share of its size: the text box that must clear the line. */
+const CAP = 0.75;
+
+/**
+ * The part labels and where they go (labels.ts): brackets under stretches, leaders over points; `line` is the visible
+ * line in screen px, which no label may cross.
+ */
+export const traceLabels = (st: TraceState, line: Vec[]): (SceneLabel & { size: number; glow: number; alpha: number; color: string })[] => {
+  const shown = st.parts.filter((p) => Math.max(p.alpha, p.glow) > 0.05);
+  const sized = shown.map((p) => ({ p, size: LABEL_SIZE * (1 + 0.4 * p.glow) }));
+  const placed = placeLabels(
+    sized.map(({ p, size }) => ({
+      text: p.part.text,
+      marker: p.part.marker,
+      points: st.points(p.from, p.drawnTo).map(st.toScreen),
+      width: textWidth(p.part.text, MONO, size, 700),
+      height: size * CAP,
+    })),
+    line,
+  );
+  return placed.map((l) => {
+    const { p, size } = sized.find((s) => s.p.part.text === l.text)!;
+    return { ...l, size, glow: p.glow, alpha: p.alpha, color: p.part.color };
+  });
+};

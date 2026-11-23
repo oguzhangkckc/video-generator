@@ -80,25 +80,29 @@ export type FlowState = ReturnType<typeof flowState>;
 export const flowElements = (layer: FlowLayer, geo: FlowGeometry, st: FlowState, t: number, spoken: string): SceneElement[] => {
   const said = (say: string[]) => say.some((a) => mentions(spoken, a));
   const shown = (w: FlowLayer["nodes"][number]["visible"]) => (w ? windowAlpha(t, w) : 1) > 0;
+  const regionBox = (id: string) => pointsBox(geo.regions.get(id)!.map(st.toScreen))!;
   const out: SceneElement[] = [];
   for (const r of layer.regions) {
-    if (!shown(r.visible)) continue;
     const p = r.sweep ? st.progressAt(r.sweep.progress) : 0;
-    const box = pointsBox(geo.regions.get(r.id)!.map(st.toScreen))!;
-    out.push({ id: r.id, kind: "region", ...box, important: st.lit(r.id) > 0 || (p > 0 && p < 1) || said(r.say), say: r.say });
+    // A region clipped to another (a chamber inside an organ) is only seen inside it.
+    const own = regionBox(r.id);
+    const inside = r.clipTo ? regionBox(r.clipTo) : own;
+    const box = { x1: Math.max(own.x1, inside.x1), y1: Math.max(own.y1, inside.y1), x2: Math.min(own.x2, inside.x2), y2: Math.min(own.y2, inside.y2) };
+    const hidden = !shown(r.visible);
+    out.push({ id: r.id, kind: "region", ...box, important: !hidden && (st.lit(r.id) > 0 || (p > 0 && p < 1) || said(r.say)), say: r.say, hidden });
   }
   for (const p of layer.paths) {
-    if (!shown(p.visible)) continue;
     const box = pointsBox(geo.paths.get(p.id)!.points.map(st.toScreen))!;
-    out.push({ id: p.id, kind: "path", ...box, important: st.lit(p.id) > 0 || said(p.say), say: p.say });
+    const hidden = !shown(p.visible);
+    out.push({ id: p.id, kind: "path", ...box, important: !hidden && (st.lit(p.id) > 0 || said(p.say)), say: p.say, hidden });
   }
   for (const n of layer.nodes) {
-    if (!shown(n.visible)) continue;
     const near = (times: number[]) => times.some((x) => t >= x && t <= x + HOLD);
     const active =
       n.lit.some(([from, to]) => t >= from && t <= to) || near(st.arrivals.get(n.id) ?? []) || near(n.flashes) || st.lit(n.id) > 0;
     const r = Math.max(18, n.r * st.view.zoom * 2.6 + 6);
-    out.push({ id: n.id, kind: "node", ...pointBox(st.toScreen(n.at), r), important: active || said(n.say), say: n.say });
+    const hidden = !shown(n.visible);
+    out.push({ id: n.id, kind: "node", ...pointBox(st.toScreen(n.at), r), important: !hidden && (active || said(n.say)), say: n.say, hidden });
   }
   st.signals.forEach(({ s, tip }, i) => {
     if (tip && s.head) out.push({ id: `signal${i}`, kind: "signal", ...pointBox(st.toScreen(tip), 24), important: true, say: [] });
@@ -111,8 +115,8 @@ export const flowElements = (layer: FlowLayer, geo: FlowGeometry, st: FlowState,
  */
 export const flowSubject = (layer: FlowLayer, geo: FlowGeometry, st: FlowState, t: number, elements: SceneElement[]): Box | null => {
   const shot = currentShot(layer.camera, t);
-  if (shot.subject) return unionBox(elements.filter((e) => shot.subject!.includes(e.id)));
-  const regions = elements.filter((e) => e.kind === "region");
+  if (shot.subject) return unionBox(elements.filter((e) => !e.hidden && shot.subject!.includes(e.id)));
+  const regions = elements.filter((e) => e.kind === "region" && !e.hidden);
   const around = shapeAround(
     st.place(shot.focus),
     layer.regions.filter((r) => regions.some((e) => e.id === r.id)).map((r) => ({ id: r.id, points: geo.regions.get(r.id)! })),
