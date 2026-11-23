@@ -78,6 +78,11 @@ export const traceSchema = <T extends z.ZodType, R extends z.ZodType, N extends 
       anchorY: z.number().default(960),
       /** Draw only inside this horizontal band (a strip under another scene) instead of the whole frame. */
       frame: z.object({ top: z.number().min(0), height: z.number().positive() }).strict().optional(),
+      /**
+       * A data strip on top of the scenes: drawn in a dark panel across the frame at `top` (an overlay, like the
+       * label panels; the camera keeps other scenes' important elements clear of it). Without it the trace is a scene.
+       */
+      panel: z.object({ top: z.number().min(0), height: z.number().positive() }).strict().optional(),
       /** "frame" is the unzoomed screen, "pen" the pen tip on the baseline. */
       camera: z.array(shotSchema(k, z.union([z.enum(["frame", "pen"]), z.tuple([z.number(), z.number()])]))).min(1),
       drift: driftSchema.prefault({}),
@@ -94,6 +99,13 @@ export const traceSchema = <T extends z.ZodType, R extends z.ZodType, N extends 
               once: z.boolean().default(true),
               /** Label height above the baseline, in waveform units. */
               labelAt: z.number().optional(),
+              /**
+               * bracket: a stretch (a duration, a segment such as PR), labelled under the baseline with a bracket;
+               * leader: a point or a wave (P, QRS, T), labelled above the line, tied to its peak by a short line.
+               */
+              marker: z.enum(["bracket", "leader"]).default("leader"),
+              /** Words the narration uses for this part (see flow `say`). */
+              say: z.array(z.string().min(1)).default([]),
               /** Lit up (brighter, larger label) over these ranges, e.g. while the narration names the part. */
               lit: z.array(k.range).default([]),
             })

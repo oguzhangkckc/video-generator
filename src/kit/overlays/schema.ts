@@ -81,6 +81,8 @@ export const layoutSchema = z
     contentWidth: z.number().positive().max(1080).default(840),
     /** Dark panel behind each column of data lines. */
     labelBackdrop: z.boolean().default(true),
+    /** Move shots so the scene's important elements stay clear of panels, strips and captions (src/kit/framing.ts). */
+    framing: z.boolean().default(false),
   })
   .strict();
 

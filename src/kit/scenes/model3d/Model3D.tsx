@@ -6,6 +6,8 @@ import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { LayerOf } from "../../../spec/schema";
+import { HEIGHT, WIDTH } from "../../format";
+import { IDENTITY, pointBox, useFraming, type SceneElement, type SceneReport } from "../../framing";
 import { COLOR, tokenColor } from "../../theme";
 import { EASING, envelope, ramp, sec, windowAlpha } from "../../time";
 
@@ -93,33 +95,65 @@ const Environment: React.FC = () => {
   return null;
 };
 
+/** Camera position, look-at point and field of view at t, from the keyframes and the slow orbit. */
+const cameraAt = (layer: Model3DLayer, model: Model, t: number) => {
+  const shots = layer.camera;
+  const next = shots.findIndex((s) => s.at > t);
+  const a = next <= 0 ? shots[next === 0 ? 0 : shots.length - 1] : shots[next - 1];
+  const b = next <= 0 ? a : shots[next];
+  const p = a === b ? 0 : ramp(t, [a.at, b.at], [0, 1], EASING[b.easing]);
+  const lerp = (x: number, y: number) => x + (y - x) * p;
+  const point = (target: (typeof a)["target"]) =>
+    target === undefined
+      ? new THREE.Vector3()
+      : typeof target === "string"
+        ? (model.parts.get(target)?.center.clone() ?? new THREE.Vector3())
+        : new THREE.Vector3(...target);
+  const target = point(a.target).lerp(point(b.target), p);
+  const az = THREE.MathUtils.degToRad(lerp(a.azimuth, b.azimuth) + layer.orbitDegPerSec * t);
+  const el = THREE.MathUtils.degToRad(lerp(a.elevation, b.elevation));
+  const distance = Math.exp(lerp(Math.log(a.distance), Math.log(b.distance)));
+  const position = new THREE.Vector3(
+    target.x + distance * Math.cos(el) * Math.sin(az),
+    target.y + distance * Math.sin(el),
+    target.z + distance * Math.cos(el) * Math.cos(az),
+  );
+  return { position, target, fov: lerp(a.fov, b.fov), shot: p < 0.5 ? a : b };
+};
+
+/** qa: the whole model is the subject; highlighted parts and the part the camera aims at are what matter. */
+const report = (layer: Model3DLayer, model: Model, t: number, name: string): SceneReport => {
+  const { position, target, fov, shot } = cameraAt(layer, model, t);
+  const camera = new THREE.PerspectiveCamera(fov, WIDTH / HEIGHT, 0.01, 100);
+  camera.position.copy(position);
+  camera.lookAt(target);
+  camera.updateMatrixWorld();
+  const toScreen = (v: THREE.Vector3): [number, number] => {
+    const ndc = v.clone().applyMatrix4(model.root.matrixWorld).project(camera);
+    return [((ndc.x + 1) / 2) * WIDTH, ((1 - ndc.y) / 2) * HEIGHT];
+  };
+  const center = toScreen(new THREE.Vector3());
+  const distance = position.length();
+  const radius = ((HEIGHT / 2) * Math.tan(Math.asin(Math.min(1, model.radius / distance)))) / Math.tan(THREE.MathUtils.degToRad(fov / 2));
+  const elements: SceneElement[] = [...model.parts].map(([id, part]) => ({
+    id,
+    kind: "part",
+    ...pointBox(toScreen(part.center), 40),
+    important: shot.target === id || layer.highlight.some((h) => h.part === id && t >= h.range[0] && t <= h.range[1]),
+    say: [],
+  }));
+  const kind = distance > 2.5 * model.radius ? "wide" : distance > 1.2 * model.radius ? "medium" : "close";
+  return { layer: name, type: "model3d", opacity: windowAlpha(t, layer.fade), shot: { kind }, subject: pointBox(center, radius), elements, adjust: IDENTITY };
+};
+
 /** Applies camera, highlights, section and explode for time t; a layout effect so it lands before the frame. */
 const Rig: React.FC<{ layer: Model3DLayer; model: Model; t: number }> = ({ layer, model, t }) => {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
 
   useLayoutEffect(() => {
-    const shots = layer.camera;
-    const next = shots.findIndex((s) => s.at > t);
-    const a = next <= 0 ? shots[next === 0 ? 0 : shots.length - 1] : shots[next - 1];
-    const b = next <= 0 ? a : shots[next];
-    const p = a === b ? 0 : ramp(t, [a.at, b.at], [0, 1], EASING[b.easing]);
-    const lerp = (x: number, y: number) => x + (y - x) * p;
-    const point = (target: (typeof a)["target"]) =>
-      target === undefined
-        ? new THREE.Vector3()
-        : typeof target === "string"
-          ? (model.parts.get(target)?.center.clone() ?? new THREE.Vector3())
-          : new THREE.Vector3(...target);
-    const target = point(a.target).lerp(point(b.target), p);
-    const az = THREE.MathUtils.degToRad(lerp(a.azimuth, b.azimuth) + layer.orbitDegPerSec * t);
-    const el = THREE.MathUtils.degToRad(lerp(a.elevation, b.elevation));
-    const distance = Math.exp(lerp(Math.log(a.distance), Math.log(b.distance)));
-    camera.position.set(
-      target.x + distance * Math.cos(el) * Math.sin(az),
-      target.y + distance * Math.sin(el),
-      target.z + distance * Math.cos(el) * Math.cos(az),
-    );
-    camera.fov = lerp(a.fov, b.fov);
+    const { position, target, fov } = cameraAt(layer, model, t);
+    camera.position.copy(position);
+    camera.fov = fov;
     camera.near = 0.01;
     camera.far = 100;
     camera.updateProjectionMatrix();
@@ -169,14 +203,16 @@ const Rig: React.FC<{ layer: Model3DLayer; model: Model; t: number }> = ({ layer
   return null;
 };
 
-const Scene: React.FC<{ layer: Model3DLayer; startFrame: number }> = ({ layer, startFrame }) => {
+const Scene: React.FC<{ layer: Model3DLayer; startFrame: number; name: string }> = ({ layer, startFrame, name }) => {
   const frame = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
   const t = (frame + startFrame) / fps;
   const model = useModel(layer.file);
+  const { reports } = useFraming();
   const opacity = windowAlpha(t, layer.fade);
   const background = `linear-gradient(180deg, ${COLOR.bgTop} 0%, ${COLOR.bgBottom} 100%)`;
   if (!model) return <AbsoluteFill style={{ background, opacity }} />;
+  if (reports) reports.set(name, report(layer, model, t, name));
 
   return (
     <AbsoluteFill style={{ background, opacity }}>
@@ -193,11 +229,11 @@ const Scene: React.FC<{ layer: Model3DLayer; startFrame: number }> = ({ layer, s
 };
 
 /** GLB model with keyframed camera, part highlights, cut-away and exploded view; mounted only inside its window. */
-export const Model3D: React.FC<{ layer: Model3DLayer }> = ({ layer }) => {
+export const Model3D: React.FC<{ layer: Model3DLayer; name: string }> = ({ layer, name }) => {
   const from = sec(layer.window[0]);
   return (
     <Sequence from={from} durationInFrames={sec(layer.window[1]) - from} premountFor={sec(1)} name={`model3d: ${layer.file}`}>
-      <Scene layer={layer} startFrame={from} />
+      <Scene layer={layer} startFrame={from} name={name} />
     </Sequence>
   );
 };

@@ -28,6 +28,19 @@ export const endsOnQuestionWord = (text: string) => {
   return words.length > 1 && QUESTION_WORDS.test(words[words.length - 1]);
 };
 
+const SOFT: Record<string, string> = { p: "b", ç: "c", t: "d", k: "ğ" };
+/** A word with a suffix, allowing the final consonant to soften before it ("kalp" → "kalbin", "ağaç" → "ağacı"). */
+const startsWord = (word: string, stem: string) =>
+  word.startsWith(stem) || (stem.length > 2 && SOFT[stem.at(-1)!] !== undefined && word.startsWith(stem.slice(0, -1) + SOFT[stem.at(-1)!]));
+
+/** Whether `text` says `alias`: its words in order, each allowed a suffix ("sağ üst köşe" in "sağ üst köşesinden"). */
+export const mentions = (text: string, alias: string) => {
+  const words = text.split(/\s+/).map(norm).filter(Boolean);
+  const want = alias.split(/\s+/).map(norm).filter(Boolean);
+  if (!want.length) return false;
+  return words.some((_, i) => want.every((w, j) => words[i + j] !== undefined && startsWord(words[i + j], w)));
+};
+
 export type Sentence = { text: string; first: number; last: number; kind: SentenceKind };
 
 /** Consecutive phrases joined into sentences; a section's last phrase always closes one. */

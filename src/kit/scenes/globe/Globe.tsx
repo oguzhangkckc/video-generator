@@ -16,6 +16,8 @@ import { Line2 } from "three/examples/jsm/lines/Line2.js";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import type { LayerOf } from "../../../spec/schema";
+import { HEIGHT } from "../../format";
+import { IDENTITY, currentShot, pointBox, useFraming, type SceneElement, type SceneReport } from "../../framing";
 import { COLOR, GLOW_STOPS } from "../../theme";
 import { envelope, ramp, sec, windowAlpha } from "../../time";
 import { CAMERA, type GlobeRig } from "./rig";
@@ -299,14 +301,44 @@ const Flash: React.FC<{ t: number; glow: THREE.Texture; at: number; rig: GlobeRi
   );
 };
 
-const GlobeScene: React.FC<{ layer: Globe; startFrame: number }> = ({ layer, startFrame }) => {
+const SHOT_KIND = { pullback: "wide", follow: "medium", descend: "close" } as const;
+
+/** qa: the planet's disk is the subject; the hero satellite and the location (on the near side) are what matter. */
+const report = (layer: Globe, rig: GlobeRig, t: number, name: string): SceneReport => {
+  const camera = rig.cameraAt(t);
+  const distance = camera.position.length();
+  const center = rig.project(new THREE.Vector3(0, 0, 0), t);
+  const radius = ((HEIGHT / 2) * Math.tan(Math.asin(Math.min(1, 1 / distance)))) / Math.tan(THREE.MathUtils.degToRad(CAMERA.fov / 2));
+  const elements: SceneElement[] = [];
+  if (layer.hero && t >= layer.hero.visible.in[0] && t <= layer.hero.visible.out[1]) {
+    const p = rig.project(rig.heroPos(t), t);
+    elements.push({ id: "hero", kind: "satellite", ...pointBox([p.x, p.y], 30), important: true, say: [] });
+  }
+  const facing = rig.location.dot(camera.position.clone().sub(rig.location)) > 0;
+  const where = rig.project(rig.location, t);
+  elements.push({ id: "location", kind: "marker", ...pointBox([where.x, where.y], 30), important: facing, say: [] });
+  const shot = currentShot(layer.camera.map((s) => ({ ...s, at: s.from })), t);
+  return {
+    layer: name,
+    type: "globe",
+    opacity: 1,
+    shot: { kind: SHOT_KIND[shot.type] },
+    subject: pointBox([center.x, center.y], radius),
+    elements,
+    adjust: IDENTITY,
+  };
+};
+
+const GlobeScene: React.FC<{ layer: Globe; startFrame: number; name: string }> = ({ layer, startFrame, name }) => {
   const frame = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
   const t = (frame + startFrame) / fps;
   const rig = useRig(layer.id);
+  const { reports } = useFraming();
   const texture = useTexture(layer.texture);
   const glow = useMemo(makeGlowTexture, []);
   const cameraRadius = rig.cameraAt(t).position.length();
+  if (reports) reports.set(name, report(layer, rig, t, name));
   // Close to the surface the texture is magnified ~50×; soften it so texels read as haze, not blocks.
   const blur = ramp(cameraRadius - 1, [0.02, 0.15], [14, 0], Easing.linear);
   // Mount the canvas only with the texture in hand, so its own first-frame wait already includes it.
@@ -330,11 +362,11 @@ const GlobeScene: React.FC<{ layer: Globe; startFrame: number }> = ({ layer, sta
 };
 
 /** Planet with optional orbits, hero satellite and emission flash; mounted only inside its window. */
-export const Globe: React.FC<{ layer: Globe }> = ({ layer }) => {
+export const Globe: React.FC<{ layer: Globe; name: string }> = ({ layer, name }) => {
   const from = sec(layer.window[0]);
   return (
     <Sequence from={from} durationInFrames={sec(layer.window[1]) - from} premountFor={sec(1)} name={`globe: ${layer.id}`}>
-      <GlobeScene layer={layer} startFrame={from} />
+      <GlobeScene layer={layer} startFrame={from} name={name} />
     </Sequence>
   );
 };

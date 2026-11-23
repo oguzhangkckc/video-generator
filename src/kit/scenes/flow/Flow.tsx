@@ -1,83 +1,48 @@
 import { useId, useMemo } from "react";
 import { AbsoluteFill } from "remotion";
-import type { LayerOf } from "../../../spec/schema";
 import type { CurveFn } from "../../curves";
 import { CX, HEIGHT, WIDTH } from "../../format";
+import { adjustFor, currentShot, shotKind, useFraming } from "../../framing";
 import { COLOR, EDGE, SURFACE, tokenColor, type ColorToken } from "../../theme";
-import { EASING, envelope, ramp, useTime, windowAlpha } from "../../time";
-import { project, strokeAt, viewAt, worldTransform, type Vec } from "../camera2d/camera";
+import { envelope, ramp, useTime, windowAlpha } from "../../time";
+import { strokeAt, worldTransform } from "../camera2d/camera";
 import { GlowDot, MATCH_DOT_R } from "../camera2d/GlowDot";
-import { polylineLength, slice, spline, toPath } from "../camera2d/paths";
-
-type FlowLayer = LayerOf<"flow">;
-type Progress = FlowLayer["signals"][number]["progress"];
+import { toPath } from "../camera2d/paths";
+import { flowElements, flowGeometry, flowState, flowSubject, type FlowLayer } from "./model";
 
 const ns = { vectorEffect: "non-scaling-stroke" as const, fill: "none", strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 const pathColor = (c: ColorToken | "surface" | "faint") => (c === "surface" || c === "faint" ? EDGE[c] : tokenColor(c));
 
-/** Geometry that only changes with the spec. */
-const useGeometry = (layer: FlowLayer) =>
-  useMemo(() => {
-    const regions = new Map(layer.regions.map((r) => [r.id, r.smooth ? spline(r.points, true) : r.points]));
-    const paths = new Map(
-      layer.paths.map((p) => {
-        const points = p.smooth ? spline(p.points) : p.points;
-        return [p.id, { points, length: polylineLength(points) }];
-      }),
-    );
-    const nodes = new Map(layer.nodes.map((n) => [n.id, n]));
-    return { regions, paths, nodes };
-  }, [layer]);
-
 /** Diagram scene: regions, paths, nodes and the signals that travel through them. */
-export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn }> = ({ layer, curve }) => {
+export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn; name: string }> = ({ layer, curve, name }) => {
   const t = useTime();
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
-  const geo = useGeometry(layer);
+  const geo = useMemo(() => flowGeometry(layer), [layer]);
+  const framing = useFraming();
   const opacity = Math.max(...layer.visible.map((w) => windowAlpha(t, w)));
   if (opacity <= 0) return null;
 
-  const place = (p: string | Vec): Vec => (Array.isArray(p) ? p : geo.nodes.get(p)!.at);
-  const progressAt = (p: Progress) =>
-    "times" in p ? ramp(t, p.times, [0, 1], EASING.linear) : ramp(curve(p.curve)(t), p.range, [0, 1], EASING.linear);
-  const anchor: Vec = [CX, layer.anchorY];
-  const view = viewAt(layer.camera, place, layer.drift, t);
-  const toScreen = project(view, anchor);
+  const importantAt = (u: number) =>
+    flowElements(layer, geo, flowState(layer, geo, curve, u), u, framing.spokenAt(u)).filter((e) => e.important);
+  const adjust = adjustFor(framing, name, importantAt, [CX, layer.anchorY], t);
+  const st = flowState(layer, geo, curve, t, adjust);
+  const { place, progressAt, view, anchor, toScreen, lit, signals, arrivals } = st;
+  if (framing.reports) {
+    const elements = flowElements(layer, geo, st, t, framing.spokenAt(t));
+    const shot = currentShot(layer.camera, t);
+    framing.reports.set(name, {
+      layer: name,
+      type: "flow",
+      opacity,
+      shot: { kind: shotKind(shot), subject: shot.subject },
+      subject: flowSubject(layer, geo, st, t, elements),
+      elements,
+      adjust,
+    });
+  }
   const sw = (base: number) => strokeAt(base, view.zoom);
-  const lit = (target: string) =>
-    Math.max(
-      0,
-      ...layer.highlight
-        .filter((h) => h.target === target)
-        .map(({ range: [from, to] }) => envelope(t, [from, from + 0.3], [Math.max(from + 0.3, to - 0.4), to])),
-    );
   const pulse = 0.75 + 0.25 * Math.sin(t * 2 * Math.PI * 1.1);
   const closeUp = ramp(view.zoom, [3, 7], [1, 0]);
-
-  const signals = layer.signals.map((s) => {
-    const chain = s.along.map((id) => geo.paths.get(id)!);
-    const total = chain.reduce((sum, p) => sum + p.length, 0);
-    let left = progressAt(s.progress) * total;
-    const pieces = chain.map((p) => {
-      const take = Math.max(0, Math.min(p.length, left));
-      left -= take;
-      return take > 0 ? slice(p.points, take / p.length, p.length) : null;
-    });
-    const p = progressAt(s.progress);
-    const tip = [...pieces].reverse().find(Boolean)?.tip;
-    return { s, pieces, tip: p > 0 && p < 1 ? tip : undefined };
-  });
-
-  const arrivals = new Map<string, number[]>();
-  for (const f of layer.fields) {
-    const [ox, oy] = place(f.origin);
-    for (const id of f.lights) {
-      const [x, y] = geo.nodes.get(id)!.at;
-      const times = f.emits.map((emit) => emit + (f.duration * Math.hypot(x - ox, y - oy)) / f.maxRadius);
-      arrivals.set(id, [...(arrivals.get(id) ?? []), ...times]);
-    }
-  }
-
   const dotR = (r: number) => r * view.zoom;
 
   return (

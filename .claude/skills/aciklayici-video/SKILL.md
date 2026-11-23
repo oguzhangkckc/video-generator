@@ -26,14 +26,6 @@ komut satırına koyma.
 3. Kontrolün sorunu artık yakaladığını o videoda göster.
 4. Ancak bundan sonra videoyu yeniden üret.
 
-**Sorun bildirildiğinde önce sistemi düzelt.** Kullanıcı bir videoda sorun bildirdiğinde o videoyu elle düzeltmeden
-önce:
-
-1. Sorunu hangi STYLE kuralının ya da `npm run check` / `npm run qa` kontrolünün yakalaması gerektiğini belirle.
-2. Böyle bir kural ya da kontrol yoksa ekle; varsa neden yakalamadığını bul ve düzelt (eşik, ölçüm, kapsam).
-3. Kontrolün sorunu artık yakaladığını o videoda göster.
-4. Ancak bundan sonra videoyu yeniden üret.
-
 ## a) Açılar ★
 
 Konu için 2–3 farklı açı öner, tek tablo halinde:
@@ -65,7 +57,10 @@ Birini gerekçesiyle öner. **Dur.**
 - Sayaç, animasyon ve `trace` bir zaman çizelgesinden besleniyorsa her anahtar değeri `timeline.keys` içinde bir
   `sources[].id`'ye bağla (`"#ad"`). Ara değerler de kaynaklı olmalı; `npm run check` kaynaksız sayaç değerini
   reddeder.
-- Kullanıcıya kaynak listesini kısaca göster ve c'ye geç.
+- **Nicelik tutarlılığı:** her rakamlı kaynağa `quantity` yaz (gerilim, akım, süre, hız, uzaklık, sıklık, diğer).
+  Seslendirmede geçecek her büyüklük için tablo kur: seslendirmedeki büyüklük | etiket | nicelik | birim. Seslendirme
+  "akım" derken etiket mV (gerilim) gösteremez; ikisi aynı niceliği adlandırmalı. qa bunu da uyarır.
+- Kullanıcıya kaynak listesini ve nicelik tablosunu kısaca göster ve c'ye geç.
 
 ## c) Metin ★
 

@@ -6,6 +6,11 @@ const point = z.tuple([z.number(), z.number()]);
 const id = z.string().regex(/^[A-Za-z][A-Za-z0-9_-]*$/, "ids are letters, digits, _ and -");
 /** A node id or a world [x, y]. */
 const place = z.union([id, point]);
+/**
+ * Words the narration uses for this element ("kalp", "sağ üst köşe"; suffixes allowed). While a phrase says one, the
+ * element is important (kept clear of overlays) and qa checks it is on screen.
+ */
+const say = z.array(z.string().min(1)).default([]);
 
 /** How far along something is: a curve read between two values, or plain composition times. */
 const progressSchema = <T extends z.ZodType, R extends z.ZodType, N extends z.ZodType>(k: Kit<T, R, N>) =>
@@ -44,6 +49,7 @@ export const flowSchema = <T extends z.ZodType, R extends z.ZodType, N extends z
                 .optional(),
               /** Region visibility (e.g. a body outline that appears when the camera pulls out). */
               visible: windowSchema(k).optional(),
+              say,
             })
             .strict(),
         )
@@ -60,6 +66,7 @@ export const flowSchema = <T extends z.ZodType, R extends z.ZodType, N extends z
               width: z.number().positive().default(2.4),
               /** Path visibility (e.g. cables that leave with the skin). */
               visible: windowSchema(k).optional(),
+              say,
             })
             .strict(),
         )
@@ -80,6 +87,7 @@ export const flowSchema = <T extends z.ZodType, R extends z.ZodType, N extends z
               flashes: z.array(k.time).default([]),
               /** Visibility (e.g. electrodes that come with the body outline). */
               visible: windowSchema(k).optional(),
+              say,
             })
             .strict(),
         )

@@ -92,6 +92,26 @@ const buildSpec = <T extends z.ZodType, R extends z.ZodType, N extends z.ZodType
       curves: z.record(z.string(), curveSchema(k)).default({}),
       /** Drawn in order, below every overlay. */
       layers: z.array(layerSchema(k)).default([]),
+      /**
+       * Every change from one scene layer to another (their visible windows overlap), STYLE "Kamera ve geçişler":
+       * through: the camera goes into `via.from` until it fills the frame and the next scene opens from `via.to`;
+       * match: `via.from` and `via.to` sit on the same spot at the same size at `at` (shape match);
+       * flash: a colour flash (haze), the last resort, only with `why`.
+       */
+      transitions: z
+        .array(
+          z
+            .object({
+              at: k.time,
+              from: z.string(),
+              to: z.string(),
+              kind: z.enum(["through", "match", "flash"]),
+              via: z.object({ from: z.string(), to: z.string() }).strict().optional(),
+              why: z.string().min(1).optional(),
+            })
+            .strict(),
+        )
+        .default([]),
       labels: z.array(labelSchema(k)).default([]),
       notes: z.array(noteSchema(k)).default([]),
       titles: z.array(titleSchema(k)).default([]),

@@ -9,6 +9,7 @@ import { bundle } from "@remotion/bundler";
 import { openBrowser, renderStill, selectComposition } from "@remotion/renderer";
 import { quantityMismatches } from "../src/spec/quantities.ts";
 import { parseArgs } from "./lib/args.mjs";
+import { composition } from "./lib/composition.mjs";
 import { flagText } from "./lib/review.mjs";
 import { speechReport } from "./lib/speech.mjs";
 import { ROOT, duration, loadSpec, loadTiming, outDir, readPcm, requireSlug } from "./lib/video.mjs";
@@ -20,8 +21,10 @@ const FPS = 30;
 const SPOKEN_RATE = [2.6, 3.0];
 const PAUSES = { shortSentence: 0.25, meanSentence: 0.35 };
 const SILENCE = { noiseDb: -70, minSec: 0.3, tailSec: 0.7 };
-/** A data line's box must be empty background: no pixel brighter than `luma` beyond these shares. */
-const CLUTTER = { luma: 70, share: 0.004, line: 0.35 };
+/** An empty cell is flat (luma spread ≤ spread) and dark (≤ luma): background only. */
+const EMPTY = { spread: 12, luma: 70 };
+/** Longer than this with no change on screen is a freeze (ffmpeg freezedetect noise in dB). */
+const FREEZE = { seconds: 0.3, noiseDb: -60 };
 
 const { positional, flags } = parseArgs(process.argv.slice(2), { layout: "boolean", audio: "boolean", every: "number" });
 const slug = requireSlug(positional[0]);
@@ -63,7 +66,7 @@ const probe = async (frame, qa, output) => {
   const { serveUrl, instance } = await browser();
   const inputProps = { qa };
   const composition = await selectComposition({ serveUrl, id: slug, inputProps, puppeteerInstance: instance, chromiumOptions });
-  const logs = { boxes: null, spec: null };
+  const logs = { boxes: null, spec: null, scene: null };
   await renderStill({
     serveUrl,
     composition,
@@ -77,6 +80,7 @@ const probe = async (frame, qa, output) => {
     onBrowserLog: ({ text }) => {
       if (text.startsWith("QA_BOXES ")) logs.boxes = JSON.parse(text.slice(9));
       if (text.startsWith("QA_SPEC ")) logs.spec = JSON.parse(text.slice(8));
+      if (text.startsWith("QA_SCENE ")) logs.scene = JSON.parse(text.slice(9));
     },
   });
   return { ...logs, durationInFrames: composition.durationInFrames };
@@ -84,33 +88,33 @@ const probe = async (frame, qa, output) => {
 
 const overlap = (a, b) => Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1) > 2 && Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1) > 2;
 
-/** Anything drawn behind a data line: share of bright pixels in its box, and the fullest row or column (a line). */
-const drawingInBox = (png, box) => {
-  const x = Math.max(0, Math.floor(box.x1) - 4);
-  const y = Math.max(0, Math.floor(box.y1) - 4);
-  const w = Math.min(1080 - x, Math.ceil(box.x2 - box.x1) + 8);
-  const h = Math.min(1920 - y, Math.ceil(box.y2 - box.y1) + 8);
-  if (w < 4 || h < 4) return { share: 0, line: 0 };
-  const { stdout } = spawnSync(
-    "ffmpeg",
-    ["-hide_banner", "-loglevel", "error", "-i", png, "-vf", `crop=${w}:${h}:${x}:${y},format=gray`, "-f", "rawvideo", "-"],
-    { maxBuffer: 64 * 1024 * 1024 },
-  );
-  const bright = (v) => v > CLUTTER.luma;
-  let best = 0;
-  let total = 0;
-  for (let r = 0; r < h; r++) {
-    let n = 0;
-    for (let c = 0; c < w; c++) n += bright(stdout[r * w + c]) ? 1 : 0;
-    total += n;
-    best = Math.max(best, n / w);
+/**
+ * Share of the frame that is empty: 40 px cells (10 px in the quarter-size probe) that are flat and dark, i.e.
+ * nothing but background.
+ */
+const emptyShare = (png) => {
+  const { stdout } = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-i", png, "-vf", "scale=270:480,format=gray", "-f", "rawvideo", "-"], {
+    maxBuffer: 16 * 1024 * 1024,
+  });
+  if (stdout.length < 270 * 480) return null;
+  let empty = 0;
+  let cells = 0;
+  for (let cy = 0; cy < 480; cy += 10) {
+    for (let cx = 0; cx < 270; cx += 10) {
+      let lo = 255;
+      let hi = 0;
+      for (let y = cy; y < cy + 10; y++) {
+        for (let x = cx; x < cx + 10; x++) {
+          const v = stdout[y * 270 + x];
+          if (v < lo) lo = v;
+          if (v > hi) hi = v;
+        }
+      }
+      cells++;
+      if (hi - lo <= EMPTY.spread && hi <= EMPTY.luma) empty++;
+    }
   }
-  for (let c = 0; c < w; c++) {
-    let n = 0;
-    for (let r = 0; r < h; r++) n += bright(stdout[r * w + c]) ? 1 : 0;
-    best = Math.max(best, n / h);
-  }
-  return { share: total / (w * h), line: best };
+  return empty / cells;
 };
 
 const layout = async () => {
@@ -123,14 +127,13 @@ const layout = async () => {
 
   const overlaps = spans();
   const unsafe = spans();
-  const seen = new Map();
+  const samples = [];
   for (const frame of frames) {
-    const { boxes } = frame === 0 ? first : await probe(frame, { probe: true }, path.join(tmp, "probe.png"));
+    const png = path.join(tmp, "probe.png");
+    const { boxes, scene } = frame === 0 ? first : await probe(frame, { probe: true }, png);
     if (!boxes) continue;
+    if (scene) samples.push({ t: boxes.t, boxes: boxes.boxes, scene, empty: emptyShare(png) });
     for (const b of boxes.boxes) {
-      const list = seen.get(b.id) ?? [];
-      if (!list.length || frame - list.at(-1).frame >= FPS) list.push({ t: boxes.t, frame, box: b });
-      seen.set(b.id, list);
       if (b.x2 > SAFE_RIGHT + 0.5) unsafe.add(`${b.id}:right`, boxes.t, `${b.id} "${b.text}" reaches x ${Math.round(b.x2)} (right safe area starts at ${SAFE_RIGHT})`);
       if (b.y2 > SAFE_BOTTOM + 0.5) unsafe.add(`${b.id}:bottom`, boxes.t, `${b.id} "${b.text}" reaches y ${Math.round(b.y2)} (bottom safe area starts at ${SAFE_BOTTOM})`);
       if (b.x1 < -0.5) unsafe.add(`${b.id}:left`, boxes.t, `${b.id} "${b.text}" starts off-screen (x ${Math.round(b.x1)})`);
@@ -144,21 +147,32 @@ const layout = async () => {
   }
   errors.push(...overlaps.list().map((m) => `yerleşim: ${m}`), ...unsafe.list().map((m) => `güvenli alan: ${m}`));
 
-  const clutter = spans();
-  for (const list of seen.values()) {
-    for (const { t, frame, box } of list) {
-      if (box.kind !== "label" && box.kind !== "note") continue;
-      const png = path.join(tmp, `bg-${frame}.png`);
-      if (!existsSync(png)) await probe(frame, { probe: false, overlays: false }, png);
-      const { share, line } = drawingInBox(png, box);
-      if (share > CLUTTER.share || line > CLUTTER.line) {
-        clutter.add(box.id, t, `${box.id} "${box.text}" kutusuna çizim giriyor (parlak piksel %${(share * 100).toFixed(1)}, en dolu satır/sütun %${Math.round(line * 100)})`);
-      }
-    }
-  }
-  errors.push(...clutter.list().map((m) => `etiket alanı: ${m}`));
+  const labelAlign = (id) => rawSpec.labels[Number(/\[(\d+)\]/.exec(id)?.[1])]?.align ?? "left";
+  const found = composition({
+    samples,
+    step: frames.length > 1 ? (frames[1] - frames[0]) / FPS : every,
+    labelAlign,
+    phrases: first.spec?.phrases ?? [],
+    transitions: first.spec?.transitions ?? [],
+  });
+  for (const f of first.spec?.findings ?? []) errors.push(f.replace(/^transitions: /, "geçiş: ").replace(/^camera: /, "kamera: "));
+  errors.push(...found.errors);
+  warnings.push(...found.warnings);
   rmSync(tmp, { recursive: true, force: true });
-  return { frames: frames.length, spec: first.spec };
+  return { frames: frames.length, spec: first.spec, stats: found.stats };
+};
+
+/** Stretches of the render where nothing on screen changes. */
+const freezes = () => {
+  const { stderr } = spawnSync(
+    "ffmpeg",
+    ["-hide_banner", "-i", mp4, "-vf", `freezedetect=n=${FREEZE.noiseDb}dB:d=${FREEZE.seconds}`, "-an", "-f", "null", "-"],
+    { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
+  );
+  const starts = [...stderr.matchAll(/freeze_start: ([\d.]+)/g)].map((m) => Number(m[1]));
+  const lengths = [...stderr.matchAll(/freeze_duration: ([\d.]+)/g)].map((m) => Number(m[1]));
+  starts.forEach((s, i) => errors.push(`donma: ${fmt(s)}–${fmt(s + (lengths[i] ?? FREEZE.seconds))} görüntü değişmiyor (en fazla ${FREEZE.seconds} sn)`));
+  return starts.length;
 };
 
 /** A label with a unit shown while the voice names another quantity ("akım" under "≈ 1 mV"). */
@@ -235,9 +249,11 @@ const audio = async (sound) => {
   return { rates, intonation, silences: starts.length };
 };
 
-const shown = runLayout ? (await layout()).spec : (await probe(0, { probe: true }, path.join(os.tmpdir(), `qa-${slug}.png`))).spec;
+const laid = runLayout ? await layout() : null;
+const shown = laid ? laid.spec : (await probe(0, { probe: true }, path.join(os.tmpdir(), `qa-${slug}.png`))).spec;
 quantities(shown);
 const audioResult = runAudio ? await audio(shown?.sound) : null;
+const frozen = existsSync(mp4) ? freezes() : null;
 if (browserState) await browserState.instance.close({ silent: true });
 
 const report = { slug, checked: { layout: runLayout, audio: runAudio }, errors, warnings, audio: audioResult };
@@ -246,7 +262,20 @@ writeFileSync(path.join(outDir(slug), "qa.json"), `${JSON.stringify(report, null
 
 const rows = [
   ["Yerleşim (çakışma, güvenli alan)", runLayout ? (errors.some((e) => /^(yerleşim|güvenli alan)/.test(e)) ? "HATA" : "temiz") : "—"],
-  ["Etiket alanı (çizgi/nesne)", runLayout ? (errors.some((e) => e.startsWith("etiket alanı")) ? "HATA" : "temiz") : "—"],
+  ...[
+    ["Önemli öğe / üst yazı", "önemli öğe"],
+    ["Özne boyu (≥ %35)", "özne"],
+    ["Boş alan (≤ %40)", "boş alan"],
+    ["Kenar kırpması", "kenar"],
+    ["Bağlam (söylenen yer ekranda)", "bağlam"],
+    ["Veri etiketleri", "veri etiketi"],
+    ["Geçişler", "geçiş"],
+    ["Kamera (geniş → yakın)", "kamera"],
+  ].map(([name, prefix]) => [
+    name,
+    runLayout ? (errors.some((e) => e.startsWith(prefix)) ? "HATA" : warnings.some((w) => w.startsWith(prefix)) ? "uyarı" : "temiz") : "—",
+  ]),
+  ["Donma (render)", frozen === null ? "—" : frozen ? "HATA" : "temiz"],
   ["Konuşma hızı (konuşulan süre)", runAudio ? (warnings.some((w) => w.startsWith("konuşma")) ? "uyarı" : "temiz") : "—"],
   ["Duraklamalar", runAudio ? (errors.some((e) => e.startsWith("duraklama")) ? "HATA" : warnings.some((w) => w.startsWith("duraklama")) ? "uyarı" : "temiz") : "—"],
   [
@@ -263,6 +292,10 @@ const rows = [
 ];
 console.log(`\nQA ${slug}`);
 for (const [name, result] of rows) console.log(`  ${name.padEnd(36)} ${result}`);
+if (laid?.stats) {
+  const { subjectMin, emptyMax } = laid.stats;
+  console.log(`  ${"En küçük özne / en boş kare".padEnd(36)} %${Math.round(subjectMin * 100)} / ${emptyMax == null ? "—" : `%${Math.round(emptyMax * 100)}`}`);
+}
 if (audioResult?.rates?.spoken) {
   console.log(`  ${"Kelime/sn (konuşulan süre)".padEnd(36)} ${audioResult.rates.spoken.toFixed(2)}`);
   console.log(`  ${"Cümle sonu arası ort. / en kısa".padEnd(36)} ${audioResult.rates.meanSentencePause.toFixed(2)} / ${audioResult.rates.minPause.toFixed(2)} sn`);

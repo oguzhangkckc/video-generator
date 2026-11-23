@@ -7,7 +7,9 @@ import { Countdown } from "./kit/overlays/Countdown";
 import { Counter } from "./kit/overlays/Counter";
 import { DataLabel, NoteLabel } from "./kit/overlays/DataLabel";
 import { HookTitle } from "./kit/overlays/HookTitle";
+import { FramingContext, type Framing } from "./kit/framing";
 import { LayoutContext } from "./kit/layout";
+import { reservedZones } from "./kit/overlays/boxes";
 import { QaProbe } from "./kit/qa/QaProbe";
 import { Karaoke } from "./kit/overlays/Karaoke";
 import { LabelBackdrop } from "./kit/overlays/LabelBackdrop";
@@ -17,11 +19,25 @@ import { RigContext } from "./kit/scenes/globe/rig-context";
 import { COLOR } from "./kit/theme";
 import { Darken } from "./kit/transitions/Darken";
 import { resolveVideo } from "./spec/resolve";
-import type { LayerOf, VideoProps } from "./spec/schema";
+import type { Layer, LayerOf, VideoProps } from "./spec/schema";
 
-/** Layers in spec order, then the overlays in a fixed order: labels, notes, titles, darken, finale, counter, captions. */
+/**
+ * Scene layers in spec order, then data strips (traces with a panel), then the overlays in a fixed order: labels,
+ * notes, titles, darken, finale, counter, captions.
+ */
 export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timing, qa }) => {
   const video = useMemo(() => resolveVideo(spec, timing), [spec, timing]);
+  const framing = useMemo((): Framing => {
+    const cache = new Map<number, ReturnType<typeof reservedZones>>();
+    const zonesAt = (t: number) => {
+      const key = Math.round(t * 100);
+      if (!cache.has(key)) cache.set(key, reservedZones(video, key / 100, video.spec.layout));
+      return cache.get(key)!;
+    };
+    const spokenAt = (t: number) => video.phrases.find((p) => t >= p.start && t <= p.end)?.text ?? "";
+    return { enabled: video.spec.layout.framing, zonesAt, spokenAt, reports: qa?.probe ? new Map() : null };
+  }, [video, qa?.probe]);
+  const strips = (layer: Layer) => layer.type === "trace" && Boolean(layer.panel);
   const rigs = useMemo(
     () =>
       Object.fromEntries(
@@ -36,11 +52,11 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
   return (
     <RigContext.Provider value={rigs}>
       <LayoutContext.Provider value={s.layout}>
+      <FramingContext.Provider value={framing}>
       <AbsoluteFill lang={s.lang} style={{ backgroundColor: COLOR.space }}>
         <Soundtrack sound={s.sound} voiceover={video.voiceoverAudio} phrases={video.phrases} />
-        {s.layers.map((layer, i) => (
-          <LayerView key={`layer-${i}`} layer={layer} video={video} />
-        ))}
+        {s.layers.map((layer, i) => (strips(layer) ? null : <LayerView key={`layer-${i}`} layer={layer} video={video} index={i} />))}
+        {s.layers.map((layer, i) => (strips(layer) ? <LayerView key={`strip-${i}`} layer={layer} video={video} index={i} /> : null))}
         {qa?.overlays === false ? null : (
           <>
             {s.layout.labelBackdrop ? <LabelBackdrop labels={s.labels} /> : null}
@@ -70,6 +86,7 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
         )}
         {qa?.probe ? <QaProbe video={video} /> : null}
       </AbsoluteFill>
+      </FramingContext.Provider>
       </LayoutContext.Provider>
     </RigContext.Provider>
   );
