@@ -26,8 +26,8 @@
         "phrases": [
           "Peki cihaz bunu nasıl duyuyor?",
           "Göğsündeki elektrotlarla.",
-          "Kalbinin akımı cildine ulaşıyor:",
-          "kalem pilin binde birinden az.",
+          "Kalbinin elektriği cildine ulaşıyor:",
+          "gerilimi, kalem pilin binde birinden az.",
           "Cihazın kendi akımı ise",
           "hissedemeyeceğin kadar küçük."
         ]
@@ -39,12 +39,12 @@
           27.24
         ],
         "phrases": [
-          "Peki bu akım nereden geliyor?",
+          "Peki bu elektrik nereden geliyor?",
           "Kalbinin sağ üst köşesinden.",
           "Bir hücre kümesi ateşleniyor:",
           "dakikada altmış ila yüz kez.",
           "Dalga kulakçıklara yayılırken",
-          "ilk küçük tepe çiziliyor: P."
+          "ilk küçük tepe çiziliyor: P dalgası."
         ]
       },
       {
@@ -68,12 +68,12 @@
           49.2
         ],
         "phrases": [
-          "Peki o büyük sivri tepe ne?",
+          "Peki ya o büyük sivri tepe?",
           "Kapı açılıyor, dalga hızlanıyor;",
           "karıncıklar birden uyarılıyor.",
           "İşte QRS: asıl vuruşun işareti.",
           "Kas bir an sonra kasılıyor.",
-          "Sonra toparlanma dalgası: T."
+          "Sonra T dalgası geliyor: toparlanma."
         ]
       },
       {
@@ -106,7 +106,7 @@
     ],
     "dive": [
       {
-        "cue": "Peki bu akım",
+        "cue": "Peki bu elektrik",
         "offset": 0.2
       },
       {
@@ -204,7 +204,7 @@
             "cue": "Peki ardından"
           },
           "to": {
-            "cue": "Peki o büyük"
+            "cue": "Peki ya o büyük"
           },
           "values": [
             "#atriaDone",
@@ -213,7 +213,7 @@
         },
         {
           "from": {
-            "cue": "Peki o büyük"
+            "cue": "Peki ya o büyük"
           },
           "to": "@qrsGo",
           "values": [
@@ -1463,15 +1463,15 @@
           ],
           "emits": [
             {
-              "cue": "Kalbinin akımı",
+              "cue": "Kalbinin elektriği",
               "offset": 0.2
             },
             {
-              "cue": "Kalbinin akımı",
+              "cue": "Kalbinin elektriği",
               "offset": 1
             },
             {
-              "cue": "Kalbinin akımı",
+              "cue": "Kalbinin elektriği",
               "offset": 1.8
             }
           ],
@@ -1505,7 +1505,7 @@
               "cue": "Dalga tek"
             },
             {
-              "cue": "Peki o büyük"
+              "cue": "Peki ya o büyük"
             }
           ]
         }
@@ -1595,7 +1595,7 @@
         },
         {
           "at": {
-            "cue": "Peki o büyük"
+            "cue": "Peki ya o büyük"
           },
           "focus": "av",
           "zoom": 2.3
@@ -1832,7 +1832,7 @@
     {
       "text": "SİNYAL ≈ 1 mV",
       "at": {
-        "cue": "Kalbinin akımı",
+        "cue": "Kalbinin elektriği",
         "offset": 0.6
       },
       "until": "@dive.start",
@@ -1844,8 +1844,8 @@
     {
       "text": "KALEM PİL: 1,5 V",
       "at": {
-        "cue": "kalem pilin",
-        "offset": 0.2
+        "cue": "gerilimi, kalem",
+        "offset": 0.7
       },
       "until": "@dive.start",
       "top": 470,
@@ -1929,7 +1929,7 @@
         "offset": 0.4
       },
       "until": {
-        "cue": "Peki o büyük",
+        "cue": "Peki ya o büyük",
         "offset": -0.15
       },
       "top": 400,
@@ -1944,7 +1944,7 @@
         "offset": 0.2
       },
       "until": {
-        "cue": "Peki o büyük",
+        "cue": "Peki ya o büyük",
         "offset": -0.15
       },
       "top": 470,
@@ -1959,7 +1959,7 @@
         "offset": 0.1
       },
       "until": {
-        "cue": "Peki o büyük",
+        "cue": "Peki ya o büyük",
         "offset": -0.15
       },
       "top": 540,
@@ -2093,7 +2093,7 @@
       {
         "id": "pulse",
         "at": {
-          "cue": "Kalbinin akımı",
+          "cue": "Kalbinin elektriği",
           "offset": 0.2
         },
         "gain": 0.5
@@ -2101,7 +2101,7 @@
       {
         "id": "pulse",
         "at": {
-          "cue": "Kalbinin akımı",
+          "cue": "Kalbinin elektriği",
           "offset": 1
         },
         "gain": 0.35

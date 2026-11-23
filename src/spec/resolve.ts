@@ -5,8 +5,10 @@ import lengths from "../kit/audio/sfx-durations.json";
 import { curveFn, type CurveFn } from "../kit/curves";
 import { FPS, formatCounter } from "../kit/format";
 import { speedLabel } from "../kit/overlays/Counter";
+import { needsReading, splitToken, unreadable } from "./lexicon.ts";
 import { KEY_REF, MARK_REF } from "./primitives";
 import { ResolvedSpec, Timing, VideoSpec, type LayerOf, type Spec } from "./schema";
+import { endsOnQuestionWord, sentencesOf } from "./sentences.ts";
 import {
   captionPages,
   estimatePhrases,
@@ -192,7 +194,22 @@ const checkScript = (raw: RawSpec, spec: Spec, phrases: Phrase[]) => {
     if (i > 0 && /^peki\b/i.test(phrases[i - 1].text) && /^peki\b/i.test(p.text)) {
       fail("voiceover", `"${phrases[i - 1].text}" / "${p.text}": two "Peki…?" questions in a row`);
     }
+    const missing = raw.template ? [] : unreadable(p.text);
+    if (missing.length) {
+      fail("voiceover", `"${p.text}": no reading for ${missing.map((m) => `"${m}"`).join(", ")} — add it to src/spec/lexicon.ts or write it out`);
+    }
   });
+  for (const s of raw.template ? [] : sentencesOf(raw.voiceover.sections)) {
+    if (s.kind === "fragment") continue;
+    const tokens = s.text.trim().split(/\s+/);
+    const last = splitToken(tokens[tokens.length - 1]).base;
+    if (needsReading(last)) {
+      fail("voiceover", `"${s.text}" ends on "${last}"; end a sentence on a word ("…dalgası: T." → "Sonra T dalgası geliyor: toparlanma.")`);
+    }
+    if (endsOnQuestionWord(s.text)) {
+      fail("voiceover", `"${s.text}" ends on its question word, which then takes the stress ("Peki o sivri tepe ne?" → "Peki ya o sivri tepe?")`);
+    }
+  }
   if (!raw.template) {
     spec.titles.forEach((title, i) => {
       const spoken = new Set(phrases.filter((p) => p.end > title.from && p.start < title.to).flatMap((p) => words(p.text)));

@@ -92,8 +92,9 @@ export const QaProbe: React.FC<{ video: Video }> = ({ video }) => {
   useEffect(() => {
     const t = frame / fps;
     console.log(`QA_BOXES ${JSON.stringify({ t, boxes: boxesAt(video, t, rightInset, contentWidth) })}`);
-    const { sound, durationSec } = video.spec;
-    console.log(`QA_SPEC ${JSON.stringify({ sound, durationSec, phrases: video.phrases })}`);
+    const { sound, durationSec, labels } = video.spec;
+    const shown = labels.map(({ text, at }) => ({ text, at }));
+    console.log(`QA_SPEC ${JSON.stringify({ sound, durationSec, phrases: video.phrases, labels: shown })}`);
   }, [frame, fps, video, rightInset, contentWidth]);
   return null;
 };

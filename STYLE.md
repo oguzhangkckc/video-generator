@@ -48,10 +48,36 @@ kullanılır.
 - **Her gövde bölümü "Peki…?" sorusuyla açılır.** Soru bir önceki bölümün bıraktığı boşluğu adlandırır. **Art arda
   iki "Peki…?" cümlesi olmaz;** kancanın sorusu bu yüzden "Peki" ile başlamaz.
 - **Kanca başlıkları seslendirmeyle aynı kelimeleri kullanır** (başlık ekrandayken söylenen kelimeler).
-- **Konuşma hızı** yalnızca konuşulan sürede ölçülür: **2,6–3,0 kelime/sn** (hedef 2,8). Duraklamalar bunun üstüne eklenir.
-- **Duraklamalar (nefes payı):** virgül ve iki nokta ~0,2 sn · cümle sonu ~0,4 sn · "Peki…?" sorusundan sonra ~0,6 sn ·
-  bölüm geçişi ~0,7 sn (`src/spec/pauses.ts`). Duraklamada ses yatağı ve kamera sürer; altyazı bir sonraki cümleye
-  kadar kalır, ekran boş kalmaz ve donmaz. qa: cümle aralarının ortalaması 0,35 sn'nin altındaysa hata.
+- **Konuşma hızı** yalnızca konuşulan sürede ölçülür: **2,6–3,0 kelime/sn** (hedef 2,8). Duraklamalar bunun üstüne
+  eklenir. Pencereye sığdırmak için hızlandırma yok: zaman germe en fazla ×1,05; sığmıyorsa pencere genişler ya da
+  metin kısalır.
+- **Duraklamalar (nefes payı):**
+
+  | Sonra | Duraklama |
+  |---|---|
+  | virgül, iki nokta, noktalı virgül | ~0,2 sn |
+  | cümle sonu | ~0,4 sn |
+  | soru | ~0,6 sn |
+  | bölüm geçişi | ≥ 0,7 sn |
+
+  Kaynak: `src/spec/pauses.ts`. Duraklama, konuşmanın sustuğu süredir; arada duyulan nefes de duraklamaya dahildir.
+  Ses yalnızca mevcut sessizliğin ortasından kesilip açılır, konuşmanın kenarından asla: son kelimeden sonra en az
+  150 ms doğal sönüm kalır, kesimin iki yanına 15 ms fade. Duraklamada ses yatağı ve kamera sürer; altyazı bir sonraki
+  cümleye kadar kalır, ekran boş kalmaz ve donmaz. qa: cümle sonu arası 0,25 sn'den kısaysa uyarı, cümle sonu
+  aralarının ortalaması 0,35 sn'nin altındaysa hata.
+- **Tonlama:** nokta ile biten cümleler ve soru kelimesiyle (ne, nasıl, neden, nereden, kim, hangi…) kurulan sorular
+  sonda düşer. Son 0,4 sn'de **+2 yarım tondan fazla yükselme** ya da son hecede **60 ms'den kısa sönüm** cümleyi
+  işaretler (`scripts/prosody.py`). Virgül, iki nokta, noktalı virgülle biten parçalar ve evet/hayır soruları ("mi")
+  yükselebilir. Taslak seste işaretli cümleye 3 alternatif çekim üretilir, en iyisi otomatik seçilir;
+  `out/<slug>/review.html` ile dinlenip değiştirilebilir. İnsan kaydında işaretli cümle yeniden kaydedilir.
+- **Cümle tek harf, kısaltma ya da sembolle bitmez:** "…dalgası: T." değil, "Sonra T dalgası geliyor: toparlanma."
+- **Vurguyu yanlış kelimeye düşüren soru kalıbı kullanılmaz:** soru, soru kelimesiyle bitmez. "Peki o sivri tepe ne?"
+  değil, "Peki ya o sivri tepe?"
+- **Telaffuz sözlüğü** (`src/spec/lexicon.ts`) projede tektir: kısaltma, birim ve sembolün nasıl okunacağı orada
+  yazılır (QRS → "kü re se"). Seslendirmeye okunuş, altyazıya yazılış gider. Sözlükte olmayan kısaltma, rakam ya da
+  sembol seslendirmeye giremez (`npm run check` hatası): sözlüğe eklenir ya da yazıyla yazılır.
+- **Seslendirmedeki büyüklük, ekrandaki etiketle aynı fiziksel niceliktir.** Etiket "≈ 1 mV" (gerilim) gösterirken
+  seslendirme "akım" demez; gerilim, akım, süre, hız birbirine karışmaz (`src/spec/quantities.ts`, qa uyarısı).
 - **Kelime bütçesi** = (pencere − duraklamalar) × 2,8. 30 sn ≈ 65 kelime, 45 sn ≈ 95, 60 sn ≈ 125.
 - Cümleler kısa tutulur. Bir cümle bir altyazı sayfasıdır ve tek satıra sığmalıdır (≈ 32 karakter).
 - **Sağ ya da sol söylenen her yerde ekranda yön ipucu olur.** Anatomik görünümde izleyicinin sağı ekranın solunda
@@ -115,12 +141,13 @@ Sıra her zaman aynıdır:
 
 ## Ses
 
-- Seslendirme −14 LUFS'e normalize edilir. Efekt dosyaları −16 LUFS'tedir; görece seviyeleri
+- Seslendirme −14 LUFS'e tek bir kazançla normalize edilir (dinamik sıkıştırma duraklamaları kısaltır). Efekt
+  dosyaları −16 LUFS'tedir; görece seviyeleri
   `src/kit/audio/sfx-catalog.json` içindeki `level` belirler.
 - Ambiyans yatakları ve müzik konuşma sırasında **~6 dB kısılır** (`duck: 0.5`).
 - Yatak ya da müzik **videonun tamamı boyunca kesintisiz** çalar. Kısa bir yatak `loop: true` ile döner; müzik
   kullanılmıyorsa varsayılan yatak `space`, `loop: true`, 0'dan sona.
-- Konuşma hızı render sonrası ölçülür (`npm run qa`): genel olarak 2,2–2,8 kelime/sn.
+- Konuşma hızı, duraklamalar ve tonlama seslendirme dosyasında ölçülür (`npm run qa`); ölçüler "Anlatım"da.
 - Efekt görsel bir olaya bağlıdır: bir etiket, bir geçiş, bir çarpma. Olaysız efekt yoktur.
 
 ## Dürüstlük
@@ -146,7 +173,9 @@ Still kareler incelenirken (skill adım e) her madde tek tek kontrol edilir:
 - [ ] Etiket sütununa çizim girmiyor; bir bölüm içinde sayacın hız etiketi değişmiyor.
 - [ ] Kancadaki soru finalde açıkça cevaplanıyor.
 - [ ] Her bölüm "Peki…?" ile açılıyor; izleyiciye "sen" deniyor.
-- [ ] Kelime sayısı bütçenin içinde (süre × 2,5); hiçbir altyazı satırı taşmıyor.
+- [ ] Kelime sayısı bütçenin içinde ((pencere − duraklamalar) × 2,8); hiçbir altyazı satırı taşmıyor.
+- [ ] Cümle harf/kısaltma/sembolle bitmiyor; soru, soru kelimesiyle bitmiyor; her kısaltma sözlükte.
+- [ ] Seslendirmedeki her büyüklük, o an ekrandaki etiketle aynı nicelik (gerilim/akım/süre/hız).
 - [ ] 2–3 sn'de bir yeni rakam/etiket var; aynı anda en fazla 4 veri satırı.
 - [ ] Renkler anlamına uygun: turuncu = senin verin, kırmızı = tehlike, camgöbeği = ikincil.
 - [ ] Hiçbir yazı güvenli alanlara (alt %15, sağ 120 px) ya da altyazının üstüne binmiyor; işaretçiyi örtmüyor.

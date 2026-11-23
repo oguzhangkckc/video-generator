@@ -31,7 +31,7 @@ npm run align -- uydu-interneti ~/Desktop/seslendirme.wav         # Whisper ile 
 npm run render -- uydu-interneti                                  # out/uydu-interneti.mp4, −14 LUFS
 ```
 
-Ses yokken altyazılar ve cümleye bağlı zamanlar tahmini zamanlamayla (2,5 kelime/sn) çalışır, yani ses gelmeden
+Ses yokken altyazılar ve cümleye bağlı zamanlar tahmini zamanlamayla (2,8 kelime/sn + duraklamalar) çalışır, yani ses gelmeden
 de kareler incelenebilir.
 
 ## Komutlar
@@ -44,7 +44,10 @@ de kareler incelenebilir.
 | `npm run stills -- <slug> <kare\|12.5s>… [--every N] [--out dir] [--sheet]` | still kareler (+ kare sayfası) |
 | `npm run align -- <slug> <ses> [--dry]` | whisper.cpp (yerel) ile kelime zamanları → `timing.json`, `vo.wav` |
 | `npm run align -- <slug> --timing [--dry]` | Whisper'sız: mevcut `timing.json`'un kelime zamanlarıyla `vo.wav`'daki kısa cümle aralarına sessizlik ekler |
-| `npm run voiceover -- build <slug> <voiceId> [--widen] [--speed 1.0]` | ElevenLabs taslak seslendirme, cümle cümle, kurallı duraklamalarla → `timing.json`, `vo.wav`; sığmazsa tablo basar, `--widen` pencereleri genişletir |
+| `npm run voiceover -- build <slug> [voiceId] [--widen] [--offline]` | ElevenLabs taslak seslendirme: bölüm başına tek istek, duraklamalar sessizliklerden açılır, tonlaması işaretli cümleye 3 alternatif → `timing.json`, `vo.wav`, `out/<slug>/review.html`; sığmazsa tablo basar, `--widen` pencereleri genişletir |
+| `npm run review -- <slug>` | `review.html`'i yerelde (127.0.0.1) açar: alternatifleri dinle, seç; seçim `voiceover.picks`'e yazılır, ses kredisiz yeniden kurulur |
+| `npm run voiceover -- pick <slug> <cümle#> <çekim>` | aynı seçim komut satırından |
+| `npm test` | ses ölçümü, kesim kuralları, telaffuz sözlüğü, cümle türleri ve nicelik birim testleri |
 | `npm run render -- <slug>` | render + mastering (−14 LUFS, ≈ −1,5 dBTP) → `out/<slug>.mp4` |
 | `npm run sfx [id…]` | ElevenLabs efektlerini katalogdan üretir → `public/kit/sfx/` |
 | `npm run music -- list` | lisanslı müzik kütüphanesini listeler ve doğrular |
@@ -136,7 +139,13 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
 
 - **Seslendirme:** İnsan kaydı ya da herhangi bir TTS → `npm run align`. Hizalama whisper.cpp ile yerelde yapılır,
   ücretsizdir; model ~1,6 GB'tır ve `out/whisper/` altına bir kez iner. Whisper'ın yazımı senaryodan farklı olsa da
-  ("20.000" / "yirmi bin") kelimeler senaryoya hizalanır ve altyazıda senaryo görünür.
+  ("20.000" / "yirmi bin") kelimeler senaryoya hizalanır ve altyazıda senaryo görünür. Sonda yükselen ya da kesik
+  biten cümleler "yeniden kaydet" listesine düşer.
+- **Telaffuz sözlüğü:** `src/spec/lexicon.ts`. Kısaltma, birim ve sembollerin okunuşu (QRS → "kü re se"); TTS'e ve
+  Whisper eşleştirmesine okunuş, altyazıya yazılış gider. Sözlükte olmayan kısaltma `npm run check`'te hata verir.
+- **Ölçüm:** `scripts/lib/speech.mjs` (duraklama, sessizlik, kesim noktası, sessizlik ekleme) ve `scripts/prosody.py`
+  (Praat/parselmouth ile cümle sonu perde yükselmesi ve sönüm). Python bağımlılıkları `uv run` ile kendiliğinden
+  kurulur; `uv` gerekir.
 - **Efektler:** `src/kit/audio/sfx-catalog.json` (istem, süre, miks seviyesi) → `npm run sfx`. Ham çıktılar
   `out/sfx-raw/` içinde saklanır; seviye ayarı kredi harcamaz.
 - **Müzik:** lisanslı yerel kütüphane, `public/kit/music/`. Her parçanın yanına aynı adlı bir JSON konur:
@@ -156,9 +165,12 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
 - **Yerleşim** (render gerekmez): her 0,25 sn'de bir kare tarayıcıda açılır, üst yazıların kutuları
   `@remotion/layout-utils` ile ölçülür. Yazılar birbirine ya da altyazıya biniyorsa, sağdaki 120 px'e ya da alttaki
   %15'e taşıyorsa hata. Üst yazılar kapatılmış karede bir etiket kutusunun içinden parlak çizgi geçiyorsa uyarı.
-- **Ses** (render sonrası): konuşma hızı genel 2,2–2,8 kelime/sn dışındaysa hata, bölüm hedeften %20 saparsa uyarı;
-  son 0,7 sn dışında 0,3 sn'den uzun dijital sessizlik hata; bir yatak ya da müzik hâlâ duyulması gerekirken dosya
-  biterse hata.
+- **Seslendirme** (`vo.wav` üzerinde, dinleyicinin duyduğu gibi): konuşulan sürede 2,6–3,0 kelime/sn dışındaysa
+  uyarı; cümle sonu arası 0,25 sn'den kısaysa uyarı, ortalaması 0,35 sn'nin altındaysa hata; sonda +2 yarım tondan
+  fazla yükselen ya da 60 ms'den kısa sönen cümle uyarı (insan kaydında "yeniden kaydet"); birimli bir etiket
+  ekrandayken seslendirme başka bir niceliği adlandırıyorsa uyarı.
+- **Ses** (render sonrası): son 0,7 sn dışında 0,3 sn'den uzun dijital sessizlik hata; bir yatak ya da müzik hâlâ
+  duyulması gerekirken dosya biterse hata.
 
 ## GPS pilotu ve regresyon
 

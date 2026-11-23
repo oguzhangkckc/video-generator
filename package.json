@@ -17,7 +17,9 @@
     "music": "node scripts/music.mjs",
     "typecheck": "tsc --noEmit",
     "models": "node scripts/models.mjs",
-    "qa": "node scripts/qa.mjs"
+    "qa": "node scripts/qa.mjs",
+    "review": "node scripts/review.mjs",
+    "test": "node --test scripts/test/*.test.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "9.8.2",

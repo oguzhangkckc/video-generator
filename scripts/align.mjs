@@ -1,20 +1,24 @@
 // Word timings for a finished voice-over (human or any TTS) with Whisper, run locally through whisper.cpp.
 //   node scripts/align.mjs <slug> <audio-file> [--model large-v3-turbo] [--dry]
 //   node scripts/align.mjs <slug> --timing [--dry]
-// → public/videos/<slug>/vo.wav (48 kHz stereo, −14 LUFS) + videos/<slug>/timing.json
+// → public/videos/<slug>/vo.wav (stereo, −14 LUFS by one gain) + videos/<slug>/timing.json
 //   --dry only reports; out/<slug>/align/timing.json gets the raw alignment of the input, e.g. to test against a
 //   known timing.
 //   --timing skips Whisper and takes the word times of the existing timing.json (e.g. a TTS voice-over with its own
 //   alignment), so only the pauses of public/videos/<slug>/vo.wav are opened.
-// Whisper's text is only used for timing: it may spell "yirmi bin" as "20.000", so its words are aligned to the
-// script's words and the captions always show the script.
-// A gap between phrases shorter than its STYLE pause (src/spec/pauses.ts) is opened with silence, cut in at the
-// quietest point of the gap; longer gaps stay as recorded.
+// Whisper hears the spoken form (src/spec/lexicon.ts), so "QRS" is matched as "kü re se"; its words are aligned to
+// the script's and the captions always show the script. A pause shorter than its STYLE length (src/spec/pauses.ts)
+// is opened with silence inside the existing quiet (scripts/lib/speech.mjs). Every sentence's ending is measured
+// (scripts/prosody.py); a recording cannot be regenerated, so flagged sentences are listed to record again, with
+// out/<slug>/review.html to hear them.
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { downloadWhisperModel, installWhisperCpp, transcribe } from "@remotion/install-whisper-cpp";
+import { spoken, spokenWords } from "../src/spec/lexicon.ts";
 import { pauseAfter } from "../src/spec/pauses.ts";
 import { parseArgs } from "./lib/args.mjs";
+import { flagText, writeReview } from "./lib/review.mjs";
+import { PROSODY, openPauses, phraseRanges, speechReport } from "./lib/speech.mjs";
 import {
   ROOT,
   SAMPLE_RATE,
@@ -27,6 +31,7 @@ import {
   readPcm,
   requireSlug,
   videoDir,
+  writeVoice,
   writeWav,
 } from "./lib/video.mjs";
 
@@ -36,15 +41,6 @@ const MODEL_DIR = path.join(ROOT, "out/whisper/models");
 const MATCH = 0.5;
 const GAP_COST = 0.7;
 const CHANNELS = 2;
-const MIN_OPEN = 0.02;
-const QUIET_DB = -50;
-const MIN_PAUSE = 0.05;
-// Whisper's phrase ends land up to ~0.25 s late (DTW), so the real pause is searched for mostly before them.
-const SEARCH_BEFORE = 0.3;
-const SEARCH_AFTER = 0.15;
-const WIN = SAMPLE_RATE / 100;
-const HOP = WIN / 2;
-const FADE = Math.round(0.005 * SAMPLE_RATE);
 
 const { positional, flags } = parseArgs(process.argv.slice(2), { model: "string", dry: "boolean", timing: "boolean" });
 const slug = requireSlug(positional[0]);
@@ -60,18 +56,31 @@ if (!input) {
 }
 const model = flags.model ?? "large-v3-turbo";
 const { spec } = loadSpec(slug);
-const phrases = spec.voiceover.sections.flatMap((s) => s.phrases);
-const script = phrases.flatMap((p) => p.split(" "));
+const sections = spec.voiceover.sections;
+const phrases = sections.flatMap((s) => s.phrases);
+const written = phrases.flatMap((p) => p.split(" "));
+const groups = phrases.flatMap(spokenWords);
+const script = groups.flat();
 
 const workDir = path.join(outDir(slug), "align");
 mkdirSync(workDir, { recursive: true });
 
 const knownWords = () => {
-  if (known.words.length !== script.length) {
-    console.error(`timing.json has ${known.words.length} words, the script ${script.length}; rebuild the voice-over first`);
+  if (known.words.length !== written.length) {
+    console.error(`timing.json has ${known.words.length} words, the script ${written.length}; rebuild the voice-over first`);
     process.exit(1);
   }
   return { words: known.words.map((w) => ({ text: w.text, start: w.startMs / 1000, end: w.endMs / 1000, confidence: w.confidence })) };
+};
+
+/** Spoken-word times folded back onto the written words they read. */
+const fold = (timed) => {
+  let k = 0;
+  return written.map((text, i) => {
+    const span = timed.slice(k, (k += groups[i].length));
+    const scores = span.map((w) => w.confidence).filter((c) => c != null);
+    return { text, start: span[0].start, end: span[span.length - 1].end, confidence: scores.length === span.length ? Math.min(...scores) : null };
+  });
 };
 
 const whisperWords = async () => {
@@ -91,7 +100,7 @@ const whisperWords = async () => {
     language: spec.lang === "tr" ? "tr" : spec.lang,
     splitOnWord: true,
     // The script as initial prompt nudges Whisper towards the same spelling, which raises the match rate.
-    additionalArgs: [["--prompt", phrases.join(" ").slice(0, 600)]],
+    additionalArgs: [["--prompt", spoken(phrases.join(" ")).slice(0, 600)]],
   });
   writeFileSync(path.join(workDir, "whisper.json"), JSON.stringify(output, null, 1));
 
@@ -145,161 +154,101 @@ const whisperWords = async () => {
   // Unmatched script words share the gap between their matched neighbours by length.
   const audioEnd = duration(input);
   const weight = (w) => norm(w).length + 1;
-  const words = [];
+  const timed = [];
   for (let i = 0; i < script.length; ) {
     if (anchor[i]) {
-      words.push({ text: script[i], start: anchor[i].start, end: anchor[i].end, confidence: anchor[i].score });
+      timed.push({ text: script[i], start: anchor[i].start, end: anchor[i].end, confidence: anchor[i].score });
       i++;
       continue;
     }
     let k = i;
     while (k < script.length && !anchor[k]) k++;
-    const from = words.length ? words[words.length - 1].end : (heard[0]?.start ?? 0);
+    const from = timed.length ? timed[timed.length - 1].end : (heard[0]?.start ?? 0);
     const to = k < script.length ? anchor[k].start : Math.max(from, heard[heard.length - 1]?.end ?? audioEnd);
     const total = script.slice(i, k).reduce((s, w) => s + weight(w), 0);
     let cursor = from;
     for (let n = i; n < k; n++) {
       const d = ((to - from) * weight(script[n])) / total;
-      words.push({ text: script[n], start: cursor, end: cursor + d, confidence: null });
+      timed.push({ text: script[n], start: cursor, end: cursor + d, confidence: null });
       cursor += d;
     }
     i = k;
   }
-  return { words, matched: anchor.filter(Boolean).length, heard: heard.length };
+  return { words: fold(timed), matched: anchor.filter(Boolean).length, heard: heard.length };
 };
 
 const { words, matched, heard } = known ? knownWords() : await whisperWords();
 
-let cursor = 0;
-const ranges = phrases.map((text) => [cursor, (cursor += text.split(" ").length)]);
-const sectionEnds = spec.voiceover.sections.flatMap((s) => s.phrases.map((_, i) => i === s.phrases.length - 1));
-
+const ranges = phraseRanges(phrases);
+const sectionEnds = sections.flatMap((s) => s.phrases.map((_, i) => i === s.phrases.length - 1));
 const pcm = readPcm(input, { channels: CHANNELS });
-const levels = new Float32Array(Math.max(0, Math.floor((pcm.length / CHANNELS - WIN) / HOP) + 1));
-for (let k = 0; k < levels.length; k++) {
-  let energy = 0;
-  for (let j = k * HOP * CHANNELS; j < (k * HOP + WIN) * CHANNELS; j++) energy += pcm[j] * pcm[j];
-  levels[k] = 10 * Math.log10(energy / (WIN * CHANNELS) + 1e-12);
+const opened = openPauses(pcm, CHANNELS, words, ranges, (i) => pauseAfter(phrases[i], { sectionEnd: sectionEnds[i] }));
+const result = flags.dry ? { pcm, words } : opened;
+
+const voFile = path.join(publicDir(slug), "vo.wav");
+const measured = flags.dry ? path.join(workDir, "input-48k.wav") : voFile;
+if (flags.dry) writeWav(measured, pcm, { channels: CHANNELS });
+else {
+  mkdirSync(publicDir(slug), { recursive: true });
+  writeVoice(voFile, result.pcm, { channels: CHANNELS });
 }
-// A noisy room raises the bar above its own floor, so its room tone still counts as a pause.
-const quietDb = Math.max(QUIET_DB, [...levels].sort((x, y) => x - y)[Math.floor(levels.length * 0.05)] + 10);
-
-/** The quiet stretch (≥ MIN_PAUSE) inside [lo, hi] s nearest to [a, b] s, as [first, end) frames; null if none. */
-const pauseNear = (lo, hi, a, b) => {
-  const runs = [];
-  let run = null;
-  for (let k = Math.max(0, Math.ceil((lo * SAMPLE_RATE) / HOP)); k < levels.length && k * HOP + WIN <= hi * SAMPLE_RATE; k++) {
-    if (levels[k] < quietDb) {
-      run ??= [k * HOP, 0];
-      run[1] = k * HOP + WIN;
-    } else if (run) {
-      runs.push(run);
-      run = null;
-    }
-  }
-  if (run) runs.push(run);
-  const distance = ([s, e]) => Math.max(0, s / SAMPLE_RATE - b, a - e / SAMPLE_RATE);
-  const long = runs.filter(([s, e]) => e - s >= MIN_PAUSE * SAMPLE_RATE);
-  return long.sort((x, y) => distance(x) - distance(y) || y[1] - y[0] - (x[1] - x[0]))[0] ?? null;
-};
-
-// The pause is measured in the audio, since Whisper's gaps are too rough; a boundary with no real pause is never cut.
-const opens = [];
-const runOns = [];
-for (let i = 0, earliest = 0; i < phrases.length - 1; i++) {
-  const end = words[ranges[i][1] - 1].end;
-  const next = words[ranges[i + 1][0]].start;
-  const want = pauseAfter(phrases[i], { sectionEnd: sectionEnds[i] });
-  const lo = Math.max(earliest, words[ranges[i][0]].start, Math.min(end, next) - SEARCH_BEFORE);
-  const hi = Math.min(words[ranges[i + 1][1] - 1].end, Math.max(end, next) + SEARCH_AFTER);
-  const run = pauseNear(lo, hi, Math.min(end, next), Math.max(end, next));
-  const pause = run ? (run[1] - run[0]) / SAMPLE_RATE : next - end;
-  if (want - pause < MIN_OPEN) continue;
-  if (!run) {
-    runOns.push({ after: i, at: end });
-    continue;
-  }
-  const frame = Math.round((run[0] + run[1]) / 2);
-  opens.push({ after: i, frame, frames: Math.round((want - pause) * SAMPLE_RATE), pause, want });
-  earliest = frame / SAMPLE_RATE;
-}
-
-let delay = 0;
-const shifted = phrases.flatMap((_, i) => {
-  const out = words.slice(...ranges[i]).map((w) => ({ ...w, start: w.start + delay, end: w.end + delay }));
-  const open = opens.find((o) => o.after === i);
-  if (open) delay += open.frames / SAMPLE_RATE;
-  return out;
-});
-
-/** The recording with each open's silence cut in at its frame, faded over FADE frames on both sides of the cut. */
-const withSilences = () => {
-  const out = new Float32Array(pcm.length + opens.reduce((n, o) => n + o.frames, 0) * CHANNELS);
-  const holes = [];
-  let src = 0;
-  let dst = 0;
-  for (const o of opens) {
-    out.set(pcm.subarray(src * CHANNELS, o.frame * CHANNELS), dst * CHANNELS);
-    dst += o.frame - src;
-    holes.push([dst, dst + o.frames]);
-    dst += o.frames;
-    src = o.frame;
-  }
-  out.set(pcm.subarray(src * CHANNELS), dst * CHANNELS);
-  for (const [a, b] of holes) {
-    for (let f = 0; f < FADE; f++) {
-      for (let c = 0; c < CHANNELS; c++) {
-        if (a - 1 - f >= 0) out[(a - 1 - f) * CHANNELS + c] *= f / FADE;
-        if ((b + f) * CHANNELS + c < out.length) out[(b + f) * CHANNELS + c] *= f / FADE;
-      }
-    }
-  }
-  return out;
-};
+const report = speechReport({ wav: measured, pcm: readPcm(measured, { channels: CHANNELS }), channels: CHANNELS, words: result.words, sections });
+ranges.forEach(([first], i) => (result.words[first].start = Math.max(result.words[first].start, report.bounds[i].onset)));
 
 const round2 = (x) => Math.round(x * 100) / 100;
-const timingOf = (ws) => ({
+const timing = {
   source: known ? known.source : `whisper.cpp ${WHISPER_VERSION} ${model}`,
   audio: `videos/${slug}/vo.wav`,
-  phrases: phrases.map((text, i) => {
-    const span = ws.slice(...ranges[i]);
-    return { text, start: round2(span[0].start), end: round2(span[span.length - 1].end) };
-  }),
-  words: ws.map((w) => ({
+  phrases: phrases.map((text, i) => ({ text, start: round2(report.bounds[i].onset), end: round2(report.bounds[i].offset) })),
+  words: result.words.map((w) => ({
     text: w.text,
     startMs: Math.round(w.start * 1000),
     endMs: Math.round(w.end * 1000),
     timestampMs: Math.round(((w.start + w.end) / 2) * 1000),
     confidence: w.confidence,
   })),
-});
-
+};
 const timingFile = flags.dry ? path.join(workDir, "timing.json") : path.join(videoDir(slug), "timing.json");
-writeFileSync(timingFile, `${JSON.stringify(timingOf(flags.dry ? words : shifted), null, 2)}\n`);
-if (!flags.dry) {
-  mkdirSync(publicDir(slug), { recursive: true });
-  writeWav(path.join(publicDir(slug), "vo.wav"), withSilences(), { channels: CHANNELS, filter: "loudnorm=I=-14:TP=-1.5:LRA=7,aresample=48000" });
-}
+writeFileSync(timingFile, `${JSON.stringify(timing, null, 2)}\n`);
 
 if (!known) console.log(`${matched}/${script.length} script words matched Whisper's (${heard} heard); the rest interpolated`);
-const added = opens.reduce((n, o) => n + o.frames, 0) / SAMPLE_RATE;
-console.log(
-  `${flags.dry ? "would open" : "opened"} ${opens.length} of ${phrases.length - 1} phrase gaps to the STYLE pauses, +${added.toFixed(2)} s in all`,
-);
+const added = opened.cuts.reduce((n, c) => n + c.seconds, 0);
+console.log(`${flags.dry ? "would open" : "opened"} ${opened.cuts.length} of ${phrases.length - 1} phrase gaps to the STYLE pauses, +${added.toFixed(2)} s in all`);
 const after = (i) => `after "${phrases[i].length > 40 ? `${phrases[i].slice(0, 39)}…` : phrases[i]}"`.padEnd(50);
-for (const o of opens) {
-  console.log(`  ${after(o.after)} ${o.pause.toFixed(2)} → ${o.want.toFixed(2)} s, cut at ${(o.frame / SAMPLE_RATE).toFixed(2)} s`);
-}
-for (const r of runOns) console.log(`  ${after(r.after)} no pause in the audio near ${r.at.toFixed(2)} s — left as recorded`);
+for (const c of opened.cuts) console.log(`  ${after(c.after)} ${c.have.toFixed(2)} → ${c.want.toFixed(2)} s, cut at ${c.at.toFixed(2)} s`);
+for (const i of opened.runOns) console.log(`  ${after(i)} no pause in the audio — left as recorded`);
 let firstWord = 0;
-for (const section of spec.voiceover.sections) {
-  const start = shifted[firstWord].start;
+for (const section of sections) {
+  const start = result.words[firstWord].start;
   const shift = start - section.window[0];
   console.log(`  ${section.id.padEnd(12)} starts at ${start.toFixed(2)} s (window ${section.window[0]}–${section.window[1]})${Math.abs(shift) > 0.5 ? "  ← check marks tied to this section" : ""}`);
   firstWord += section.phrases.reduce((n, p) => n + p.split(" ").length, 0);
 }
-const speechEnd = shifted[shifted.length - 1].end;
-if (speechEnd > spec.durationSec - 0.3) {
-  console.log(`speech ends at ${speechEnd.toFixed(2)} s — raise durationSec to about ${Math.ceil(speechEnd + 0.5)}`);
-}
+const speechEnd = result.words[result.words.length - 1].end;
+if (speechEnd > spec.durationSec - 0.3) console.log(`speech ends at ${speechEnd.toFixed(2)} s — raise durationSec to about ${Math.ceil(speechEnd + 0.5)}`);
+
+// A recording cannot be re-read by a model: flagged sentences are listed to record again, with the take to hear.
+const flagged = report.sentences.filter((s) => s.flags.length);
+const mono = readPcm(measured, { channels: 1 });
+writeReview(slug, {
+  mode: "recording",
+  limits: PROSODY,
+  items: flagged.map((s) => ({
+    n: s.id + 1,
+    text: s.text,
+    candidates: [
+      {
+        seed: 0,
+        label: `Kayıt, ${s.start.toFixed(2)}–${s.end.toFixed(2)} s`,
+        rise: s.rise,
+        decay: s.decay,
+        flags: s.flags,
+        pcm: mono.slice(Math.round(Math.max(0, s.start - 0.1) * SAMPLE_RATE), Math.round((s.end + 0.3) * SAMPLE_RATE)),
+      },
+    ],
+  })),
+});
+console.log(flagged.length ? `\nRecord again (${flagged.length} of ${report.sentences.length} sentences):` : "\nIntonation: no sentence flagged");
+for (const s of flagged) console.log(`  ${String(s.id + 1).padStart(2)}. ${s.start.toFixed(2)} s  ${s.text}  — ${flagText(s.flags)}`);
+if (flagged.length) console.log(`  listen: ${path.relative(ROOT, path.join(outDir(slug), "review.html"))}`);
 console.log(`${path.relative(ROOT, timingFile)}${flags.dry ? " (raw alignment of the input, before opening gaps)" : ""}`);

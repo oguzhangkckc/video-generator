@@ -18,6 +18,22 @@ komut satırına koyma.
 
 **★ = dur ve açık onay iste.** Onay gelmeden sonraki adıma geçme; kullanıcı değişiklik isterse aynı adımı tekrarla.
 
+**Sorun bildirildiğinde önce sistemi düzelt.** Kullanıcı bir videoda sorun bildirdiğinde o videoyu elle düzeltmeden
+önce:
+
+1. Sorunu hangi STYLE kuralının ya da `npm run check` / `npm run qa` kontrolünün yakalaması gerektiğini belirle.
+2. Böyle bir kural ya da kontrol yoksa ekle; varsa neden yakalamadığını bul ve düzelt (eşik, ölçüm, kapsam).
+3. Kontrolün sorunu artık yakaladığını o videoda göster.
+4. Ancak bundan sonra videoyu yeniden üret.
+
+**Sorun bildirildiğinde önce sistemi düzelt.** Kullanıcı bir videoda sorun bildirdiğinde o videoyu elle düzeltmeden
+önce:
+
+1. Sorunu hangi STYLE kuralının ya da `npm run check` / `npm run qa` kontrolünün yakalaması gerektiğini belirle.
+2. Böyle bir kural ya da kontrol yoksa ekle; varsa neden yakalamadığını bul ve düzelt (eşik, ölçüm, kapsam).
+3. Kontrolün sorunu artık yakaladığını o videoda göster.
+4. Ancak bundan sonra videoyu yeniden üret.
+
 ## a) Açılar ★
 
 Konu için 2–3 farklı açı öner, tek tablo halinde:
@@ -57,8 +73,14 @@ Birini gerekçesiyle öner. **Dur.**
   - kanca: 0–5 sn
   - 2–3 gövde bölümü
   - doruk ve final: son ~8 sn
-- Kelime bütçesi: (bölüm penceresi − duraklamalar) × 2,8. Duraklamalar ≈ 0,7 (bölüm geçişi) + 0,6 × "Peki…?"
-  sorusu + 0,4 × cümle sonu + 0,2 × virgül/iki nokta (`src/spec/pauses.ts`).
+- Kelime bütçesi: (bölüm penceresi − duraklamalar) × 2,8. Duraklamalar ≈ 0,7 (bölüm geçişi) + 0,6 × soru
+  + 0,4 × cümle sonu + 0,2 × virgül/iki nokta (`src/spec/pauses.ts`).
+- Yazım kuralları (STYLE "Anlatım"; `npm run check` hata verir):
+  - cümle tek harf, kısaltma ya da sembolle bitmez ("…dalgası: T." → "Sonra T dalgası geliyor: toparlanma.")
+  - soru, soru kelimesiyle bitmez; vurgu oraya düşer ("Peki o sivri tepe ne?" → "Peki ya o sivri tepe?")
+  - her kısaltma, birim ve sembolün okunuşu telaffuz sözlüğünde (`src/spec/lexicon.ts`) olmalı; yoksa ekle ya da
+    yazıyla yaz. Seslendirmeye okunuş, altyazıya yazılış gider
+  - seslendirmedeki her büyüklük, o an ekrandaki etiketle aynı nicelik (b'deki tablo)
 - STYLE kuralları:
   - izleyiciye "sen" diye hitap
   - her gövde bölümü "Peki…?" ile açılır; **art arda iki "Peki…?" cümlesi olmaz** (kancanın sorusu "Peki"siz)
@@ -111,7 +133,7 @@ Birini gerekçesiyle öner. **Dur.**
    - `sources` (b'den), `credits` (aşağıdaki kurallara göre)
    - varsa `styleExceptions`
 3. Konuşmaya bağlı her zamanı cümleye bağla (`{ "cue": "…", "offset": 0.1 }`); sabit saniye yalnızca sesten bağımsız
-   kamera hareketleri için. Ses henüz yok; altyazı tahmini zamanlamayla (2,5 kelime/sn) çalışır.
+   kamera hareketleri için. Ses henüz yok; altyazı tahmini zamanlamayla (2,8 kelime/sn + duraklamalar) çalışır.
 4. `npm run check` temiz olmalı.
 5. Kilit anları render et: her bölümün ilk saniyesi, her etiketin göründüğü an +0,3 sn, her geçişin ortası, geri
    sayım, kavram kartı, son kare. Komut: `npm run stills -- <slug> 0.5s 4s … --sheet`.
@@ -127,10 +149,12 @@ Birini gerekçesiyle öner. **Dur.**
 Seslendirme dosyası verildiğinde:
 
 1. `npm run align -- <slug> <dosya>` çalıştır. Hizalama whisper.cpp ile yerelde yapılır; ilk çalıştırmada ~1,6 GB
-   model iner. Çıktıda üç şeye bak:
+   model iner. Kısa duraklamalar sessizliğin ortasından açılır. Çıktıda dört şeye bak:
    - eşleşme oranı: %80'in altındaysa metin ve ses uyuşmuyor olabilir, kullanıcıya sor
    - bölüm başlangıç kaymaları
    - süre önerisi
+   - **"Record again" listesi:** sonda yükselen ya da kesik biten cümleler. Kayıt yeniden üretilemez; listeyi
+     kullanıcıya ver (`out/<slug>/review.html` ile dinlenir), yeniden kaydedilen dosyayla align'ı tekrarla.
 2. Zamanlar artık `timing.json`'da; cümleye bağlı her şey kendiliğinden kayar. Sabit saniyeli işaretleri (`marks`)
    yeni bölüm başlangıçlarına göre güncelle. Konuşma süreyi aşıyorsa `durationSec`'i artır.
 3. Senkronu kontrol et: e'deki kilit anları `--sheet` ile yeniden üret, etiketlerin söylendikleri kelimeyle
@@ -144,18 +168,25 @@ Seslendirme dosyası verildiğinde:
    - İnternetten kendiliğinden müzik indirme.
 5. `npm run render -- <slug>` → `out/<slug>.mp4`. Son satır "OK" olmalı (−14 ± 0,5 LUFS, ≤ −1 dBTP); değilse
    nedenini bul.
-6. **`npm run qa -- <slug> --audio` zorunlu:** konuşma hızı (genel 2,2–2,8 kelime/sn), dijital sessizlik, yatak
-   sürekliliği. Hata varsa düzelt, yeniden render et.
+6. **`npm run qa -- <slug>` zorunlu:** yerleşim, konuşulan sürede 2,6–3,0 kelime/sn, cümle sonu araları (ortalama
+   ≥ 0,35 sn), tonlama (işaretli cümleler), nicelik tutarlılığı, dijital sessizlik, yatak sürekliliği. Hata varsa
+   düzelt, yeniden render et.
 7. Kullanıcıya bildir: dosya yolu, süre, loudness, **qa sonuç tablosu**, kontrol listesinin son durumu, kredilerin
    özeti.
 
 Seslendirme dosyası yoksa ve kullanıcı taslak ses isterse: `npm run voiceover -- build <slug> <voiceId>`. Bu
-ElevenLabs kredisi harcar ve ücretsiz planda çıkan ses ticari kullanılamaz; ikisini de önceden söyle. Ses cümle
-cümle üretilir ve kurallı duraklamalarla birleştirilir (hızlandırma en fazla ×1,05; klipler `out/<slug>/vo-clips/`
-altında önbelleğe alınır). Bir bölüm sığmazsa script durup tablo basar: `--widen` ile pencereleri genişlet ya da metni
-kısaltmayı öner. İnsan kaydında `align` kurallardan kısa aralara sessizlik ekler. Kredi yoksa, eski bir taslak sesin
-aralarını `npm run align -- <slug> --timing` açar (Whisper'sız, mevcut kelime zamanlarıyla); sonra pencereleri ve
-`durationSec`'i yeni konuşmaya göre güncelle.
+ElevenLabs kredisi harcar ve ücretsiz planda çıkan ses ticari kullanılamaz; ikisini de önceden söyle. Kredi tahmini:
+metnin karakter sayısı + işaretlenecek cümleler için 3 × cümle uzunluğu.
+
+- Her bölüm tek istekte üretilir (cümle sonları doğal tonlansın diye); duraklamalar yalnızca mevcut sessizliklerin
+  ortasından açılır. Hızlandırma en fazla ×1,05; istekler `out/<slug>/vo-takes/` altında önbellekte, tekrar
+  çalıştırmak kredi harcamaz. Ses kimliği spec'e (`voiceover.tts`) yazılır.
+- Bir bölüm sığmazsa script durup tablo basar: `--widen` ile pencereleri genişlet ya da metni kısaltmayı öner.
+- Tonlaması işaretlenen her cümle için 3 alternatif üretilir ve en iyisi otomatik seçilir. Kullanıcıya
+  `npm run review -- <slug>` komutunu ver: sayfada (`out/<slug>/review.html`) dinler, seçer; seçim spec'e
+  (`voiceover.picks`) yazılır, ses önbellekten kredisiz yeniden kurulur ve sonraki üretimlerde korunur.
+- Kredi yoksa, eski bir taslak sesin aralarını `npm run align -- <slug> --timing` açar (Whisper'sız, mevcut kelime
+  zamanlarıyla); sonra pencereleri ve `durationSec`'i yeni konuşmaya göre güncelle.
 
 ## Kurallar
 

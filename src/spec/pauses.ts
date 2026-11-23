@@ -8,11 +8,11 @@ const CLOSE = `["”»']?`;
 /** Ends a sentence (., !, ?, …), as opposed to a comma or a phrase that runs on. */
 export const endsSentence = (text: string) => new RegExp(`[.!?…]${CLOSE}$`).test(text.trim());
 
-/** Pause after a phrase: section change, a "Peki…?" question, sentence end, comma/colon, or none. */
+/** Pause after a phrase: section change, a question, sentence end, comma/colon, or none. */
 export const pauseAfter = (text: string, { sectionEnd = false }: { sectionEnd?: boolean } = {}): number => {
   if (sectionEnd) return PAUSE.section;
   const t = text.trim();
-  if (/^peki\b/i.test(t) && new RegExp(`\\?${CLOSE}$`).test(t)) return PAUSE.question;
+  if (new RegExp(`\\?${CLOSE}$`).test(t)) return PAUSE.question;
   if (endsSentence(t)) return PAUSE.sentence;
   if (new RegExp(`[,:;]${CLOSE}$`).test(t)) return PAUSE.comma;
   return PAUSE.none;

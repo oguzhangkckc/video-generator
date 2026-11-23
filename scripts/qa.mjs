@@ -7,9 +7,11 @@ import os from "node:os";
 import path from "node:path";
 import { bundle } from "@remotion/bundler";
 import { openBrowser, renderStill, selectComposition } from "@remotion/renderer";
-import { endsSentence } from "../src/spec/pauses.ts";
+import { quantityMismatches } from "../src/spec/quantities.ts";
 import { parseArgs } from "./lib/args.mjs";
-import { ROOT, duration, loadSpec, outDir, requireSlug, videoDir } from "./lib/video.mjs";
+import { flagText } from "./lib/review.mjs";
+import { speechReport } from "./lib/speech.mjs";
+import { ROOT, duration, loadSpec, loadTiming, outDir, readPcm, requireSlug } from "./lib/video.mjs";
 
 const SAFE_RIGHT = 960;
 const SAFE_BOTTOM = 1632;
@@ -156,7 +158,14 @@ const layout = async () => {
   }
   errors.push(...clutter.list().map((m) => `etiket alanı: ${m}`));
   rmSync(tmp, { recursive: true, force: true });
-  return { frames: frames.length, sound: first.spec?.sound };
+  return { frames: frames.length, spec: first.spec };
+};
+
+/** A label with a unit shown while the voice names another quantity ("akım" under "≈ 1 mV"). */
+const quantities = (shown) => {
+  for (const m of quantityMismatches(shown?.labels ?? [], shown?.phrases ?? [])) {
+    warnings.push(`nicelik: ${fmt(m.at)} etiket "${m.label}" ${m.label_q}, seslendirme "${m.phrase}" ${m.named.join("/")} diyor`);
+  }
 };
 
 const audio = async (sound) => {
@@ -166,25 +175,34 @@ const audio = async (sound) => {
   }
   const end = duration(mp4);
 
-  const timingFile = path.join(videoDir(slug), "timing.json");
+  // Speech is measured on the voice-over alone (the render has music under it), as the listener hears it.
+  const timing = loadTiming(slug);
   const rates = {};
-  if (!existsSync(timingFile)) warnings.push("konuşma: timing.json yok (taslak ses hizalanmadı)");
+  let intonation = null;
+  if (!timing) warnings.push("konuşma: timing.json yok (taslak ses hizalanmadı)");
   else {
-    const { phrases, words } = JSON.parse(readFileSync(timingFile, "utf8"));
-    const spoken = phrases.reduce((sum, p) => sum + (p.end - p.start), 0);
-    rates.spoken = words.length / spoken;
+    const wav = path.join(ROOT, "public", timing.audio ?? `videos/${slug}/vo.wav`);
+    const words = timing.words.map((w) => ({ start: w.startMs / 1000, end: w.endMs / 1000 }));
+    const report = speechReport({ wav, pcm: readPcm(wav, { channels: 2 }), channels: 2, words, sections: rawSpec.voiceover.sections });
+    rates.spoken = report.words / report.spokenSeconds;
     if (rates.spoken < SPOKEN_RATE[0] || rates.spoken > SPOKEN_RATE[1]) {
       warnings.push(`konuşma hızı: konuşulan sürede ${rates.spoken.toFixed(2)} kelime/sn (hedef ${SPOKEN_RATE.join("–")})`);
     }
-    const gaps = phrases.slice(0, -1).map((p, i) => ({ p, gap: phrases[i + 1].start - p.end }));
-    const sentences = gaps.filter(({ p }) => endsSentence(p.text));
-    for (const { p, gap } of sentences) {
-      if (gap < PAUSES.shortSentence) warnings.push(`duraklama: ${fmt(p.end)} "${p.text}" sonrası ${gap.toFixed(2)} sn (en az ${PAUSES.shortSentence})`);
+    const sentenceEnds = report.pauses.filter((p) => p.sentenceEnd);
+    for (const p of sentenceEnds) {
+      if (p.length < PAUSES.shortSentence) warnings.push(`duraklama: ${fmt(p.at)} "${p.text}" sonrası ${p.length.toFixed(2)} sn (en az ${PAUSES.shortSentence})`);
     }
-    rates.meanSentencePause = sentences.length ? sentences.reduce((sum, g) => sum + g.gap, 0) / sentences.length : 0;
-    rates.minPause = gaps.length ? Math.min(...gaps.map((g) => g.gap)) : 0;
-    if (sentences.length && rates.meanSentencePause < PAUSES.meanSentence) {
+    rates.meanSentencePause = sentenceEnds.length ? sentenceEnds.reduce((sum, p) => sum + p.length, 0) / sentenceEnds.length : 0;
+    rates.minPause = sentenceEnds.length ? Math.min(...sentenceEnds.map((p) => p.length)) : 0;
+    if (sentenceEnds.length && rates.meanSentencePause < PAUSES.meanSentence) {
       errors.push(`duraklama: cümle aralarının ortalaması ${rates.meanSentencePause.toFixed(2)} sn (en az ${PAUSES.meanSentence})`);
+    }
+    // A recording cannot be regenerated, so its flagged sentences are a list to record again.
+    const recorded = timing.source.startsWith("whisper");
+    intonation = { recorded, sentences: report.sentences.map(({ text, kind, start, rise, decay, flags }) => ({ text, kind, start, rise, decay, flags })) };
+    for (const s of report.sentences.filter((x) => x.flags.length)) {
+      const values = `yükselme ${s.rise == null ? "—" : `${s.rise.toFixed(1)} yt`}, sönüm ${s.decay == null ? "—" : `${Math.round(s.decay * 1000)} ms`}`;
+      warnings.push(`tonlama: ${fmt(s.end)} "${s.text}" ${flagText(s.flags)} (${values})${recorded ? " — yeniden kaydet" : ""}`);
     }
   }
 
@@ -214,11 +232,12 @@ const audio = async (sound) => {
       errors.push(`yatak: ${b.name} ${fmt(runsOut)}'de bitiyor ama ${fmt(audibleUntil)}'e kadar duyulmalı — loop: true ya da daha erken fadeOut`);
     }
   }
-  return { rates, silences: starts.length };
+  return { rates, intonation, silences: starts.length };
 };
 
-const sound = runLayout ? (await layout()).sound : (await probe(0, { probe: true }, path.join(os.tmpdir(), `qa-${slug}.png`))).spec?.sound;
-const audioResult = runAudio ? await audio(sound) : null;
+const shown = runLayout ? (await layout()).spec : (await probe(0, { probe: true }, path.join(os.tmpdir(), `qa-${slug}.png`))).spec;
+quantities(shown);
+const audioResult = runAudio ? await audio(shown?.sound) : null;
 if (browserState) await browserState.instance.close({ silent: true });
 
 const report = { slug, checked: { layout: runLayout, audio: runAudio }, errors, warnings, audio: audioResult };
@@ -230,6 +249,15 @@ const rows = [
   ["Etiket alanı (çizgi/nesne)", runLayout ? (errors.some((e) => e.startsWith("etiket alanı")) ? "HATA" : "temiz") : "—"],
   ["Konuşma hızı (konuşulan süre)", runAudio ? (warnings.some((w) => w.startsWith("konuşma")) ? "uyarı" : "temiz") : "—"],
   ["Duraklamalar", runAudio ? (errors.some((e) => e.startsWith("duraklama")) ? "HATA" : warnings.some((w) => w.startsWith("duraklama")) ? "uyarı" : "temiz") : "—"],
+  [
+    "Tonlama (cümle sonları)",
+    runAudio && audioResult?.intonation
+      ? warnings.some((w) => w.startsWith("tonlama"))
+        ? `uyarı${audioResult.intonation.recorded ? " (yeniden kaydet)" : ""}`
+        : "temiz"
+      : "—",
+  ],
+  ["Nicelik tutarlılığı", warnings.some((w) => w.startsWith("nicelik")) ? "uyarı" : "temiz"],
   ["Dijital sessizlik", runAudio ? (errors.some((e) => e.startsWith("sessizlik")) ? "HATA" : "temiz") : "—"],
   ["Yatak sürekliliği", runAudio ? (errors.some((e) => e.startsWith("yatak")) ? "HATA" : warnings.some((w) => w.startsWith("yatak")) ? "uyarı" : "temiz") : "—"],
 ];
@@ -237,7 +265,10 @@ console.log(`\nQA ${slug}`);
 for (const [name, result] of rows) console.log(`  ${name.padEnd(36)} ${result}`);
 if (audioResult?.rates?.spoken) {
   console.log(`  ${"Kelime/sn (konuşulan süre)".padEnd(36)} ${audioResult.rates.spoken.toFixed(2)}`);
-  console.log(`  ${"Cümle arası ort. / en kısa ara".padEnd(36)} ${audioResult.rates.meanSentencePause.toFixed(2)} / ${audioResult.rates.minPause.toFixed(2)} sn`);
+  console.log(`  ${"Cümle sonu arası ort. / en kısa".padEnd(36)} ${audioResult.rates.meanSentencePause.toFixed(2)} / ${audioResult.rates.minPause.toFixed(2)} sn`);
+  const s = audioResult.intonation?.sentences ?? [];
+  const checked = s.filter((x) => x.kind === "statement" || x.kind === "wh-question");
+  console.log(`  ${"İşaretli cümle (tonlama)".padEnd(36)} ${checked.filter((x) => x.flags.length).length} / ${checked.length}`);
 }
 for (const e of errors) console.log(`  ✗ ${e}`);
 for (const w of warnings) console.log(`  ! ${w}`);

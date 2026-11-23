@@ -44,6 +44,13 @@ const voiceoverSchema = z
     audio: z.string().optional(),
     /** Who or what speaks; also listed in credits. */
     voice: z.string().optional(),
+    /** The ElevenLabs voice and model of `npm run voiceover -- build`; picks below belong to this voice. */
+    tts: z.object({ voice: z.string(), model: z.string().default("eleven_multilingual_v2") }).strict().optional(),
+    /**
+     * Takes chosen on out/<slug>/review.html for sentences whose intonation was flagged: seed 0 is the sentence as
+     * read in its section, 1–3 the alternatives. A pick whose sentence text changed is reported and ignored.
+     */
+    picks: z.array(z.object({ sentence: z.string(), seed: z.number().int().min(0) }).strict()).default([]),
     sections: z
       .array(
         z
@@ -107,6 +114,8 @@ const buildSpec = <T extends z.ZodType, R extends z.ZodType, N extends z.ZodType
               accessed: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
               status: z.enum(["verified", "simplified", "disputed"]),
               note: z.string().optional(),
+              /** The physical quantity of `value`; the voice-over and the labels that use it name the same one. */
+              quantity: z.enum(["gerilim", "akım", "süre", "hız", "uzaklık", "sıklık", "diğer"]).optional(),
             })
             .strict(),
         )
