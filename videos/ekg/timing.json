@@ -9,158 +9,158 @@
     },
     {
       "text": "Ama okumayı kimse öğretmedi.",
-      "start": 1.92,
-      "end": 3.32
+      "start": 2.21,
+      "end": 3.62
     },
     {
       "text": "Bu çizgi ne anlatıyor?",
-      "start": 3.45,
-      "end": 4.8
+      "start": 4,
+      "end": 5.35
     },
     {
       "text": "Peki cihaz bunu nasıl duyuyor?",
-      "start": 5.2,
-      "end": 6.65
+      "start": 5.86,
+      "end": 7.31
     },
     {
       "text": "Göğsündeki elektrotlarla.",
-      "start": 6.79,
-      "end": 7.99
+      "start": 7.79,
+      "end": 8.99
     },
     {
       "text": "Kalbinin akımı cildine ulaşıyor:",
-      "start": 8.18,
-      "end": 9.56
+      "start": 9.48,
+      "end": 10.87
     },
     {
       "text": "kalem pilin binde birinden az.",
-      "start": 9.65,
-      "end": 11.26
+      "start": 11.06,
+      "end": 12.67
     },
     {
       "text": "Cihazın kendi akımı ise",
-      "start": 11.45,
-      "end": 12.49
+      "start": 13.1,
+      "end": 14.14
     },
     {
       "text": "hissedemeyeceğin kadar küçük.",
-      "start": 12.59,
-      "end": 14.15
+      "start": 14.25,
+      "end": 15.8
     },
     {
       "text": "Peki bu akım nereden geliyor?",
-      "start": 14.5,
-      "end": 15.88
+      "start": 16.32,
+      "end": 17.7
     },
     {
       "text": "Kalbinin sağ üst köşesinden.",
-      "start": 15.99,
-      "end": 17.57
+      "start": 18.17,
+      "end": 19.75
     },
     {
       "text": "Bir hücre kümesi ateşleniyor:",
-      "start": 17.72,
-      "end": 19.2
+      "start": 19.99,
+      "end": 21.47
     },
     {
       "text": "dakikada altmış ila yüz kez.",
-      "start": 19.28,
-      "end": 21.02
+      "start": 21.61,
+      "end": 23.34
     },
     {
       "text": "Dalga kulakçıklara yayılırken",
-      "start": 21.2,
-      "end": 22.36
+      "start": 23.79,
+      "end": 24.96
     },
     {
       "text": "ilk küçük tepe çiziliyor: P.",
-      "start": 22.46,
-      "end": 24.45
+      "start": 25.09,
+      "end": 27.09
     },
     {
       "text": "Peki ardından neden düz gidiyor?",
-      "start": 24.8,
-      "end": 26.58
+      "start": 27.44,
+      "end": 29.21
     },
     {
       "text": "Dalga tek bir kapıda bekliyor:",
-      "start": 26.73,
-      "end": 28.41
+      "start": 29.82,
+      "end": 31.49
     },
     {
       "text": "saniyenin onda biri kadar.",
-      "start": 28.57,
-      "end": 29.99
+      "start": 31.71,
+      "end": 33.13
     },
     {
       "text": "Kan aşağı dolsun diye.",
-      "start": 30.14,
-      "end": 31.47
+      "start": 33.56,
+      "end": 34.89
     },
     {
       "text": "Bu düzlük, PR bölümü.",
-      "start": 31.61,
-      "end": 33.25
+      "start": 35.32,
+      "end": 36.96
     },
     {
       "text": "Peki o büyük sivri tepe ne?",
-      "start": 33.6,
-      "end": 34.91
+      "start": 37.31,
+      "end": 38.62
     },
     {
       "text": "Kapı açılıyor, dalga hızlanıyor;",
-      "start": 34.99,
-      "end": 36.52
+      "start": 39.13,
+      "end": 40.67
     },
     {
       "text": "karıncıklar birden uyarılıyor.",
-      "start": 36.59,
-      "end": 38.19
+      "start": 40.81,
+      "end": 42.41
     },
     {
       "text": "İşte QRS: asıl vuruşun işareti.",
-      "start": 38.34,
-      "end": 40.54
+      "start": 42.81,
+      "end": 45.01
     },
     {
       "text": "Kas bir an sonra kasılıyor.",
-      "start": 40.66,
-      "end": 41.95
+      "start": 45.27,
+      "end": 46.57
     },
     {
       "text": "Sonra toparlanma dalgası: T.",
-      "start": 42.03,
-      "end": 43.85
+      "start": 46.88,
+      "end": 48.7
     },
     {
       "text": "Küçük tepe: kulakçıklar,",
-      "start": 44.2,
-      "end": 45.67
+      "start": 49.3,
+      "end": 50.76
     },
     {
       "text": "düzlük: bekleme,",
-      "start": 45.71,
-      "end": 46.65
+      "start": 50.91,
+      "end": 51.85
     },
     {
       "text": "sivri tepe: karıncıklar,",
-      "start": 46.69,
-      "end": 48.02
+      "start": 51.88,
+      "end": 53.22
     },
     {
       "text": "son dalga: toparlanma.",
-      "start": 48.08,
-      "end": 49.49
+      "start": 53.27,
+      "end": 54.68
     },
     {
       "text": "Bunun adı:",
-      "start": 49.62,
-      "end": 50.22
+      "start": 54.96,
+      "end": 55.56
     },
     {
       "text": "elektrokardiyogram.",
-      "start": 50.27,
-      "end": 51.55
+      "start": 55.76,
+      "end": 57.04
     }
   ],
   "words": [
@@ -194,842 +194,842 @@
     },
     {
       "text": "Ama",
-      "startMs": 1918,
-      "endMs": 2092,
-      "timestampMs": 2005,
+      "startMs": 2213,
+      "endMs": 2387,
+      "timestampMs": 2300,
       "confidence": null
     },
     {
       "text": "okumayı",
-      "startMs": 2116,
-      "endMs": 2418,
-      "timestampMs": 2267,
+      "startMs": 2411,
+      "endMs": 2713,
+      "timestampMs": 2562,
       "confidence": null
     },
     {
       "text": "kimse",
-      "startMs": 2441,
-      "endMs": 2696,
-      "timestampMs": 2569,
+      "startMs": 2736,
+      "endMs": 2991,
+      "timestampMs": 2864,
       "confidence": null
     },
     {
       "text": "öğretmedi.",
-      "startMs": 2719,
-      "endMs": 3323,
-      "timestampMs": 3021,
+      "startMs": 3014,
+      "endMs": 3618,
+      "timestampMs": 3316,
       "confidence": null
     },
     {
       "text": "Bu",
-      "startMs": 3451,
-      "endMs": 3567,
-      "timestampMs": 3509,
+      "startMs": 4001,
+      "endMs": 4117,
+      "timestampMs": 4059,
       "confidence": null
     },
     {
       "text": "çizgi",
-      "startMs": 3590,
-      "endMs": 3857,
-      "timestampMs": 3724,
+      "startMs": 4140,
+      "endMs": 4407,
+      "timestampMs": 4274,
       "confidence": null
     },
     {
       "text": "ne",
-      "startMs": 3915,
-      "endMs": 3985,
-      "timestampMs": 3950,
+      "startMs": 4465,
+      "endMs": 4535,
+      "timestampMs": 4500,
       "confidence": null
     },
     {
       "text": "anlatıyor?",
-      "startMs": 4043,
-      "endMs": 4798,
-      "timestampMs": 4421,
+      "startMs": 4593,
+      "endMs": 5348,
+      "timestampMs": 4970,
       "confidence": null
     },
     {
       "text": "Peki",
-      "startMs": 5200,
-      "endMs": 5469,
-      "timestampMs": 5334,
+      "startMs": 5855,
+      "endMs": 6124,
+      "timestampMs": 5990,
       "confidence": null
     },
     {
       "text": "cihaz",
-      "startMs": 5517,
-      "endMs": 5738,
-      "timestampMs": 5627,
+      "startMs": 6172,
+      "endMs": 6393,
+      "timestampMs": 6283,
       "confidence": null
     },
     {
       "text": "bunu",
-      "startMs": 5796,
-      "endMs": 5920,
-      "timestampMs": 5858,
+      "startMs": 6451,
+      "endMs": 6575,
+      "timestampMs": 6513,
       "confidence": null
     },
     {
       "text": "nasıl",
-      "startMs": 5959,
-      "endMs": 6179,
-      "timestampMs": 6069,
+      "startMs": 6614,
+      "endMs": 6834,
+      "timestampMs": 6724,
       "confidence": null
     },
     {
       "text": "duyuyor?",
-      "startMs": 6208,
-      "endMs": 6650,
-      "timestampMs": 6429,
+      "startMs": 6863,
+      "endMs": 7305,
+      "timestampMs": 7084,
       "confidence": null
     },
     {
       "text": "Göğsündeki",
-      "startMs": 6794,
-      "endMs": 7265,
-      "timestampMs": 7029,
+      "startMs": 7794,
+      "endMs": 8265,
+      "timestampMs": 8030,
       "confidence": null
     },
     {
       "text": "elektrotlarla.",
-      "startMs": 7284,
-      "endMs": 7985,
-      "timestampMs": 7634,
+      "startMs": 8284,
+      "endMs": 8985,
+      "timestampMs": 8635,
       "confidence": null
     },
     {
       "text": "Kalbinin",
-      "startMs": 8177,
-      "endMs": 8504,
-      "timestampMs": 8340,
+      "startMs": 9482,
+      "endMs": 9809,
+      "timestampMs": 9645,
       "confidence": null
     },
     {
       "text": "akımı",
-      "startMs": 8552,
-      "endMs": 8754,
-      "timestampMs": 8653,
+      "startMs": 9857,
+      "endMs": 10059,
+      "timestampMs": 9958,
       "confidence": null
     },
     {
       "text": "cildine",
-      "startMs": 8782,
-      "endMs": 9031,
-      "timestampMs": 8907,
+      "startMs": 10087,
+      "endMs": 10336,
+      "timestampMs": 10212,
       "confidence": null
     },
     {
       "text": "ulaşıyor:",
-      "startMs": 9051,
-      "endMs": 9560,
-      "timestampMs": 9306,
+      "startMs": 10356,
+      "endMs": 10865,
+      "timestampMs": 10611,
       "confidence": null
     },
     {
       "text": "kalem",
-      "startMs": 9646,
-      "endMs": 9925,
-      "timestampMs": 9785,
+      "startMs": 11056,
+      "endMs": 11335,
+      "timestampMs": 11196,
       "confidence": null
     },
     {
       "text": "pilin",
-      "startMs": 9983,
-      "endMs": 10213,
-      "timestampMs": 10098,
+      "startMs": 11393,
+      "endMs": 11623,
+      "timestampMs": 11508,
       "confidence": null
     },
     {
       "text": "binde",
-      "startMs": 10280,
-      "endMs": 10481,
-      "timestampMs": 10381,
+      "startMs": 11690,
+      "endMs": 11891,
+      "timestampMs": 11791,
       "confidence": null
     },
     {
       "text": "birinden",
-      "startMs": 10530,
-      "endMs": 10837,
-      "timestampMs": 10684,
+      "startMs": 11940,
+      "endMs": 12247,
+      "timestampMs": 12093,
       "confidence": null
     },
     {
       "text": "az.",
-      "startMs": 10914,
-      "endMs": 11260,
-      "timestampMs": 11087,
+      "startMs": 12324,
+      "endMs": 12670,
+      "timestampMs": 12497,
       "confidence": null
     },
     {
       "text": "Cihazın",
-      "startMs": 11452,
-      "endMs": 11788,
-      "timestampMs": 11620,
+      "startMs": 13102,
+      "endMs": 13438,
+      "timestampMs": 13270,
       "confidence": null
     },
     {
       "text": "kendi",
-      "startMs": 11855,
-      "endMs": 12047,
-      "timestampMs": 11951,
+      "startMs": 13505,
+      "endMs": 13697,
+      "timestampMs": 13601,
       "confidence": null
     },
     {
       "text": "akımı",
-      "startMs": 12066,
-      "endMs": 12258,
-      "timestampMs": 12162,
+      "startMs": 13716,
+      "endMs": 13908,
+      "timestampMs": 13812,
       "confidence": null
     },
     {
       "text": "ise",
-      "startMs": 12278,
-      "endMs": 12489,
-      "timestampMs": 12384,
+      "startMs": 13928,
+      "endMs": 14139,
+      "timestampMs": 14034,
       "confidence": null
     },
     {
       "text": "hissedemeyeceğin",
-      "startMs": 12595,
-      "endMs": 13248,
-      "timestampMs": 12921,
+      "startMs": 14245,
+      "endMs": 14898,
+      "timestampMs": 14572,
       "confidence": null
     },
     {
       "text": "kadar",
-      "startMs": 13305,
-      "endMs": 13526,
-      "timestampMs": 13416,
+      "startMs": 14955,
+      "endMs": 15176,
+      "timestampMs": 15066,
       "confidence": null
     },
     {
       "text": "küçük.",
-      "startMs": 13564,
-      "endMs": 14150,
-      "timestampMs": 13857,
+      "startMs": 15214,
+      "endMs": 15800,
+      "timestampMs": 15507,
       "confidence": null
     },
     {
       "text": "Peki",
-      "startMs": 14500,
-      "endMs": 14752,
-      "timestampMs": 14626,
+      "startMs": 16315,
+      "endMs": 16567,
+      "timestampMs": 16441,
       "confidence": null
     },
     {
       "text": "bu",
-      "startMs": 14782,
-      "endMs": 14843,
-      "timestampMs": 14812,
+      "startMs": 16597,
+      "endMs": 16658,
+      "timestampMs": 16628,
       "confidence": null
     },
     {
       "text": "akım",
-      "startMs": 14883,
-      "endMs": 15064,
-      "timestampMs": 14973,
+      "startMs": 16698,
+      "endMs": 16879,
+      "timestampMs": 16789,
       "confidence": null
     },
     {
       "text": "nereden",
-      "startMs": 15125,
-      "endMs": 15426,
-      "timestampMs": 15275,
+      "startMs": 16940,
+      "endMs": 17241,
+      "timestampMs": 17091,
       "confidence": null
     },
     {
       "text": "geliyor?",
-      "startMs": 15467,
-      "endMs": 15880,
-      "timestampMs": 15674,
+      "startMs": 17282,
+      "endMs": 17695,
+      "timestampMs": 17489,
       "confidence": null
     },
     {
       "text": "Kalbinin",
-      "startMs": 15990,
-      "endMs": 16373,
-      "timestampMs": 16181,
+      "startMs": 18170,
+      "endMs": 18553,
+      "timestampMs": 18362,
       "confidence": null
     },
     {
       "text": "sağ",
-      "startMs": 16453,
-      "endMs": 16656,
-      "timestampMs": 16554,
+      "startMs": 18633,
+      "endMs": 18836,
+      "timestampMs": 18734,
       "confidence": null
     },
     {
       "text": "üst",
-      "startMs": 16735,
-      "endMs": 16887,
-      "timestampMs": 16811,
+      "startMs": 18915,
+      "endMs": 19067,
+      "timestampMs": 18991,
       "confidence": null
     },
     {
       "text": "köşesinden.",
-      "startMs": 16937,
-      "endMs": 17571,
-      "timestampMs": 17254,
+      "startMs": 19117,
+      "endMs": 19751,
+      "timestampMs": 19434,
       "confidence": null
     },
     {
       "text": "Bir",
-      "startMs": 17722,
-      "endMs": 17864,
-      "timestampMs": 17793,
+      "startMs": 19992,
+      "endMs": 20134,
+      "timestampMs": 20063,
       "confidence": null
     },
     {
       "text": "hücre",
-      "startMs": 17904,
-      "endMs": 18166,
-      "timestampMs": 18035,
+      "startMs": 20174,
+      "endMs": 20436,
+      "timestampMs": 20305,
       "confidence": null
     },
     {
       "text": "kümesi",
-      "startMs": 18206,
-      "endMs": 18478,
-      "timestampMs": 18342,
+      "startMs": 20476,
+      "endMs": 20748,
+      "timestampMs": 20612,
       "confidence": null
     },
     {
       "text": "ateşleniyor:",
-      "startMs": 18518,
-      "endMs": 19203,
-      "timestampMs": 18860,
+      "startMs": 20788,
+      "endMs": 21473,
+      "timestampMs": 21130,
       "confidence": null
     },
     {
       "text": "dakikada",
-      "startMs": 19284,
-      "endMs": 19717,
-      "timestampMs": 19500,
+      "startMs": 21609,
+      "endMs": 22042,
+      "timestampMs": 21825,
       "confidence": null
     },
     {
       "text": "altmış",
-      "startMs": 19787,
-      "endMs": 20200,
-      "timestampMs": 19993,
+      "startMs": 22112,
+      "endMs": 22525,
+      "timestampMs": 22319,
       "confidence": null
     },
     {
       "text": "ila",
-      "startMs": 20280,
-      "endMs": 20442,
-      "timestampMs": 20361,
+      "startMs": 22605,
+      "endMs": 22767,
+      "timestampMs": 22686,
       "confidence": null
     },
     {
       "text": "yüz",
-      "startMs": 20482,
-      "endMs": 20613,
-      "timestampMs": 20547,
+      "startMs": 22807,
+      "endMs": 22938,
+      "timestampMs": 22873,
       "confidence": null
     },
     {
       "text": "kez.",
-      "startMs": 20673,
-      "endMs": 21016,
-      "timestampMs": 20845,
+      "startMs": 22998,
+      "endMs": 23341,
+      "timestampMs": 23170,
       "confidence": null
     },
     {
       "text": "Dalga",
-      "startMs": 21197,
-      "endMs": 21438,
-      "timestampMs": 21318,
+      "startMs": 23787,
+      "endMs": 24028,
+      "timestampMs": 23908,
       "confidence": null
     },
     {
       "text": "kulakçıklara",
-      "startMs": 21479,
-      "endMs": 21902,
-      "timestampMs": 21690,
+      "startMs": 24069,
+      "endMs": 24492,
+      "timestampMs": 24281,
       "confidence": null
     },
     {
       "text": "yayılırken",
-      "startMs": 21942,
-      "endMs": 22365,
-      "timestampMs": 22154,
+      "startMs": 24532,
+      "endMs": 24955,
+      "timestampMs": 24743,
       "confidence": null
     },
     {
       "text": "ilk",
-      "startMs": 22456,
-      "endMs": 22627,
-      "timestampMs": 22541,
+      "startMs": 25091,
+      "endMs": 25262,
+      "timestampMs": 25177,
       "confidence": null
     },
     {
       "text": "küçük",
-      "startMs": 22657,
-      "endMs": 22909,
-      "timestampMs": 22783,
+      "startMs": 25292,
+      "endMs": 25544,
+      "timestampMs": 25418,
       "confidence": null
     },
     {
       "text": "tepe",
-      "startMs": 22949,
-      "endMs": 23111,
-      "timestampMs": 23030,
+      "startMs": 25584,
+      "endMs": 25746,
+      "timestampMs": 25665,
       "confidence": null
     },
     {
       "text": "çiziliyor:",
-      "startMs": 23140,
-      "endMs": 23684,
-      "timestampMs": 23412,
+      "startMs": 25775,
+      "endMs": 26319,
+      "timestampMs": 26047,
       "confidence": null
     },
     {
       "text": "P.",
-      "startMs": 23806,
-      "endMs": 24450,
-      "timestampMs": 24128,
+      "startMs": 26441,
+      "endMs": 27085,
+      "timestampMs": 26763,
       "confidence": null
     },
     {
       "text": "Peki",
-      "startMs": 24800,
-      "endMs": 25061,
-      "timestampMs": 24931,
+      "startMs": 27435,
+      "endMs": 27696,
+      "timestampMs": 27566,
       "confidence": null
     },
     {
       "text": "ardından",
-      "startMs": 25113,
-      "endMs": 25511,
-      "timestampMs": 25312,
+      "startMs": 27748,
+      "endMs": 28146,
+      "timestampMs": 27947,
       "confidence": null
     },
     {
       "text": "neden",
-      "startMs": 25564,
-      "endMs": 25825,
-      "timestampMs": 25694,
+      "startMs": 28199,
+      "endMs": 28460,
+      "timestampMs": 28330,
       "confidence": null
     },
     {
       "text": "düz",
-      "startMs": 25887,
-      "endMs": 26045,
-      "timestampMs": 25966,
+      "startMs": 28522,
+      "endMs": 28680,
+      "timestampMs": 28601,
       "confidence": null
     },
     {
       "text": "gidiyor?",
-      "startMs": 26097,
-      "endMs": 26578,
-      "timestampMs": 26338,
+      "startMs": 28732,
+      "endMs": 29213,
+      "timestampMs": 28973,
       "confidence": null
     },
     {
       "text": "Dalga",
-      "startMs": 26735,
-      "endMs": 27048,
-      "timestampMs": 26892,
+      "startMs": 29820,
+      "endMs": 30133,
+      "timestampMs": 29977,
       "confidence": null
     },
     {
       "text": "tek",
-      "startMs": 27121,
-      "endMs": 27300,
-      "timestampMs": 27210,
+      "startMs": 30206,
+      "endMs": 30385,
+      "timestampMs": 30296,
       "confidence": null
     },
     {
       "text": "bir",
-      "startMs": 27362,
-      "endMs": 27498,
-      "timestampMs": 27430,
+      "startMs": 30447,
+      "endMs": 30583,
+      "timestampMs": 30515,
       "confidence": null
     },
     {
       "text": "kapıda",
-      "startMs": 27550,
-      "endMs": 27812,
-      "timestampMs": 27681,
+      "startMs": 30635,
+      "endMs": 30897,
+      "timestampMs": 30766,
       "confidence": null
     },
     {
       "text": "bekliyor:",
-      "startMs": 27854,
-      "endMs": 28408,
-      "timestampMs": 28131,
+      "startMs": 30939,
+      "endMs": 31493,
+      "timestampMs": 31216,
       "confidence": null
     },
     {
       "text": "saniyenin",
-      "startMs": 28565,
-      "endMs": 29025,
-      "timestampMs": 28795,
+      "startMs": 31705,
+      "endMs": 32165,
+      "timestampMs": 31935,
       "confidence": null
     },
     {
       "text": "onda",
-      "startMs": 29108,
-      "endMs": 29339,
-      "timestampMs": 29224,
+      "startMs": 32248,
+      "endMs": 32479,
+      "timestampMs": 32364,
       "confidence": null
     },
     {
       "text": "biri",
-      "startMs": 29391,
-      "endMs": 29548,
-      "timestampMs": 29470,
+      "startMs": 32531,
+      "endMs": 32688,
+      "timestampMs": 32609,
       "confidence": null
     },
     {
       "text": "kadar.",
-      "startMs": 29579,
-      "endMs": 29987,
-      "timestampMs": 29783,
+      "startMs": 32719,
+      "endMs": 33127,
+      "timestampMs": 32923,
       "confidence": null
     },
     {
       "text": "Kan",
-      "startMs": 30144,
-      "endMs": 30353,
-      "timestampMs": 30249,
+      "startMs": 33559,
+      "endMs": 33768,
+      "timestampMs": 33664,
       "confidence": null
     },
     {
       "text": "aşağı",
-      "startMs": 30437,
-      "endMs": 30771,
-      "timestampMs": 30604,
+      "startMs": 33852,
+      "endMs": 34186,
+      "timestampMs": 34019,
       "confidence": null
     },
     {
       "text": "dolsun",
-      "startMs": 30793,
-      "endMs": 31116,
-      "timestampMs": 30954,
+      "startMs": 34208,
+      "endMs": 34531,
+      "timestampMs": 34370,
       "confidence": null
     },
     {
       "text": "diye.",
-      "startMs": 31168,
-      "endMs": 31472,
-      "timestampMs": 31320,
+      "startMs": 34583,
+      "endMs": 34887,
+      "timestampMs": 34735,
       "confidence": null
     },
     {
       "text": "Bu",
-      "startMs": 31608,
-      "endMs": 31733,
-      "timestampMs": 31671,
+      "startMs": 35318,
+      "endMs": 35443,
+      "timestampMs": 35381,
       "confidence": null
     },
     {
       "text": "düzlük,",
-      "startMs": 31765,
-      "endMs": 32214,
-      "timestampMs": 31989,
+      "startMs": 35475,
+      "endMs": 35924,
+      "timestampMs": 35700,
       "confidence": null
     },
     {
       "text": "PR",
-      "startMs": 32267,
-      "endMs": 32538,
-      "timestampMs": 32403,
+      "startMs": 35977,
+      "endMs": 36248,
+      "timestampMs": 36113,
       "confidence": null
     },
     {
       "text": "bölümü.",
-      "startMs": 32591,
-      "endMs": 33250,
-      "timestampMs": 32920,
+      "startMs": 36301,
+      "endMs": 36960,
+      "timestampMs": 36631,
       "confidence": null
     },
     {
       "text": "Peki",
-      "startMs": 33600,
-      "endMs": 33833,
-      "timestampMs": 33716,
+      "startMs": 37310,
+      "endMs": 37543,
+      "timestampMs": 37427,
       "confidence": null
     },
     {
       "text": "o",
-      "startMs": 33907,
-      "endMs": 33949,
-      "timestampMs": 33928,
+      "startMs": 37617,
+      "endMs": 37659,
+      "timestampMs": 37638,
       "confidence": null
     },
     {
       "text": "büyük",
-      "startMs": 34002,
-      "endMs": 34214,
-      "timestampMs": 34108,
+      "startMs": 37712,
+      "endMs": 37924,
+      "timestampMs": 37818,
       "confidence": null
     },
     {
       "text": "sivri",
-      "startMs": 34257,
-      "endMs": 34447,
-      "timestampMs": 34352,
+      "startMs": 37967,
+      "endMs": 38157,
+      "timestampMs": 38062,
       "confidence": null
     },
     {
       "text": "tepe",
-      "startMs": 34489,
-      "endMs": 34680,
-      "timestampMs": 34585,
+      "startMs": 38199,
+      "endMs": 38390,
+      "timestampMs": 38295,
       "confidence": null
     },
     {
       "text": "ne?",
-      "startMs": 34712,
-      "endMs": 34913,
-      "timestampMs": 34813,
+      "startMs": 38422,
+      "endMs": 38623,
+      "timestampMs": 38523,
       "confidence": null
     },
     {
       "text": "Kapı",
-      "startMs": 34987,
-      "endMs": 35210,
-      "timestampMs": 35099,
+      "startMs": 39132,
+      "endMs": 39355,
+      "timestampMs": 39244,
       "confidence": null
     },
     {
       "text": "açılıyor,",
-      "startMs": 35231,
-      "endMs": 35676,
-      "timestampMs": 35453,
+      "startMs": 39376,
+      "endMs": 39821,
+      "timestampMs": 39599,
       "confidence": null
     },
     {
       "text": "dalga",
-      "startMs": 35707,
-      "endMs": 35993,
-      "timestampMs": 35850,
+      "startMs": 39852,
+      "endMs": 40138,
+      "timestampMs": 39995,
       "confidence": null
     },
     {
       "text": "hızlanıyor;",
-      "startMs": 36025,
-      "endMs": 36522,
-      "timestampMs": 36274,
+      "startMs": 40170,
+      "endMs": 40667,
+      "timestampMs": 40419,
       "confidence": null
     },
     {
       "text": "karıncıklar",
-      "startMs": 36586,
-      "endMs": 37147,
-      "timestampMs": 36867,
+      "startMs": 40811,
+      "endMs": 41372,
+      "timestampMs": 41092,
       "confidence": null
     },
     {
       "text": "birden",
-      "startMs": 37200,
-      "endMs": 37465,
-      "timestampMs": 37333,
+      "startMs": 41425,
+      "endMs": 41690,
+      "timestampMs": 41558,
       "confidence": null
     },
     {
       "text": "uyarılıyor.",
-      "startMs": 37550,
-      "endMs": 38185,
-      "timestampMs": 37868,
+      "startMs": 41775,
+      "endMs": 42410,
+      "timestampMs": 42093,
       "confidence": null
     },
     {
       "text": "İşte",
-      "startMs": 38344,
-      "endMs": 38619,
-      "timestampMs": 38481,
+      "startMs": 42814,
+      "endMs": 43089,
+      "timestampMs": 42951,
       "confidence": null
     },
     {
       "text": "QRS:",
-      "startMs": 38683,
-      "endMs": 39244,
-      "timestampMs": 38964,
+      "startMs": 43153,
+      "endMs": 43714,
+      "timestampMs": 43433,
       "confidence": null
     },
     {
       "text": "asıl",
-      "startMs": 39361,
-      "endMs": 39604,
-      "timestampMs": 39482,
+      "startMs": 43831,
+      "endMs": 44074,
+      "timestampMs": 43953,
       "confidence": null
     },
     {
       "text": "vuruşun",
-      "startMs": 39646,
-      "endMs": 39922,
-      "timestampMs": 39784,
+      "startMs": 44116,
+      "endMs": 44392,
+      "timestampMs": 44254,
       "confidence": null
     },
     {
       "text": "işareti.",
-      "startMs": 39965,
-      "endMs": 40536,
-      "timestampMs": 40250,
+      "startMs": 44435,
+      "endMs": 45006,
+      "timestampMs": 44721,
       "confidence": null
     },
     {
       "text": "Kas",
-      "startMs": 40663,
-      "endMs": 40886,
-      "timestampMs": 40774,
+      "startMs": 45273,
+      "endMs": 45496,
+      "timestampMs": 45385,
       "confidence": null
     },
     {
       "text": "bir",
-      "startMs": 40949,
-      "endMs": 41065,
-      "timestampMs": 41007,
+      "startMs": 45559,
+      "endMs": 45675,
+      "timestampMs": 45617,
       "confidence": null
     },
     {
       "text": "an",
-      "startMs": 41118,
-      "endMs": 41182,
-      "timestampMs": 41150,
+      "startMs": 45728,
+      "endMs": 45792,
+      "timestampMs": 45760,
       "confidence": null
     },
     {
       "text": "sonra",
-      "startMs": 41224,
-      "endMs": 41415,
-      "timestampMs": 41319,
+      "startMs": 45834,
+      "endMs": 46025,
+      "timestampMs": 45930,
       "confidence": null
     },
     {
       "text": "kasılıyor.",
-      "startMs": 41458,
-      "endMs": 41955,
-      "timestampMs": 41706,
+      "startMs": 46068,
+      "endMs": 46565,
+      "timestampMs": 46317,
       "confidence": null
     },
     {
       "text": "Sonra",
-      "startMs": 42029,
-      "endMs": 42326,
-      "timestampMs": 42178,
+      "startMs": 46879,
+      "endMs": 47176,
+      "timestampMs": 47028,
       "confidence": null
     },
     {
       "text": "toparlanma",
-      "startMs": 42368,
-      "endMs": 42844,
-      "timestampMs": 42606,
+      "startMs": 47218,
+      "endMs": 47694,
+      "timestampMs": 47456,
       "confidence": null
     },
     {
       "text": "dalgası:",
-      "startMs": 42876,
-      "endMs": 43395,
-      "timestampMs": 43135,
+      "startMs": 47726,
+      "endMs": 48245,
+      "timestampMs": 47986,
       "confidence": null
     },
     {
       "text": "T.",
-      "startMs": 43523,
-      "endMs": 43850,
-      "timestampMs": 43686,
+      "startMs": 48373,
+      "endMs": 48700,
+      "timestampMs": 48537,
       "confidence": null
     },
     {
       "text": "Küçük",
-      "startMs": 44200,
-      "endMs": 44536,
-      "timestampMs": 44368,
+      "startMs": 49295,
+      "endMs": 49631,
+      "timestampMs": 49463,
       "confidence": null
     },
     {
       "text": "tepe:",
-      "startMs": 44581,
-      "endMs": 44917,
-      "timestampMs": 44749,
+      "startMs": 49676,
+      "endMs": 50012,
+      "timestampMs": 49844,
       "confidence": null
     },
     {
       "text": "kulakçıklar,",
-      "startMs": 44961,
-      "endMs": 45668,
-      "timestampMs": 45315,
+      "startMs": 50056,
+      "endMs": 50763,
+      "timestampMs": 50409,
       "confidence": null
     },
     {
       "text": "düzlük:",
-      "startMs": 45712,
-      "endMs": 46161,
-      "timestampMs": 45937,
+      "startMs": 50907,
+      "endMs": 51356,
+      "timestampMs": 51132,
       "confidence": null
     },
     {
       "text": "bekleme,",
-      "startMs": 46183,
-      "endMs": 46654,
-      "timestampMs": 46419,
+      "startMs": 51378,
+      "endMs": 51849,
+      "timestampMs": 51614,
       "confidence": null
     },
     {
       "text": "sivri",
-      "startMs": 46687,
-      "endMs": 46945,
-      "timestampMs": 46816,
+      "startMs": 51882,
+      "endMs": 52140,
+      "timestampMs": 52011,
       "confidence": null
     },
     {
       "text": "tepe:",
-      "startMs": 46978,
-      "endMs": 47281,
-      "timestampMs": 47130,
+      "startMs": 52173,
+      "endMs": 52476,
+      "timestampMs": 52325,
       "confidence": null
     },
     {
       "text": "karıncıklar,",
-      "startMs": 47326,
-      "endMs": 48021,
-      "timestampMs": 47673,
+      "startMs": 52521,
+      "endMs": 53216,
+      "timestampMs": 52869,
       "confidence": null
     },
     {
       "text": "son",
-      "startMs": 48077,
-      "endMs": 48301,
-      "timestampMs": 48189,
+      "startMs": 53272,
+      "endMs": 53496,
+      "timestampMs": 53384,
       "confidence": null
     },
     {
       "text": "dalga:",
-      "startMs": 48346,
-      "endMs": 48726,
-      "timestampMs": 48536,
+      "startMs": 53541,
+      "endMs": 53921,
+      "timestampMs": 53731,
       "confidence": null
     },
     {
       "text": "toparlanma.",
-      "startMs": 48749,
-      "endMs": 49489,
-      "timestampMs": 49119,
+      "startMs": 53944,
+      "endMs": 54684,
+      "timestampMs": 54314,
       "confidence": null
     },
     {
       "text": "Bunun",
-      "startMs": 49623,
-      "endMs": 49858,
-      "timestampMs": 49740,
+      "startMs": 54963,
+      "endMs": 55198,
+      "timestampMs": 55080,
       "confidence": null
     },
     {
       "text": "adı:",
-      "startMs": 49914,
-      "endMs": 50217,
-      "timestampMs": 50066,
+      "startMs": 55254,
+      "endMs": 55557,
+      "timestampMs": 55406,
       "confidence": null
     },
     {
       "text": "elektrokardiyogram.",
-      "startMs": 50273,
-      "endMs": 51550,
-      "timestampMs": 50912,
+      "startMs": 55758,
+      "endMs": 57035,
+      "timestampMs": 56397,
       "confidence": null
     }
   ]

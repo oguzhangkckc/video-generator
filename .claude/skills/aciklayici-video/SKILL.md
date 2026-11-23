@@ -153,7 +153,9 @@ Seslendirme dosyası yoksa ve kullanıcı taslak ses isterse: `npm run voiceover
 ElevenLabs kredisi harcar ve ücretsiz planda çıkan ses ticari kullanılamaz; ikisini de önceden söyle. Ses cümle
 cümle üretilir ve kurallı duraklamalarla birleştirilir (hızlandırma en fazla ×1,05; klipler `out/<slug>/vo-clips/`
 altında önbelleğe alınır). Bir bölüm sığmazsa script durup tablo basar: `--widen` ile pencereleri genişlet ya da metni
-kısaltmayı öner. İnsan kaydında `align` kurallardan kısa aralara sessizlik ekler.
+kısaltmayı öner. İnsan kaydında `align` kurallardan kısa aralara sessizlik ekler. Kredi yoksa, eski bir taslak sesin
+aralarını `npm run align -- <slug> --timing` açar (Whisper'sız, mevcut kelime zamanlarıyla); sonra pencereleri ve
+`durationSec`'i yeni konuşmaya göre güncelle.
 
 ## Kurallar
 

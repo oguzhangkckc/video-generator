@@ -43,6 +43,7 @@ de kareler incelenebilir.
 | `npm run new -- <slug> "<başlık>"` | `videos/sablon`'dan yeni tarif |
 | `npm run stills -- <slug> <kare\|12.5s>… [--every N] [--out dir] [--sheet]` | still kareler (+ kare sayfası) |
 | `npm run align -- <slug> <ses> [--dry]` | whisper.cpp (yerel) ile kelime zamanları → `timing.json`, `vo.wav` |
+| `npm run align -- <slug> --timing [--dry]` | Whisper'sız: mevcut `timing.json`'un kelime zamanlarıyla `vo.wav`'daki kısa cümle aralarına sessizlik ekler |
 | `npm run voiceover -- build <slug> <voiceId> [--widen] [--speed 1.0]` | ElevenLabs taslak seslendirme, cümle cümle, kurallı duraklamalarla → `timing.json`, `vo.wav`; sığmazsa tablo basar, `--widen` pencereleri genişletir |
 | `npm run render -- <slug>` | render + mastering (−14 LUFS, ≈ −1,5 dBTP) → `out/<slug>.mp4` |
 | `npm run sfx [id…]` | ElevenLabs efektlerini katalogdan üretir → `public/kit/sfx/` |
