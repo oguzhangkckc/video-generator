@@ -180,12 +180,14 @@ const Rig: React.FC<{ layer: Model3DLayer; model: Model; t: number }> = ({ layer
       }
     }
 
-    const planes = layer.section
+    const section = layer.section;
+    const cut = section ? ramp(t, section.range) - (section.close ? ramp(t, section.close) : 0) : 0;
+    const planes = section
       ? [
           new THREE.Plane(
-            AXIS[layer.section.axis].clone().negate(),
+            AXIS[section.axis].clone().negate(),
             // Model radius is 1, so fraction f puts the plane at -1 + 2f along the axis; 1 cuts nothing.
-            -1 + 2 * (layer.section.from + (layer.section.to - layer.section.from) * ramp(t, layer.section.range)) + 0.01,
+            -1 + 2 * (section.from + (section.to - section.from) * cut) + 0.01,
           ),
         ]
       : [];

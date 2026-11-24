@@ -42,13 +42,17 @@ export const model3dSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T
         .default([]),
       /** How much the other parts darken while something is highlighted. */
       dimOthers: z.number().min(0).max(1).default(0.6),
-      /** Cut-away: a plane sweeps along `axis` from `from` to `to` (fractions of the model, 1 = nothing cut). */
+      /**
+       * Cut-away: a plane sweeps along `axis` from `from` to `to` (fractions of the model, 1 = nothing cut) and stays;
+       * over `close` it sweeps back to `from`.
+       */
       section: z
         .object({
           axis: z.enum(["x", "y", "z"]).default("x"),
           range: k.range,
           from: z.number().min(0).max(1).default(1),
           to: z.number().min(0).max(1).default(0.5),
+          close: k.range.optional(),
         })
         .strict()
         .optional(),

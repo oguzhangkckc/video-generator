@@ -13,7 +13,8 @@ Son güncelleme: 2026-11-24. Branch: `feat/genel-sahne-turleri` (push yok, PR yo
 | `a327b2a` | Görsel sistem v2. Ayrıntı: aşağıda "Görsel sistem v2". |
 | `2918510` | Boş alan ölçümü (karar 1a): yalnız zemin boş sayılır. Ayrıntı: aşağıda. |
 | `69e0f9d` | gps-pilot qa'dan temiz geçti, regresyon referansı yenilendi; önemli öğe kare dışı kontrolü. Ayrıntı: aşağıda "gps-pilot düzeltmeleri". |
-| `feat(ekg)` | EKG qa'dan temiz geçti; etiketler kalp bölümlerinde yukarıda. Ayrıntı: aşağıda "EKG düzeltmeleri". |
+| `9da5c71` | EKG qa'dan temiz geçti; etiketler kalp bölümlerinde yukarıda. Ayrıntı: aşağıda "EKG düzeltmeleri". |
+| (commit'lenmedi) | demo-flow ve demo-model3d qa'dan temiz geçti; model3d `section.close`. Ayrıntı: aşağıda "Demo düzeltmeleri". |
 
 **Seslendirme v2 (`27cdfa3`):**
 - bölüm bölüm üretim, duraklamalar sessizlikten açılır;
@@ -64,11 +65,22 @@ Yeni sahne türleri zemini `useGround()` ile çizmeli (README, SKILL.md).
 - Araçlar: `npm run stills -- <slug> … --ground` (qa'nın boş alanı nasıl gördüğü), `npm run qa -- <slug> --layout
   --from s --to s` (bölüm üzerinde hızlı deneme).
 
+**Demo düzeltmeleri (2026-11-24):** ikisi de render + tam qa 0 hata, 1 uyarı (kenar kırpması). Önce/sonra:
+`out/demo-flow-once-sonra.png`, `out/demo-model3d-once-sonra.png` (üst satır eski render, alt satır yeni).
+- demo-flow: ince çizgilerle kare %90 boştu (çizgi ancak geçtiği hücreleri doldurur). Şema üç dolgulu bölgeye
+  (`surface`) çevrildi: altta ev, ortada sağlayıcı, üstte veri merkezi; paket aşağıdan yukarı çıkar, kamera izler, sonda
+  bütün şema. En boş kare %22. Telefon ile router aynı yükseklikte: Wi-Fi halkası telefona ulaştıktan sonra telefon 1,5
+  sn önemli kalır, kamera yukarı kayarken altyazının altına girmesin.
+- demo-model3d: kesit hiç kapanmıyordu, patlatma yarısı kesik modelde oluyordu (kare %85 boş). Yeni şema alanı
+  `section.close`: kesit o aralıkta geri kapanır (verilmezse eskisi gibi açık kalır). Kamera başta 2,6, kesitte 2,5;
+  patlatma 0,3, son çekim hedefi yukarıda. Sınırda: kesitin en derin anı %45, son kare %41 boş (ikisi de 1 sn'den kısa).
+- `faint` dolgu (%3,5 beyaz) zemin sayılmaya devam ediyor: neredeyse görünmeyen bir ton, pus gibi.
+
 ## Bekleyen kararlar (kullanıcıya sor)
 
 Şu an bekleyen karar yok.
 
-## Görsel sistem v2: açık qa hataları
+## Görsel sistem v2: qa durumu
 
 Kaynak: `npm run qa -- <slug> --layout` (2026-11-24, kare dışı kontrolü dahil; diğer dört videoda yeni hata
 çıkmadı; donma kontrolü `a327b2a` render'ı üzerinde). Loglar `out/qa-<slug>.log`, örnekler
@@ -78,8 +90,8 @@ Kaynak: `npm run qa -- <slug> --layout` (2026-11-24, kare dışı kontrolü dahi
 |---|---|---|---|
 | gps-pilot | 0 | duraklama ve tonlama uyarıları | eski sesten geliyor; seslendirme Aşama B'de çözülür |
 | EKG | 0 | konuşma uyarısı: ses yok (timing.json yok) | seslendirme Aşama B |
-| demo-flow | 2 | seyrek diyagram: özne %31, kare %90 boş | diyagramı büyüt, bölge ekle |
-| demo-model3d | 2 | kare 0–1,6 sn %47, 5,9–10,5 sn %85 boş | kamera mesafesi, patlatma sonu |
+| demo-flow | 0 | kenar kırpması uyarısı | — |
+| demo-model3d | 0 | kenar kırpması uyarısı | — |
 
 demo-trace temiz.
 

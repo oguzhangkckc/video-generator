@@ -17,17 +17,18 @@
       "window": [0, 10],
       "file": "kit/models/flight-helmet.glb",
       "camera": [
-        { "at": 0, "azimuth": 20, "elevation": 10, "distance": 3 },
+        { "at": 0, "azimuth": 20, "elevation": 10, "distance": 2.6 },
         { "at": 3, "azimuth": 55, "elevation": 12, "distance": 2.4, "target": "Lenses_low" },
-        { "at": 6.2, "azimuth": 95, "elevation": 16, "distance": 3.2 },
-        { "at": 10, "azimuth": 140, "elevation": 14, "distance": 3.4 }
+        { "at": 6.2, "azimuth": 95, "elevation": 16, "distance": 2.5 },
+        { "at": 8.4, "azimuth": 120, "elevation": 15, "distance": 2.5 },
+        { "at": 10, "azimuth": 140, "elevation": 14, "distance": 3.0, "target": [0, 0.3, 0] }
       ],
       "highlight": [
         { "part": "Lenses_low", "color": "you", "range": [1.8, 4.4] },
         { "part": "Hose_low", "color": "secondary", "range": [4.4, 6.4] }
       ],
-      "section": { "axis": "x", "range": [6.4, 8.2], "from": 1, "to": 0.5 },
-      "explode": { "range": [8.4, 10], "distance": 0.45 }
+      "section": { "axis": "x", "range": [6.4, 7.6], "from": 1, "to": 0.5, "close": [7.8, 8.4] },
+      "explode": { "range": [8.4, 10], "distance": 0.3 }
     }
   ],
   "labels": [
