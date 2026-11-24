@@ -137,7 +137,7 @@ const cover = async (tmp, first, last, labelAlign) => {
     samples.push({ t: boxes.t, boxes: boxes.boxes, strict: boxes.strict, band: boxes.band, scene, empty: emptyShare(full) });
   }
   await probe(0, {}, path.join(outDir(slug), "cover.png"));
-  return coverFindings({ samples, labelAlign, titled: rawSpec.titles.length > 0 });
+  return coverFindings({ samples, labelAlign, titled: (rawSpec.titles ?? []).length > 0 });
 };
 
 const layout = async () => {

@@ -91,8 +91,10 @@ export const placeLabels = (parts: PartPlace[], line: Vec[], area?: Box): Placed
   for (const p of [...brackets].sort((a, b) => a.points[0][0] - b.points[0][0])) {
     const xs = p.points.map((q) => q[0]);
     const [bx1, bx2] = [Math.min(...xs), Math.max(...xs)];
-    const { bottom } = extent(line, bx1, bx2);
     const cx = (bx1 + bx2) / 2;
+    // Start below the lowest point the bracket's box will be checked against (a neighbouring S wave), not only its
+    // own stretch, so the first row is free and the strip's reserved room is enough.
+    const { bottom } = extent(line, Math.min(bx1, cx - p.width / 2) - GAP, Math.max(bx2, cx + p.width / 2) + GAP);
     const spot = firstFree(() => {
       for (let row = 0; row < ROWS; row++) {
         const y = bottom + BELOW + row * (p.height + TICK + 2 * GAP);
