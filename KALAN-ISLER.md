@@ -1,6 +1,6 @@
 # Kalan işler
 
-Son güncelleme: 2026-11-24. Branch: `feat/genel-sahne-turleri` (push yok, PR yok).
+Son güncelleme: 2026-11-24. `feat/genel-sahne-turleri` PR #1 ile main'e birleştirildi (`55d38de`); yeni iş yeni branch'te.
 
 ## Yapılanlar (commit sırasıyla)
 
