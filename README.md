@@ -44,7 +44,9 @@ de kareler incelenebilir.
 | `npm run stills -- <slug> <kare\|12.5s>… [--every N] [--out dir] [--sheet] [--ground]` | still kareler (+ kare sayfası); `--ground`: zemin anahtar renkte, qa'nın boş alan ölçümünün gördüğü gibi |
 | `npm run align -- <slug> <ses> [--dry]` | whisper.cpp (yerel) ile kelime zamanları → `timing.json`, `vo.wav` |
 | `npm run align -- <slug> --timing [--dry]` | Whisper'sız: mevcut `timing.json`'un kelime zamanlarıyla `vo.wav`'daki kısa cümle aralarına sessizlik ekler |
-| `npm run voiceover -- build <slug> [voiceId] [--widen] [--offline]` | ElevenLabs taslak seslendirme: bölüm başına tek istek, duraklamalar sessizliklerden açılır, tonlaması işaretli cümleye 3 alternatif → `timing.json`, `vo.wav`, `out/<slug>/review.html`; sığmazsa tablo basar, `--widen` pencereleri genişletir |
+| `npm run voiceover -- build <slug> [ses] [--provider elevenlabs\|azure\|say] [--estimate] [--over-budget] [--widen] [--offline]` | Seslendirme: her cümle ayrı (komşuları bağlam), cümle başına önbellek (`out/tts-cache/`, bağlam anahtara girmez: yalnız değişen cümle yeniden ücretlenir), cümle aralarına STYLE duraklamaları, tonlaması işaretli cümleye `voiceover.tts.takes` alternatif → `timing.json`, `vo.wav`, `out/<slug>/review.html`. Göndermeden önce üretilecek okumaları, karakterleri ve hesapta kalanı yazar; `voiceover.tts.budget` aşılacaksa durur (`--over-budget` ile onay). `--estimate`: yalnız tahmin. `azure`: SSML (`<break>` duraklamalar, bölümün `stress` kelimeleri vurgulu; `.env`'de `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`). `say`: macOS Yelda, ücretsiz geçici ses — yalnız zamanlama/altyazı denemesi, tonlama ölçülmez, render yalnız `--draft` ile. Sığmazsa tablo basar, `--widen` pencereleri genişletir |
+| `npm run voiceover -- voices [--provider p]` / `sample <slug> <ses>…` | seçilebilir sesler / ilk bölümden ses örnekleri (aynı tahmin ve bütçe yolundan) |
+| `npm run render -- <slug> [--draft]` | `out/<slug>.mp4`; geçici sesle yalnız `--draft` → `out/<slug>.draft.mp4` |
 | `npm run review -- <slug>` | `review.html`'i yerelde (127.0.0.1) açar: alternatifleri dinle, seç; seçim `voiceover.picks`'e yazılır, ses kredisiz yeniden kurulur |
 | `npm run voiceover -- pick <slug> <cümle#> <çekim>` | aynı seçim komut satırından |
 | `npm test` | ses ölçümü, kesim kuralları, telaffuz sözlüğü, cümle türleri ve nicelik birim testleri |
@@ -71,7 +73,7 @@ de kareler incelenebilir.
 | `layers[]` | sahneler ve geçişler, dizi sırasıyla çizilir (aşağıdaki tablo) |
 | `labels[]`, `notes[]`, `titles[]` | monospace veri satırları (sesiyle; `pointTo: "katman.öğe"` ile panelden sahne öğesine kılavuz çizgisi, öğe adları geçişlerdeki `via` ile aynı), dürüstlük notları, kanca başlıkları |
 | `counter`, `countdown`, `concept`, `darken` | sağ üst sayaç, doruk geri sayımı, kavram kartı, final kararması |
-| `captions` | karaoke altyazı ayarları (varsayılanlar STYLE'a uygun) |
+| `captions` | karaoke altyazı ayarları (varsayılanlar STYLE'a uygun). `size` sabit yazı boyutu: sayfa küçülmez, uzun cümle 2–6 kelimelik iki sayfaya bölünür |
 | `sound` | `beds[]` (konuşmada kısılan ambiyans), `hits[]` (efektler), `music` (lisanslı parça) |
 | `sources[]` | her iddia: değer, url, erişim tarihi, `verified` / `simplified` / `disputed` |
 | `credits[]` | her model, ses, doku, yazı tipi, müzik ve kod: sahibi + lisansı |
@@ -166,14 +168,20 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
 
 - **Yerleşim** (render gerekmez): her 0,25 sn'de bir kare tarayıcıda açılır, üst yazıların kutuları
   `@remotion/layout-utils` ile ölçülür. Yazılar birbirine ya da altyazıya biniyorsa, sağdaki 120 px'e ya da alttaki
-  %15'e taşıyorsa hata.
+  %15'e taşıyorsa hata. Sahnelerin kendi yazıları da (`QA_LAYER` `texts`: veri çizgisi etiketleri, ölçek notu) bütün
+  yazılara karşı denetlenir; altyazı bandına giren her yazı, panelinden taşan şerit yazısı ve başlığa ya da altyazı
+  bandına giren veri çizgisi hata.
+- **Kapak** (ilk 3 sn): her 2 karede bir, belirmekte olan yazılar dahil, süre payı olmadan: çakışma, güvenli alan,
+  önemli öğe, özne, boş alan tek karede bile hata; kare 0'da kanca başlığı olmalı. Kare 0 → `out/<slug>/cover.png`.
 - **Kompozisyon** (render gerekmez; sahneler her karede önemli öğelerini, öznelerini, veri etiketlerini raporlar,
   `QA_LAYER`): önemli öğe üst yazı / şerit / altyazı altında (nokta hiç, alan en fazla %25) hata; önemli öğe
   kareden taşıyor (nokta hiç, alan en fazla %25; 0,5 sn, giriş/çıkışta 1 sn) hata; özne < %35 yükseklik
   2 sn'den uzun hata; kare > %40 boş 1 sn'den uzun hata (tam boyutlu karede 40 px hücreler; zemin anahtar renge boyanıp ölçülür,
   dolgulu şekil içeriktir); özne kenarda kırpılıyor
   (yakın plan değilse) uyarı; söylenen öğe cümlenin yarısında ekranda değil hata; veri etiketleri değiyor ya da
-  çizgiyi kesiyor hata; `pointTo` öğesi ekranda değil ya da kılavuzu başka bir yazının üstünden geçiyor hata; şekil eşleştirme öğeleri aynı yerde değil, içinden geçişte kare dolmuyor, geçişte kare > %60
+  çizgiyi kesiyor hata; `pointTo` öğesi ekranda değil ya da kılavuzu başka bir yazının üstünden geçiyor hata;
+  altyazı boyutu değişiyor ya da sayfa satıra sığmıyor hata; bir seslendirme bölümünde ana sahnenin öznesi 1 sn
+  kesintisiz tamamen kadraja girmiyor uyarı (bağlam planı); şekil eşleştirme öğeleri aynı yerde değil, içinden geçişte kare dolmuyor, geçişte kare > %60
   boş hata. Render varsa 0,3 sn'den uzun donma hata. Örnekler: `out/<slug>/qa-samples.json`.
 - **Seslendirme** (`vo.wav` üzerinde, dinleyicinin duyduğu gibi): konuşulan sürede 2,6–3,0 kelime/sn dışındaysa
   uyarı; cümle sonu arası 0,25 sn'den kısaysa uyarı, ortalaması 0,35 sn'nin altındaysa hata; sonda +2 yarım tondan

@@ -7,7 +7,7 @@ import { ramp, sec, useTime } from "../time";
 
 type Props = Spec["titles"][number];
 
-export const HookTitle: React.FC<Props> = ({ top, bottom, from, to }) => {
+export const HookTitle: React.FC<Props> = ({ top, bottom, from, to, y }) => {
   const t = useTime();
   const { fps } = useVideoConfig();
   const { contentWidth } = useLayout();
@@ -30,7 +30,7 @@ export const HookTitle: React.FC<Props> = ({ top, bottom, from, to }) => {
     <div
       style={{
         position: "absolute",
-        top: 560,
+        top: y,
         left: 0,
         right: 0,
         textAlign: "center",

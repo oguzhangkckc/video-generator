@@ -4,7 +4,7 @@ import type { Video } from "../../spec/resolve";
 import { sceneFindings } from "../../spec/scenes";
 
 import { useLayout } from "../layout";
-import { overlayBoxes, reservedZones } from "../overlays/boxes";
+import { captionBand, overlayBoxes, reservedZones } from "../overlays/boxes";
 
 export type { QaBox } from "../overlays/boxes";
 
@@ -18,12 +18,17 @@ export const QaProbe: React.FC<{ video: Video }> = ({ video }) => {
   const layout = useLayout();
   useEffect(() => {
     const t = frame / fps;
-    console.log(`QA_BOXES ${JSON.stringify({ t, boxes: overlayBoxes(video, t, layout) })}`);
+    const boxes = overlayBoxes(video, t, layout);
+    // strict: every overlay on screen at all, for the cover check; band: where captions can be while one shows.
+    const strict = overlayBoxes(video, t, layout, { settle: 0 });
+    const band = boxes.some((b) => b.kind === "caption") ? captionBand(video, layout) : null;
+    console.log(`QA_BOXES ${JSON.stringify({ t, boxes, strict, band })}`);
     console.log(`QA_SCENE ${JSON.stringify({ t, zones: reservedZones(video, t, layout) })}`);
     const { sound, durationSec, labels } = video.spec;
     const shown = labels.map(({ text, at }) => ({ text, at }));
     const findings = sceneFindings(video.spec);
-    console.log(`QA_SPEC ${JSON.stringify({ sound, durationSec, phrases: video.phrases, labels: shown, findings, transitions: video.spec.transitions })}`);
+    const sections = video.spec.voiceover.sections.map(({ id, window }) => ({ id, window }));
+    console.log(`QA_SPEC ${JSON.stringify({ sound, durationSec, phrases: video.phrases, labels: shown, findings, transitions: video.spec.transitions, sections })}`);
   }, [frame, fps, video, layout]);
   return null;
 };

@@ -40,6 +40,32 @@ export const loadSpec = (slug) => {
   return { file, json, spec: parsed.data };
 };
 
+const WIDTH = 120;
+const inline = (v) =>
+  Array.isArray(v)
+    ? `[${v.map(inline).join(", ")}]`
+    : v && typeof v === "object"
+      ? Object.keys(v).length
+        ? `{ ${Object.entries(v).map(([k, x]) => `${JSON.stringify(k)}: ${inline(x)}`).join(", ")} }`
+        : "{}"
+      : JSON.stringify(v);
+
+/**
+ * A spec as the repo writes it: an array or object goes on one line when it fits in 120 columns (objects with more
+ * than six keys always open up), so a script that edits one value leaves the rest of the file as it was.
+ */
+export const formatSpec = (value, indent = 0, prefix = 0) => {
+  const line = inline(value);
+  if (!value || typeof value !== "object") return line;
+  const wide = !Array.isArray(value) && Object.keys(value).length > 6;
+  if (indent + prefix + line.length + 1 <= WIDTH && !wide) return line;
+  const pad = " ".repeat(indent + 2);
+  const items = Array.isArray(value)
+    ? value.map((x) => pad + formatSpec(x, indent + 2))
+    : Object.entries(value).map(([k, x]) => `${pad}${JSON.stringify(k)}: ${formatSpec(x, indent + 2, JSON.stringify(k).length + 2)}`);
+  return `${Array.isArray(value) ? "[" : "{"}\n${items.join(",\n")}\n${" ".repeat(indent)}${Array.isArray(value) ? "]" : "}"}`;
+};
+
 export const loadTiming = (slug) => {
   const file = path.join(videoDir(slug), "timing.json");
   return existsSync(file) ? Timing.parse(JSON.parse(readFileSync(file, "utf8"))) : null;

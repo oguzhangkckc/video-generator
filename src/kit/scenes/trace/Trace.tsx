@@ -7,10 +7,10 @@ import { adjustFor, currentShot, shotKind, useFraming } from "../../framing";
 import { groundGradient, useGround } from "../../ground";
 import { stripBox } from "../../overlays/boxes";
 import { COLOR, MONO, tokenColor } from "../../theme";
-import { ramp, useTime, windowAlpha } from "../../time";
+import { useTime, windowAlpha } from "../../time";
 import { strokeAt, worldTransform } from "../camera2d/camera";
 import { GlowDot, MATCH_DOT_R } from "../camera2d/GlowDot";
-import { traceElements, traceLabels, traceLine, traceState, type TraceLayer } from "./model";
+import { traceElements, traceLabels, traceLegend, traceLine, traceState, type TraceLayer } from "./model";
 import { waveform, type Waveform } from "./waveform";
 
 const beepTimes = (layer: TraceLayer, clock: CurveFn, wave: Waveform, fps: number, frames: number) => {
@@ -55,7 +55,7 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
   const opacity = Math.max(...layer.visible.map((w) => windowAlpha(t, w)));
   if (opacity <= 0) return <>{sounds}</>;
 
-  const { pxPerY, minorX, minorY, majorEvery, legend } = layer.grid;
+  const { minorX, minorY, majorEvery } = layer.grid;
   const panel = layer.panel ? stripBox(layer.panel) : null;
   const area = panel ?? { x1: 0, y1: 0, x2: WIDTH, y2: HEIGHT };
   // A data strip is itself an overlay: only a scene trace moves out of the way of the others.
@@ -63,9 +63,10 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
     ? { dx: 0, dy: 0, s: 1 }
     : adjustFor(framing, name, (u) => traceElements(traceState(layer, wave, clock, u), framing.spokenAt(u)), [CX, layer.anchorY], t);
   const st = traceState(layer, wave, clock, t, adjust);
-  const { pen, view, anchor, toScreen, now, xAt, xFrom, points, parts, penScreen, reach, left } = st;
+  const { pen, view, anchor, now, xAt, xFrom, points, parts, penScreen, reach, left, pxPerY } = st;
   const { subject, line } = traceLine(st, area);
-  const labels = traceLabels(st, line);
+  const labels = traceLabels(st, line, area);
+  const legend = traceLegend(layer, st, area);
   if (framing.report) {
     const shot = currentShot(layer.camera, t);
     framing.report({
@@ -77,6 +78,10 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
       subject,
       elements: traceElements(st, framing.spokenAt(t)),
       labels,
+      texts: [
+        ...labels.filter((l) => Math.max(l.alpha, l.glow) > 0.05).map(({ x1, y1, x2, y2, text }) => ({ x1, y1, x2, y2, text })),
+        ...(legend ? [{ x1: legend.x1, y1: legend.y1, x2: legend.x2, y2: legend.y2, text: legend.text }] : []),
+      ],
       line,
       adjust,
     });
@@ -103,7 +108,6 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
     else minor += d;
   }
 
-  const legendAlpha = legend ? ramp(view.zoom, [1.15, 1.5], [1, 0]) : 0;
   const clipped = Boolean(panel);
 
   return (
@@ -169,21 +173,22 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
             <GlowDot x={penScreen[0]} y={penScreen[1]} r={MATCH_DOT_R * view.zoom} color={color} />
           </g>
         </svg>
-        {legendAlpha > 0 ? (
+        {legend ? (
           <div
             style={{
               position: "absolute",
-              left: panel ? area.x1 + 40 : 80,
-              top: clipped ? area.y2 - 34 : toScreen([0, pen[1]])[1] + 230,
-              opacity: legendAlpha,
+              left: legend.x1,
+              top: legend.y1,
+              opacity: legend.alpha,
               fontFamily: MONO,
-              fontWeight: 500,
-              fontSize: 24,
-              letterSpacing: "0.12em",
+              fontWeight: legend.weight,
+              fontSize: legend.size,
+              letterSpacing: legend.spacing,
+              whiteSpace: "nowrap",
               color: COLOR.muted,
             }}
           >
-            {legend}
+            {legend.text}
           </div>
         ) : null}
       </AbsoluteFill>

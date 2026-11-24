@@ -11,7 +11,8 @@
 // is opened with silence inside the existing quiet (scripts/lib/speech.mjs). Every sentence's ending is measured
 // (scripts/prosody.py); a recording cannot be regenerated, so flagged sentences are listed to record again, with
 // out/<slug>/review.html to hear them.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { downloadWhisperModel, installWhisperCpp, transcribe } from "@remotion/install-whisper-cpp";
 import { spoken, spokenWords } from "../src/spec/lexicon.ts";
@@ -83,11 +84,27 @@ const fold = (timed) => {
   });
 };
 
+/**
+ * Remotion's installer links whisper.cpp's shared libraries by absolute path, so moving the project breaks the binary;
+ * when it does not run, it is rebuilt statically (no paths baked in). The model stays where it is.
+ */
+const ensureWhisperRuns = () => {
+  const cli = path.join(WHISPER_DIR, "build/bin/whisper-cli");
+  if (spawnSync(cli, ["--help"]).status === 0) return;
+  console.log("whisper.cpp does not run here (the project moved?) — rebuilding it statically");
+  rmSync(path.join(WHISPER_DIR, "build"), { recursive: true, force: true });
+  for (const args of [["-B", "build", "-DBUILD_SHARED_LIBS=OFF", "-DCMAKE_BUILD_TYPE=Release"], ["--build", "build", "-j", "8", "--config", "Release"]]) {
+    const run = spawnSync("cmake", args, { cwd: WHISPER_DIR, stdio: "inherit" });
+    if (run.status !== 0) throw new Error(`cmake ${args.join(" ")} failed — is cmake installed (brew install cmake)?`);
+  }
+};
+
 const whisperWords = async () => {
   const pcm16k = path.join(workDir, "input-16k.wav");
   ffmpeg("-i", input, "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", pcm16k);
 
   await installWhisperCpp({ to: WHISPER_DIR, version: WHISPER_VERSION, printOutput: true });
+  ensureWhisperRuns();
   mkdirSync(MODEL_DIR, { recursive: true });
   await downloadWhisperModel({ model, folder: MODEL_DIR, printOutput: true });
   const output = await transcribe({

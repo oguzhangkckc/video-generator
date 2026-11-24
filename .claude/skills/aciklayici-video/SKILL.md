@@ -144,9 +144,11 @@ Birini gerekçesiyle öner. **Dur.**
    kamera hareketleri için. Ses henüz yok; altyazı tahmini zamanlamayla (2,8 kelime/sn + duraklamalar) çalışır.
 4. `npm run check` temiz olmalı.
 5. Kilit anları render et: her bölümün ilk saniyesi, her etiketin göründüğü an +0,3 sn, her geçişin ortası, geri
-   sayım, kavram kartı, son kare. Komut: `npm run stills -- <slug> 0.5s 4s … --sheet`.
+   sayım, kavram kartı, son kare. Komut: `npm run stills -- <slug> 0.5s 4s … --sheet`. Her bölümün geniş planında
+   öznenin silueti tanınıyor mu (gövdede omuz ve boyun çizgisi)? Kare 0 kapaktır: `out/<slug>/cover.png`'e ayrıca bak.
 6. **`npm run qa -- <slug> --layout` zorunlu.** Satırlar: yerleşim, önemli öğe (üst yazı altı, kare dışı), özne boyu, boş alan,
-   kenar kırpması, bağlam, veri etiketleri, geçişler, kamera. Hatalar kesin: önce çekimi, özneyi ya da geçişi
+   kenar kırpması, bağlam, veri etiketleri, kılavuz, kapak (ilk 3 sn, kare kare), altyazı (sabit boyut), bağlam planı
+   (özne bütün ≥ 1 sn), geçişler, kamera. Hatalar kesin: önce çekimi, özneyi ya da geçişi
    düzelt (kamera, zoom, `subject`, `say`, `transitions`), sonra tekrarla. Örnekler `out/<slug>/qa-samples.json`'da.
 7. Kareleri Read ile kendin incele ve STYLE.md kontrol listesini madde madde uygula. Uymayanları düzelt, yeniden
    render et.
@@ -183,15 +185,20 @@ Seslendirme dosyası verildiğinde:
 7. Kullanıcıya bildir: dosya yolu, süre, loudness, **qa sonuç tablosu**, kontrol listesinin son durumu, kredilerin
    özeti.
 
-Seslendirme dosyası yoksa ve kullanıcı taslak ses isterse: `npm run voiceover -- build <slug> <voiceId>`. Bu
-ElevenLabs kredisi harcar ve ücretsiz planda çıkan ses ticari kullanılamaz; ikisini de önceden söyle. Kredi tahmini:
-metnin karakter sayısı + işaretlenecek cümleler için 3 × cümle uzunluğu.
+Seslendirme dosyası yoksa: önce ücretsiz geçici sesle zamanlamayı ve altyazıyı dene
+(`npm run voiceover -- build <slug> --provider say`; render yalnız `--draft`, tonlama ölçülmez). Gerçek ses için
+sağlayıcı `voiceover.tts.provider` (elevenlabs ya da azure). **Kredi harcamadan önce** `--estimate` ile tahmini al ve
+kullanıcıya söyle (üretilecek okuma, karakter, hesapta kalan); ElevenLabs ücretsiz planında çıkan ses ticari
+kullanılamaz, bunu da söyle.
 
-- Her bölüm tek istekte üretilir (cümle sonları doğal tonlansın diye); duraklamalar yalnızca mevcut sessizliklerin
-  ortasından açılır. Hızlandırma en fazla ×1,05; istekler `out/<slug>/vo-takes/` altında önbellekte, tekrar
-  çalıştırmak kredi harcamaz. Ses kimliği spec'e (`voiceover.tts`) yazılır.
+- **Bütçe aşılacaksa betik durur (çıkış 3, "bütçe aşılıyor").** O zaman kullanıcıya sor; onay gelmeden
+  `--over-budget` ile yeniden çalıştırma. Bütçe `voiceover.tts.budget`, harcanan `out/<slug>/tts-ledger.json`.
+- Her cümle ayrı üretilir (komşu cümleler bağlam); önbellek cümle başına ve bağlamdan bağımsız (`out/tts-cache/`):
+  bir cümleyi değiştirmek yalnız o cümleyi yeniden ücretlendirir. Cümle aralarına STYLE duraklamaları konur; cümle
+  içi duraklamalar mevcut sessizliklerden açılır (azure'da `<break>` ile gelir). Hızlandırma en fazla ×1,05. Ses
+  kimliği spec'e (`voiceover.tts`) yazılır.
 - Bir bölüm sığmazsa script durup tablo basar: `--widen` ile pencereleri genişlet ya da metni kısaltmayı öner.
-- Tonlaması işaretlenen her cümle için 3 alternatif üretilir ve en iyisi otomatik seçilir. Kullanıcıya
+- Tonlaması işaretlenen her cümle için `voiceover.tts.takes` (varsayılan 3) alternatif üretilir ve en iyisi otomatik seçilir. Kullanıcıya
   `npm run review -- <slug>` komutunu ver: sayfada (`out/<slug>/review.html`) dinler, seçer; seçim spec'e
   (`voiceover.picks`) yazılır, ses önbellekten kredisiz yeniden kurulur ve sonraki üretimlerde korunur.
 - Kredi yoksa, eski bir taslak sesin aralarını `npm run align -- <slug> --timing` açar (Whisper'sız, mevcut kelime

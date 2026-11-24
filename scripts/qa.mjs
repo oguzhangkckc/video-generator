@@ -11,7 +11,7 @@ import { openBrowser, renderStill, selectComposition } from "@remotion/renderer"
 import { GROUND_KEY } from "../src/kit/ground.ts";
 import { quantityMismatches } from "../src/spec/quantities.ts";
 import { parseArgs } from "./lib/args.mjs";
-import { composition } from "./lib/composition.mjs";
+import { composition, coverFindings } from "./lib/composition.mjs";
 import { flagText } from "./lib/review.mjs";
 import { speechReport } from "./lib/speech.mjs";
 import { ROOT, duration, loadSpec, loadTiming, outDir, readPcm, requireSlug } from "./lib/video.mjs";
@@ -125,6 +125,21 @@ const emptyShare = (png) => {
   return empty / ((W / C) * (H / C));
 };
 
+/** STYLE "Kapak": the first seconds, every COVER.every frames, judged with no grace; frame 0 saved as cover.png. */
+const COVER = { seconds: 3, every: 2 };
+const cover = async (tmp, first, last, labelAlign) => {
+  const samples = [];
+  for (let frame = 0; frame <= Math.min(last, COVER.seconds * FPS); frame += COVER.every) {
+    const { boxes, scene } = frame === 0 ? first : await probe(frame, { probe: true }, path.join(tmp, "probe.png"));
+    if (!boxes || !scene) continue;
+    const full = path.join(tmp, "full.png");
+    await probe(frame, { probe: false, ground: true }, full);
+    samples.push({ t: boxes.t, boxes: boxes.boxes, strict: boxes.strict, band: boxes.band, scene, empty: emptyShare(full) });
+  }
+  await probe(0, {}, path.join(outDir(slug), "cover.png"));
+  return coverFindings({ samples, labelAlign, titled: (rawSpec.titles ?? []).length > 0 });
+};
+
 const layout = async () => {
   const tmp = mkdtempSync(path.join(os.tmpdir(), `qa-${slug}-`));
   const first = await probe(0, { probe: true }, path.join(tmp, "probe.png"));
@@ -148,7 +163,7 @@ const layout = async () => {
       await probe(frame, { probe: false, ground: true }, full);
       empty = emptyShare(full);
     }
-    if (scene) samples.push({ t: boxes.t, boxes: boxes.boxes, scene, empty });
+    if (scene) samples.push({ t: boxes.t, boxes: boxes.boxes, band: boxes.band, scene, empty });
     for (const b of boxes.boxes) {
       if (b.x2 > SAFE_RIGHT + 0.5) unsafe.add(`${b.id}:right`, boxes.t, `${b.id} "${b.text}" reaches x ${Math.round(b.x2)} (right safe area starts at ${SAFE_RIGHT})`);
       if (b.y2 > SAFE_BOTTOM + 0.5) unsafe.add(`${b.id}:bottom`, boxes.t, `${b.id} "${b.text}" reaches y ${Math.round(b.y2)} (bottom safe area starts at ${SAFE_BOTTOM})`);
@@ -175,10 +190,12 @@ const layout = async () => {
     labelPointTo,
     phrases: (first.spec?.phrases ?? []).filter((p) => inRange(p.start) && inRange(p.end)),
     transitions: (first.spec?.transitions ?? []).filter((tr) => inRange(tr.at)),
+    sections: (first.spec?.sections ?? []).filter((s) => inRange(s.window[0]) && inRange(s.window[1])),
   });
   for (const f of first.spec?.findings ?? []) errors.push(f.replace(/^transitions: /, "geçiş: ").replace(/^camera: /, "kamera: "));
   errors.push(...found.errors);
   warnings.push(...found.warnings);
+  if (inRange(0)) errors.push(...(await cover(tmp, first, last, labelAlign)));
   rmSync(tmp, { recursive: true, force: true });
   return { frames: frames.length, spec: first.spec, stats: found.stats };
 };
@@ -219,8 +236,10 @@ const audio = async (sound) => {
     const wav = path.join(ROOT, "public", timing.audio ?? `videos/${slug}/vo.wav`);
     const words = timing.words.map((w) => ({ start: w.startMs / 1000, end: w.endMs / 1000 }));
     const report = speechReport({ wav, pcm: readPcm(wav, { channels: 2 }), channels: 2, words, sections: rawSpec.voiceover.sections });
+    // The placeholder voice (macOS say) only times sections and captions: its rate and intonation say nothing.
+    const placeholder = timing.source.startsWith("placeholder");
     rates.spoken = report.words / report.spokenSeconds;
-    if (rates.spoken < SPOKEN_RATE[0] || rates.spoken > SPOKEN_RATE[1]) {
+    if (!placeholder && (rates.spoken < SPOKEN_RATE[0] || rates.spoken > SPOKEN_RATE[1])) {
       warnings.push(`konuşma hızı: konuşulan sürede ${rates.spoken.toFixed(2)} kelime/sn (hedef ${SPOKEN_RATE.join("–")})`);
     }
     const sentenceEnds = report.pauses.filter((p) => p.sentenceEnd);
@@ -234,8 +253,10 @@ const audio = async (sound) => {
     }
     // A recording cannot be regenerated, so its flagged sentences are a list to record again.
     const recorded = timing.source.startsWith("whisper");
-    intonation = { recorded, sentences: report.sentences.map(({ text, kind, start, rise, decay, flags }) => ({ text, kind, start, rise, decay, flags })) };
-    for (const s of report.sentences.filter((x) => x.flags.length)) {
+    intonation = placeholder
+      ? { placeholder: true, sentences: [] }
+      : { recorded, sentences: report.sentences.map(({ text, kind, start, rise, decay, flags }) => ({ text, kind, start, rise, decay, flags })) };
+    for (const s of placeholder ? [] : report.sentences.filter((x) => x.flags.length)) {
       const values = `yükselme ${s.rise == null ? "—" : `${s.rise.toFixed(1)} yt`}, sönüm ${s.decay == null ? "—" : `${Math.round(s.decay * 1000)} ms`}`;
       warnings.push(`tonlama: ${fmt(s.end)} "${s.text}" ${flagText(s.flags)} (${values})${recorded ? " — yeniden kaydet" : ""}`);
     }
@@ -292,6 +313,10 @@ const rows = [
     ["Bağlam (söylenen yer ekranda)", "bağlam"],
     ["Veri etiketleri", "veri etiketi"],
     ["Kılavuz (etiketten öğeye)", "kılavuz"],
+    ["Kapak (ilk 3 sn, kare kare)", "kapak"],
+    ["Altyazı (sabit boyut)", "altyazı"],
+    ["Bağlam planı (özne bütün ≥ 1 sn)", "siluet"],
+    ["Kavram kartı (koyu zemin)", "kart"],
     ["Geçişler", "geçiş"],
     ["Kamera (geniş → yakın)", "kamera"],
   ].map(([name, prefix]) => [
@@ -299,11 +324,13 @@ const rows = [
     runLayout ? (errors.some((e) => e.startsWith(prefix)) ? "HATA" : warnings.some((w) => w.startsWith(prefix)) ? "uyarı" : "temiz") : "—",
   ]),
   ["Donma (render)", frozen === null ? "—" : frozen ? "HATA" : "temiz"],
-  ["Konuşma hızı (konuşulan süre)", runAudio ? (warnings.some((w) => w.startsWith("konuşma")) ? "uyarı" : "temiz") : "—"],
+  ["Konuşma hızı (konuşulan süre)", runAudio ? (audioResult?.intonation?.placeholder ? "— (geçici ses)" : warnings.some((w) => w.startsWith("konuşma")) ? "uyarı" : "temiz") : "—"],
   ["Duraklamalar", runAudio ? (errors.some((e) => e.startsWith("duraklama")) ? "HATA" : warnings.some((w) => w.startsWith("duraklama")) ? "uyarı" : "temiz") : "—"],
   [
     "Tonlama (cümle sonları)",
-    runAudio && audioResult?.intonation
+    audioResult?.intonation?.placeholder
+      ? "— (geçici ses)"
+      : runAudio && audioResult?.intonation
       ? warnings.some((w) => w.startsWith("tonlama"))
         ? `uyarı${audioResult.intonation.recorded ? " (yeniden kaydet)" : ""}`
         : "temiz"

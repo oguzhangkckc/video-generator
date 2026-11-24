@@ -36,10 +36,11 @@
       "highlight": [{ "target": "isp", "range": [3.8, 5.2] }, { "target": "dc", "range": [5.8, 8] }],
       "camera": [
         { "at": 0, "focus": [0, 560], "zoom": 1.3 },
-        { "at": 2.0, "focus": [0, 560], "zoom": 1.32 },
+        { "at": 2, "focus": [0, 560], "zoom": 1.32 },
         { "at": 4.4, "focus": "isp", "zoom": 1.4 },
         { "at": 6.5, "focus": [0, -560], "zoom": 1.45 },
-        { "at": 8, "focus": [0, 0], "zoom": 1.0, "subject": ["dc", "provider", "home"] }
+        { "at": 7, "focus": [0, 80], "zoom": 0.9, "subject": ["dc", "provider", "home"] },
+        { "at": 8, "focus": [0, 80], "zoom": 0.92, "subject": ["dc", "provider", "home"] }
       ]
     }
   ],
@@ -63,7 +64,8 @@
       "size": 52,
       "bar": true,
       "sound": "tick",
-      "pointTo": "flow#0.isp"
+      "pointTo": "flow#0.isp",
+      "align": "right"
     },
     {
       "text": "SUNUCU",

@@ -85,7 +85,7 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
         {s.layers.map((layer, i) => (strips(layer) ? <LayerView key={`strip-${i}`} layer={layer} video={video} index={i} /> : null))}
         {qa?.overlays === false ? null : (
           <>
-            {s.layout.labelBackdrop ? <LabelBackdrop labels={s.labels} /> : null}
+            {s.layout.labelBackdrop ? <LabelBackdrop labels={s.labels} concept={s.concept} /> : null}
             <LabelPointers labels={s.labels} />
             {s.labels.map((label, i) => (
               <DataLabel key={`label-${i}`} label={label} />

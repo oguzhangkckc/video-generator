@@ -5,6 +5,8 @@ import lengths from "../kit/audio/sfx-durations.json";
 import { curveFn, type CurveFn } from "../kit/curves";
 import { FPS, formatCounter } from "../kit/format";
 import { speedLabel } from "../kit/overlays/Counter";
+import { textWidth } from "../kit/overlays/geometry";
+import { SANS } from "../kit/theme";
 import { needsReading, splitToken, unreadable } from "./lexicon.ts";
 import { KEY_REF, MARK_REF } from "./primitives";
 import { ResolvedSpec, Timing, VideoSpec, type LayerOf, type Spec } from "./schema";
@@ -14,6 +16,7 @@ import {
   captionPages,
   estimatePhrases,
   phraseTexts,
+  splitPage,
   timingMatches,
   type CaptionPage,
   type Phrase,
@@ -307,9 +310,16 @@ const checkTimeline = (raw: RawSpec, spec: Spec, curve: (name: string) => CurveF
   }
 };
 
+/** The final card's text needs dark ground: the label panel, or a dim this dark by the time the card appears. */
+const CARD_DARKEN = 0.6;
+
 const check = (spec: Spec) => {
   const scenes = sceneFindings(spec);
   if (scenes.length) fail("scenes", scenes.join("\n  "));
+  const card = spec.concept;
+  if (card && !spec.layout.labelBackdrop && !(spec.darken && spec.darken.alpha >= CARD_DARKEN && spec.darken.range[1] <= card.at)) {
+    fail("concept", `with layout.labelBackdrop off, the card needs darken with alpha ≥ ${CARD_DARKEN} reached by its start (${card.at.toFixed(2)} s)`);
+  }
   const sfx = new Set(Object.keys(catalog));
   const needSfx = (id: string | undefined, where: string) => {
     if (id !== undefined && !sfx.has(id)) fail(where, `unknown sound "${id}" — add it to src/kit/audio/sfx-catalog.json`);
@@ -423,10 +433,19 @@ export const resolveVideo = (rawSpec: unknown, rawTiming: unknown): Video => {
   const curves = new Map(Object.entries(spec.curves).map(([name, c]) => [name, curveFn(c)]));
   checkTimeline(raw, spec, (name) => curves.get(name) ?? fail("curves", `unknown curve "${name}"`), FPS, phrases);
   checkScript(raw, spec, phrases);
+  const lineWidth = spec.captions.maxWidth ?? spec.layout.contentWidth;
+  const fits = (text: string) => textWidth(text, SANS, spec.captions.size, 800) <= lineWidth;
+  const tooLong = (raw.template ? [] : phrases).filter((p) => !splitPage(p.text.split(" ").map((text) => ({ text })), fits));
+  if (tooLong.length) {
+    fail(
+      "captions",
+      `${tooLong.length} phrase(s) do not fit the caption line at ${spec.captions.size} px, not even as two pages of 2–6 words — shorten or reword them:\n  ${tooLong.map((p) => `"${p.text}"`).join("\n  ")}`,
+    );
+  }
   return {
     spec,
     phrases,
-    pages: captionPages(phrases, timing ? timing.words : null),
+    pages: captionPages(phrases, timing ? timing.words : null, fits),
     curve: (name) => curves.get(name) ?? fail("curves", `unknown curve "${name}"`),
     timed: timing !== null,
     voiceoverAudio: spec.voiceover.audio ?? timing?.audio,

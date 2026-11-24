@@ -1,9 +1,12 @@
 import { z } from "zod";
 import { ColorToken, SfxId, type Kit } from "../../spec/primitives.ts";
 
-/** Two-line hook title; the opening one is already readable on frame 0. */
+/**
+ * Two-line hook title; the opening one is already readable on frame 0. `y` is its upper edge: higher when the scene's
+ * subject needs the room below it (a data line between the title and the captions).
+ */
 export const titleSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, R>) =>
-  z.object({ top: z.string(), bottom: z.string(), from: k.time, to: k.time }).strict();
+  z.object({ top: z.string(), bottom: z.string(), from: k.time, to: k.time, y: z.number().default(560) }).strict();
 
 /** Monospace data line, optionally typed out, with an accent bar or a check mark. */
 export const labelSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, R>) =>
@@ -71,7 +74,8 @@ export const captionsSchema = z
   .object({
     /** Vertical centre as a fraction of the frame height. */
     y: z.number().min(0).max(1).default(0.77),
-    maxFont: z.number().positive().default(60),
+    /** One size for every page: captions never shrink to fit; a long sentence becomes two pages (STYLE). */
+    size: z.number().positive().default(60),
     /** Defaults to layout.contentWidth. */
     maxWidth: z.number().positive().optional(),
     /** Long enough to bridge a section pause, so the caption line never blinks empty mid-thought. */

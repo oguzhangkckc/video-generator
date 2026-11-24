@@ -1,13 +1,14 @@
 import { fitText } from "@remotion/layout-utils";
 import type { Video } from "../../spec/resolve";
+import { layerName } from "../../spec/scenes";
 import { CX, HEIGHT, WIDTH } from "../format";
 import type { Layout } from "../layout";
-import { windowAlpha } from "../time";
+import { ramp, windowAlpha } from "../time";
 import { MONO, SANS } from "../theme";
 import { counterOpacity, counterText, speedLabel } from "./Counter";
 import { LINE, labelBox, textWidth as width, type Box } from "./geometry";
 
-export type QaBox = Box & { kind: string; id: string; text: string };
+export type QaBox = Box & { kind: string; id: string; text: string; size?: number };
 
 /** Only fully faded-in text counts in qa; an overlap during a 0.3 s crossfade is not a layout error. */
 export const SETTLE = 0.3;
@@ -50,7 +51,7 @@ export const overlayBoxes = (video: Video, t: number, layout: Layout, when: When
     if (!within(t, title.from, title.to, when)) return;
     const bottom = Math.min(118, fitText({ text: title.bottom, withinWidth: contentWidth, fontFamily: SANS, fontWeight: 800 }).fontSize);
     const w = Math.max(width(title.top, SANS, 46, 600, "0.04em"), width(title.bottom, SANS, bottom, 800));
-    add("title", `titles[${i}]`, `${title.top} / ${title.bottom}`, CX - w / 2, 560, w, 46 * LINE + bottom * 1.02);
+    add("title", `titles[${i}]`, `${title.top} / ${title.bottom}`, CX - w / 2, title.y, w, 46 * LINE + bottom * 1.02);
   });
   if (s.counter) {
     const c = s.counter;
@@ -75,9 +76,8 @@ export const overlayBoxes = (video: Video, t: number, layout: Layout, when: When
   if (s.concept) {
     const c = s.concept;
     if (within(t, c.at, c.until ?? Infinity, when)) {
-      const size = Math.min(150, fitText({ text: c.name, withinWidth: contentWidth, fontFamily: SANS, fontWeight: 800 }).fontSize);
-      const w = Math.max(width(c.name, SANS, size, 800), c.kicker ? width(c.kicker, MONO, 30, 500, "0.22em") : 0, 520);
-      add("concept", "concept", c.name, CX - w / 2, c.top, w, (c.kicker ? 30 * LINE + 12 : 0) + size * 1.02 + 28);
+      const b = conceptBox(c, contentWidth);
+      add("concept", "concept", c.name, b.x1, b.y1, b.x2 - b.x1, b.y2 - b.y1);
     }
   }
 
@@ -85,14 +85,35 @@ export const overlayBoxes = (video: Video, t: number, layout: Layout, when: When
   const page = video.pages.find((p, i) => ms >= p.startMs + 120 && ms < Math.min(video.pages[i + 1]?.startMs ?? Infinity, p.endMs + s.captions.lingerMs));
   if (page) {
     const text = page.tokens.map((token) => token.text).join(" ");
-    const maxWidth = s.captions.maxWidth ?? contentWidth;
-    const size = Math.min(s.captions.maxFont, fitText({ text, withinWidth: maxWidth, fontFamily: SANS, fontWeight: 800 }).fontSize);
+    const size = s.captions.size;
     const w = width(text, SANS, size, 800);
     const h = size * LINE;
-    add("caption", "captions", text, CX - w / 2, HEIGHT * s.captions.y - h / 2, w, h);
+    out.push({ kind: "caption", id: "captions", text, size, x1: CX - w / 2, y1: HEIGHT * s.captions.y - h / 2, x2: CX + w / 2, y2: HEIGHT * s.captions.y + h / 2 });
   }
   return out;
 };
+
+/** The caption line's band: where a page can be, whatever its words. Null when the video has no captions. */
+export const captionBand = (video: Video, layout: Layout): Box | null => {
+  if (!video.pages.length) return null;
+  const c = video.spec.captions;
+  const w = c.maxWidth ?? layout.contentWidth;
+  const h = c.size * LINE;
+  return { x1: CX - w / 2, y1: HEIGHT * c.y - h / 2, x2: CX + w / 2, y2: HEIGHT * c.y + h / 2 };
+};
+
+type Concept = NonNullable<Video["spec"]["concept"]>;
+
+/** The concept card (kicker, name, underline), with ConceptCard's own numbers. */
+export const conceptBox = (c: Concept, contentWidth: number): Box => {
+  const size = Math.min(150, fitText({ text: c.name, withinWidth: contentWidth, fontFamily: SANS, fontWeight: 800 }).fontSize);
+  const w = Math.max(width(c.name, SANS, size, 800), c.kicker ? width(c.kicker, MONO, 30, 500, "0.22em") : 0, 520);
+  return { x1: CX - w / 2, y1: c.top, x2: CX + w / 2, y2: c.top + (c.kicker ? 30 * LINE + 12 : 0) + size * 1.02 + 28 };
+};
+
+/** How much of the concept card shows at t (its fade in and out), for the panel behind it. */
+export const conceptAlpha = (c: Concept, t: number) =>
+  t < c.at || (c.until !== undefined && t >= c.until) ? 0 : ramp(t, [c.at, c.at + 0.25]) * (1 - (c.until !== undefined ? ramp(t, [c.until - 0.3, c.until]) : 0));
 
 /** A trace drawn as a data strip: a dark panel across the frame at panel.top. */
 export const stripBox = (panel: { top: number; height: number }): Box => ({
@@ -116,19 +137,21 @@ export const reservedZones = (video: Video, t: number, layout: Layout): QaBox[] 
     const g = panels.get(l.align);
     panels.set(l.align, g ? { x1: Math.min(g.x1, b.x1), y1: Math.min(g.y1, b.y1), x2: Math.max(g.x2, b.x2), y2: Math.max(g.y2, b.y2) } : b);
   });
+  const c = video.spec.concept;
+  if (c && within(t, c.at, c.until ?? Infinity, when)) {
+    const b = conceptBox(c, layout.contentWidth);
+    const g = panels.get("center");
+    panels.set("center", g ? { x1: Math.min(g.x1, b.x1), y1: Math.min(g.y1, b.y1), x2: Math.max(g.x2, b.x2), y2: Math.max(g.y2, b.y2) } : b);
+  }
   for (const [align, b] of panels) {
     boxes.push({ kind: "panel", id: `labels:${align}`, text: "", x1: b.x1 - PANEL_PAD, y1: b.y1 - PANEL_PAD, x2: b.x2 + PANEL_PAD, y2: b.y2 + PANEL_PAD });
   }
   video.spec.layers.forEach((layer, i) => {
     if (layer.type !== "trace" || !layer.panel) return;
     if (!layer.visible.some((w) => windowAlpha(t, w) > 0 || windowAlpha(t + when.lead, w) > 0)) return;
-    boxes.push({ kind: "strip", id: layer.id ?? `layers[${i}]`, text: "", ...stripBox(layer.panel) });
+    boxes.push({ kind: "strip", id: layerName(layer, i), text: "", ...stripBox(layer.panel) });
   });
-  if (video.pages.length) {
-    const c = video.spec.captions;
-    const w = c.maxWidth ?? layout.contentWidth;
-    const h = c.maxFont * LINE;
-    boxes.push({ kind: "caption", id: "captions", text: "", x1: CX - w / 2, y1: HEIGHT * c.y - h / 2 - 12, x2: CX + w / 2, y2: HEIGHT * c.y + h / 2 + 12 });
-  }
+  const band = captionBand(video, layout);
+  if (band) boxes.push({ kind: "caption", id: "captions", text: "", ...band, y1: band.y1 - 12, y2: band.y2 + 12 });
   return boxes;
 };

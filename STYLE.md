@@ -36,7 +36,12 @@ kullanılır.
 ## Kanca (ilk 5 saniye)
 
 - İlk 5 saniyede **2'şer saniyelik 3 başlık** (`titles`), birlikte tek bir **soru** kurar. İlk başlık 0. karede
-  okunur durumdadır (kapak görseli).
+  okunur durumdadır (kapak görseli). Başlık varsayılan olarak y 560'tadır; sahnenin öznesi (örneğin bir veri
+  çizgisi) başlık ile altyazı arasına %35'iyle sığmıyorsa başlık yukarı alınır (`titles[].y`).
+- **İlk 3 saniye kapaktır ve kare kare temiz olur:** hiçbir yazı (belirirken bile) başka bir yazıya, altyazı bandına
+  ya da güvenli alana girmez; önemli öğe örtülmez, özne ≥ %35, kare ≤ %40 boş, ve bunlar tek bir karede bile bozulmaz.
+  qa bu aralığı her 2 karede bir payısız ölçer ("Kapak" satırı) ve kare 0'ı `out/<slug>/cover.png` olarak kaydeder.
+  Kare 0'da kanca başlığı şartı yalnız başlığı olan videolara uygulanır (tür demolarında başlık yoktur).
 - Kanca, izleyicinin elindeki gündelik bir şeyle başlar ("Cebinde bir uydu alıcısı var.").
 - **Kancadaki soru finalde açıkça cevaplanır.** Tek cümlelik özet, kancanın sorusunun cevabıdır.
 
@@ -79,7 +84,8 @@ kullanılır.
 - **Seslendirmedeki büyüklük, ekrandaki etiketle aynı fiziksel niceliktir.** Etiket "≈ 1 mV" (gerilim) gösterirken
   seslendirme "akım" demez; gerilim, akım, süre, hız birbirine karışmaz (`src/spec/quantities.ts`, qa uyarısı).
 - **Kelime bütçesi** = (pencere − duraklamalar) × 2,8. 30 sn ≈ 65 kelime, 45 sn ≈ 95, 60 sn ≈ 125.
-- Cümleler kısa tutulur. Bir cümle bir altyazı sayfasıdır ve tek satıra sığmalıdır (≈ 32 karakter).
+- Cümleler kısa tutulur. Bir cümle bir altyazı sayfasıdır ve tek satıra sığmalıdır (≈ 32 karakter); sığmayan cümle
+  kelime sınırında 2–6 kelimelik iki sayfaya bölünür, iki sayfaya da sığmıyorsa `npm run check` hatası (cümleyi kısalt).
 - **Sağ ya da sol söylenen her yerde ekranda yön ipucu olur.** Anatomik görünümde izleyicinin sağı ekranın solunda
   kalır; "SENİN SAĞIN" gibi bir etiket ya da ok bunu gösterir.
 
@@ -99,6 +105,10 @@ Sıra her zaman aynıdır:
 3. **Kavramın adı en son** (`concept`). İsim videonun içinde önceden söylenmez; izleyici önce ne olduğunu anlar,
    sonra adını öğrenir. **Kavramın adı izleyicinin muhtemelen zaten bildiği bir şeyse** (EKG, GPS…) finale bir
    şaşırtma eklenir (kelimenin kökeni, beklenmedik bir bağlantı) ya da başka bir kavram seçilir.
+   **Kartın bütün yazıları koyu zemindedir:** kart ve onunla birlikte gösterilen ortalı veri satırları tek bir koyu
+   panelin üstünde durur (etiket paneli kartı da içine alır). Panel kapalıysa (`layout.labelBackdrop: false`) sahne kart
+   belirene kadar en az 0,6 karartılır (`darken`), değilse `npm run check` hatası. qa: kartla birlikte gösterilip
+   panelin dışında kalan yazı hata ("Kavram kartı").
 
 ## Ritim
 
@@ -113,6 +123,11 @@ Sıra her zaman aynıdır:
   plan gelir (kalpten önce göğüs, uydudan önce gezegen). Ölçek değiştiren her geçişte önce geniş, sonra yakın plan.
   Çekim türü (`kind`: wide / medium / close) yazılmazsa zoom'dan okunur (< 0,8 geniş, ≥ 2 yakın); `npm run check`
   geniş plansız yakın planı reddeder (bir `match`/`through` geçişinin indiği açılış hariç).
+- **Tanınabilir bağlam planı:** ölçek değişen her bölümde öznenin **tanınabilir silueti** en az 1 sn tamamen
+  kadrajdadır. Siluet, nesneyi tanıtan dış hattır: gövde için omuz ve boyun çizgisi, kalp için iki kulakçık ve
+  karıncıkların tepesi. Kırpılmış bir gövde bloğu ya da tek başına bir kalp kesiti bağlam değildir. qa: bir bölüm
+  boyunca ana sahnenin öznesi 1 sn kesintisiz tamamen kadraja girmiyorsa uyarı ("Bağlam planı"); siluetin
+  tanınabilirliğini kare kontrolünde göz yakalar.
 - **Düz kesme yoktur.** İki sahnenin ekranda örtüştüğü her an `transitions` altında yazılır (`npm run check`):
   1. **İçinden geçme** (`through`): kamera nesneye girer, kare onunla dolar, sonraki sahne eşleşen öğeden açılır.
      Aynı sahne içinde dıştan içe iniş de böyledir (göğüsten kalbe): kesintisiz yaklaşma, dış katman söner.
@@ -136,12 +151,15 @@ Sıra her zaman aynıdır:
 ## Yerleşim
 
 - **Sayaç** sağ üstte, sabit (`counter`).
-- **Altyazı** yüksekliğin **%77'sinde**, tek satır karaoke: söylenen kelime beyaz, sıradakiler gri.
+- **Altyazı** yüksekliğin **%77'sinde**, tek satır karaoke: söylenen kelime beyaz, sıradakiler gri. **Yazı boyutu
+  video boyunca sabittir** (`captions.size`, varsayılan 60); sığdırmak için asla küçültülmez. qa: boyut değişirse ya da
+  bir sayfa satıra sığmazsa hata.
 - **Sahne her zaman tüm kareyi kullanır;** sabit bir bant ya da pencere yoktur. Koyu zeminli etiket panelleri
   (`layout.labelBackdrop`), veri şeritleri (`trace` + `panel`) ve altyazı sahnenin üstüne bindirilir.
 - Veri satırları üst yarıda (`top` ≈ 380–850). Ekranda kanca başlığı yokken ve sahnenin önemli öğeleri bu bandı
   kullanıyorsa (büyük bir diyagram), satırlar sayacın soluna, `top` ≈ 150–330'a çıkabilir. **Önemli öğe panele girmez:** her sahne o anki önemli öğelerini
-  bildirir (yanan düğüm, ilerleyen sinyal, vurgulanan bölge, kalem, adı söylenen öğe) ve kamera onları panel, şerit
+  bildirir (yanan düğüm, ilerleyen sinyal ve **yolu** — ucun 0,25 sn gerisinden 0,5 sn ilerisine kadar —, vurgulanan
+  bölge, kalem, veri çizgisinin sivri uçları, adı söylenen öğe) ve kamera onları panel, şerit
   ve altyazı bölgelerinin dışında tutar (`src/kit/framing.ts`; panel belirmeden 0,6 sn önce yumuşakça yer açar).
   Noktasal öğe üst yazıya hiç değmez, alan öğesinin en fazla %25'i örtülebilir; panelin arkasında kalan arka plan
   çizgileri sorun değildir. `npm run qa` ihlali hata sayar. Notlar sağ altta.
@@ -153,6 +171,14 @@ Sıra her zaman aynıdır:
 - **Güvenli alanlar:** alt %15 (≈ 1630 px altı) ve sağ kenarın son 120 px'i platform arayüzü için boş kalır.
   Okunması gereken hiçbir şey oraya konmaz. Varsayılan `layout` (sağ boşluk 132 px, ortalanmış genişlik 840 px) bunu
   sağlar; `npm run qa` taşan ya da çakışan her yazıyı hata olarak bildirir.
+- **Yazı yazıya, altyazıya değmez — sahnenin kendi yazıları da.** Üst yazılar (etiket, not, başlık, sayaç, kart) ve
+  sahnelerin çizdiği yazılar (veri çizgisi etiketleri, ölçek notu) birbirine değmez; hiçbir yazı altyazı bandına
+  (altyazının her sayfada kaplayabileceği şerit, o anki sayfa değil) girmez. Veri şeridinin yazıları panelinin
+  içinde kalır. Ölçek notu çizginin en alçak noktasının hemen altına konur.
+- **Veri çizgisi başlığa ve altyazıya girmez.** Sahne olarak çizilen çizginin sivri uçları önemli öğedir; kamera onları
+  başlık, panel ve altyazıdan uzak tutar, gerekirse uzaklaşarak çizgiyi küçültür. Veri şeridinde ölçek (`pxPerY`)
+  kendiliğinden küçülür: çizgi, tepe etiketleri ve parantezleriyle kameranın en yakın çekiminde bile panele sığar; ölçek
+  katman boyunca sabittir.
 
 ## Kompozisyon
 
@@ -179,7 +205,8 @@ Sıra her zaman aynıdır:
   (`marker: "bracket"`).
 - Tek bir **noktayı** ya da dalgayı anlatan etiket (P, QRS, T) çizginin üstüne konur ve kısa bir **kılavuz çizgiyle**
   tepesine bağlanır (`marker: "leader"`). Çakışan etiketler yana kayar ya da bir sıra yukarı çıkar.
-- qa: etiket teması, çizgiyi kesme ve kılavuzun başka etikete değmesi hatadır.
+- Veri şeridinde etiketler panelin içinde kalır (panel kırpar); yer yoksa qa bildirir.
+- qa: etiket teması, çizgiyi kesme, kılavuzun başka etikete değmesi ve panelden taşma hatadır.
 
 ## Ses
 
@@ -190,6 +217,8 @@ Sıra her zaman aynıdır:
 - Yatak ya da müzik **videonun tamamı boyunca kesintisiz** çalar. Kısa bir yatak `loop: true` ile döner; müzik
   kullanılmıyorsa varsayılan yatak `space`, `loop: true`, 0'dan sona.
 - Konuşma hızı, duraklamalar ve tonlama seslendirme dosyasında ölçülür (`npm run qa`); ölçüler "Anlatım"da.
+- **Geçici ses (macOS `say`, Yelda) yalnız zamanlama ve altyazı denemesidir:** tonlama ve konuşma hızı ona
+  uygulanmaz, final render onunla yapılmaz (`npm run render` durur; deneme için `--draft`).
 - Efekt görsel bir olaya bağlıdır: bir etiket, bir geçiş, bir çarpma. Olaysız efekt yoktur.
 
 ## Dürüstlük

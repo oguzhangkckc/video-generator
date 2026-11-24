@@ -32,6 +32,7 @@
     "@remotion/media": "4.0.544",
     "@remotion/renderer": "4.0.544",
     "@remotion/three": "4.0.544",
+    "microsoft-cognitiveservices-speech-sdk": "^1.53.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "remotion": "4.0.544",

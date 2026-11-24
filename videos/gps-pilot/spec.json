@@ -59,7 +59,7 @@
   "marks": {
     "space3d": [2.9, 23.5],
     "rise": [2.4, 3.2],
-    "mapToSpace": [3.0, 3.5],
+    "mapToSpace": [3, 3.5],
     "lock": [10.6, 12.6],
     "signal": 15,
     "descent": [15.4, 21.5],
@@ -87,8 +87,8 @@
     "mapAltitude": {
       "unit": "km",
       "segments": [
-        { "from": 0, "to": "@rise.start", "values": [0, 0.8], "scale": "log", "logOffset": 0.05 },
-        { "from": "@rise.start", "to": "@mapToSpace.end", "values": [0.8, 0.9], "scale": "log" },
+        { "from": 0, "to": "@rise.start", "values": [0, 0.6], "scale": "log", "logOffset": 0.05 },
+        { "from": "@rise.start", "to": "@mapToSpace.end", "values": [0.6, 0.65], "scale": "log" },
         { "from": "@dive.start", "to": "@dive.end", "values": [700, 0], "scale": "log", "logOffset": 0.05 }
       ]
     }
@@ -108,10 +108,7 @@
         "epoch": "@signal",
         "visible": { "in": [5.6, 7.2], "out": [16.2, 17.8] }
       },
-      "hero": {
-        "visible": { "in": [5.6, 7.2], "out": [17.5, 18.5] },
-        "dim": { "range": [11, 12.5], "amount": 0.75 }
-      },
+      "hero": { "visible": { "in": [5.6, 7.2], "out": [17.5, 18.5] }, "dim": { "range": [11, 12.5], "amount": 0.75 } },
       "flash": { "at": "@signal" },
       "camera": [
         {
