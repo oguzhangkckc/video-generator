@@ -1,6 +1,7 @@
 # Kalan işler
 
-Son güncelleme: 2026-11-24. `feat/genel-sahne-turleri` PR #1 ile main'e birleştirildi (`55d38de`); yeni iş yeni branch'te.
+Son güncelleme: 2026-11-24. `feat/genel-sahne-turleri` PR #1 ile main'e birleştirildi (`55d38de`). Şu anki iş:
+`feat/sistem-kurallari` (push yok, PR yok).
 
 ## Yapılanlar (commit sırasıyla)
 
@@ -19,6 +20,7 @@ Son güncelleme: 2026-11-24. `feat/genel-sahne-turleri` PR #1 ile main'e birleş
 | `38716f9` | EKG: SA, AV ve HIS → PURKİNJE etiketlerinde kılavuz; alttan çıkan kılavuz yalnız en alt satırın. |
 | `3d0e9a5` | Trace şemasından kullanılmayan `labelAt` ve ona bağlı ölü hesap kaldırıldı. |
 | `13dd7cc` | model3d kadraj kaydırması: önemli parçalar panel/altyazıdan mercek kaydırmasıyla uzak tutulur. Ayrıntı: aşağıda. |
+| `311aa68`…`57c31e0` | Son EKG render'ından sistem kuralları (branch `feat/sistem-kurallari`). Ayrıntı: aşağıda "Sistem kuralları". |
 
 **Seslendirme v2 (`27cdfa3`):**
 - bölüm bölüm üretim, duraklamalar sessizlikten açılır;
@@ -97,22 +99,39 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
 (`src/kit/lens.ts`, ortak). qa raporu kaydırılmış konumları verir. Render'da ölçüldü: kayma raporla birebir (1,87 sn
 9/4 px, 5,07 sn 2/−28 px). demo-model3d qa temiz; gps-pilot regresyonu birebir aynı.
 
+**Sistem kuralları (2026-11-24, `feat/sistem-kurallari`):**
+- `311aa68` qa: sahnelerin kendi yazıları (`SceneReport.texts`) bütün yazılara ve altyazı bandına karşı; veri çizgisi
+  başlığa/altyazıya girmez (sivri uçlar önemli nokta); şerit ölçeği kendiliğinden küçülür; kapak (ilk 3 sn) kare kare
+  payısız; sinyalin yolu (−0,25…+0,5 sn) önemli öğe.
+- `06d3be7` altyazı sabit boyut (`captions.size`), uzun cümle 2–6 kelimelik iki sayfaya bölünür, sığmayan cümle check hatası.
+- `bfcb7b7` bölüm başına tanınabilir bağlam planı (özne ≥ 1 sn tamamen kadrajda; uyarı).
+- `b88bb86` kavram kartı ve birlikte gösterilen ortalı satırlar tek koyu panelde.
+- `e241fa1` seslendirme sağlayıcısı (elevenlabs / azure SSML / say geçici ses), cümle başına önbellek (`out/tts-cache`),
+  harcamadan önce tahmin ve hesapta kalan kredi, video bütçesi (`voiceover.tts.budget`, aşılırsa durur, `--over-budget`),
+  geçici sesle render yalnız `--draft`; whisper.cpp statik derlendi.
+- `514040a`, `ade176a` kapakta başlık şartı yalnız başlıklı videoda; `titles[].y`; parantez komşu çizginin altından.
+- Videolar: `0f935ae` EKG (0 hata, önce 24; gövde silueti ve iki cümle kullanıcı onayıyla), `44f7ce5` gps-pilot
+  (referans yenilendi, eskisi `out/baseline-2026-11-24b`), `57c31e0` demo-trace, demo-flow.
+  Önce/sonra: `out/ekg-kurallar-once-sonra.png`, `out/gps-pilot-kurallar-once-sonra.png`,
+  `out/demos-kurallar-once-sonra.png`.
+- Planda değişen: vurgu `*kelime*` yerine bölüm başına `stress` listesi (altyazı, sözlük ve qa'ya dokunmamak için).
+  Azure canlı denenmedi (anahtar yok); SSML ve kelime zamanı birim testli.
+
 ## Bekleyen kararlar (kullanıcıya sor)
 
 Şu an bekleyen karar yok.
 
 ## Görsel sistem v2: qa durumu
 
-Kaynak: `npm run qa -- <slug> --layout` (2026-11-24, kare dışı kontrolü dahil; diğer dört videoda yeni hata
-çıkmadı; donma kontrolü `a327b2a` render'ı üzerinde). Loglar `out/qa-<slug>.log`, örnekler
-`out/<slug>/qa-samples.json`.
+Kaynak: render + `npm run qa -- <slug> --layout` (2026-11-24, sistem kuralları sonrası). Loglar `out/qa-<slug>.log`,
+örnekler `out/<slug>/qa-samples.json`.
 
 | Video | Hata | Ne kaldı | Yapılacak |
 |---|---|---|---|
-| gps-pilot | 0 | duraklama ve tonlama uyarıları | eski sesten geliyor; seslendirme Aşama B'de çözülür |
-| EKG | 0 | konuşma uyarısı: ses yok (timing.json yok) | seslendirme Aşama B |
-| demo-flow | 0 | kenar kırpması uyarısı | — |
-| demo-model3d | 0 | kenar kırpması uyarısı | — |
+| gps-pilot | 0 | kenar; "yukarı" bağlam uyarısı | seslendirme Aşama B'de tonlama yeniden ölçülür |
+| EKG | 0 | kenar uyarısı; ses yok | seslendirme Aşama B |
+| demo-flow | 0 | kenar uyarısı | — |
+| demo-model3d | 0 | kenar uyarısı (bu turda yeniden render edilmedi) | — |
 
 demo-trace temiz.
 
