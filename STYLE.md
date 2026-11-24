@@ -147,8 +147,9 @@ Sıra her zaman aynıdır:
   çizgileri sorun değildir. `npm run qa` ihlali hata sayar. Notlar sağ altta.
 - Veri satırı sahnedeki bir öğeyi adlandırıyor ve öğe kendiliğinden seçilmiyorsa (birkaç düğümden biri, küçük bir
   parça) satır panelden öğeye ince bir **kılavuz çizgiyle** bağlanır (`pointTo: "katman.öğe"`). Gösterilen öğe satır
-  boyunca önemli sayılır, panelin dışında tutulur. qa: öğe ekranda değilse ya da kılavuz başka bir yazının (etiket,
-  not, sayaç, altyazı) üstünden geçerse hata.
+  boyunca önemli sayılır, panelin dışında tutulur. Kılavuz panelin öğeye bakan kenarından çıkar; alttan (üstten)
+  çıkan kılavuz yalnız en alttaki (üstteki) satıra aittir, altına yeni satır gelince söner. qa: öğe ekranda değilse
+  ya da kılavuz başka bir yazının (etiket, not, sayaç, altyazı) üstünden geçerse hata.
 - **Güvenli alanlar:** alt %15 (≈ 1630 px altı) ve sağ kenarın son 120 px'i platform arayüzü için boş kalır.
   Okunması gereken hiçbir şey oraya konmaz. Varsayılan `layout` (sağ boşluk 132 px, ortalanmış genişlik 840 px) bunu
   sağlar; `npm run qa` taşan ya da çakışan her yazıyı hata olarak bildirir.

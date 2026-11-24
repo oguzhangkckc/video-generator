@@ -6,7 +6,7 @@ import { tokenColor } from "../theme";
 import { EASING, ramp, useTime } from "../time";
 import { PANEL_PAD } from "./boxes";
 import { labelAlpha, labelBox, type Box } from "./geometry";
-import { pointerLine, splitPointer } from "./pointer";
+import { pointerLine, rowsInTheWay, splitPointer } from "./pointer";
 
 const DOT_R = 5;
 
@@ -35,11 +35,25 @@ export const LabelPointers: React.FC<{ labels: Spec["labels"] }> = ({ labels }) 
     const target = scene.elements.find((e) => e.id === id);
     if (!target || target.hidden) return [];
     const p = panels.get(l.align)!;
-    const line = pointerLine(box, { x1: p.x1 - PANEL_PAD, y1: p.y1 - PANEL_PAD, x2: p.x2 + PANEL_PAD, y2: p.y2 + PANEL_PAD }, target);
-    if (!line) return [];
+    const pointer = pointerLine(box, { x1: p.x1 - PANEL_PAD, y1: p.y1 - PANEL_PAD, x2: p.x2 + PANEL_PAD, y2: p.y2 + PANEL_PAD }, target);
+    if (!pointer) return [];
+    const others = shown.filter((s) => s.l !== l && s.l.align === l.align).map((s) => ({ ...s.box, alpha: s.alpha }));
+    const blocked = Math.max(0, ...rowsInTheWay(pointer, box, others).map((o) => o.alpha));
+    if (blocked >= 1) return [];
     const grow = ramp(t, [l.at + 0.1, l.at + 0.45], [0, 1], EASING.outCubic);
-    const [[x1, y1], [x2, y2]] = line;
-    return [{ key: `${l.text}-${l.at}`, x1, y1, x2: x1 + (x2 - x1) * grow, y2: y1 + (y2 - y1) * grow, grow, color: tokenColor(l.color), alpha: alpha * Math.min(1, scene.opacity) }];
+    const { from: [x1, y1], to: [x2, y2] } = pointer;
+    return [
+      {
+        key: `${l.text}-${l.at}`,
+        x1,
+        y1,
+        x2: x1 + (x2 - x1) * grow,
+        y2: y1 + (y2 - y1) * grow,
+        grow,
+        color: tokenColor(l.color),
+        alpha: alpha * (1 - blocked) * Math.min(1, scene.opacity),
+      },
+    ];
   });
 
   return (

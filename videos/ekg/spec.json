@@ -207,7 +207,11 @@
           "fill": "none",
           "edge": "none",
           "clipTo": "heart",
-          "sweep": { "origin": "sa", "reach": 560, "progress": { "curve": "beat", "range": ["#saFire", "#atriaDone"] } },
+          "sweep": {
+            "origin": "sa",
+            "reach": 560,
+            "progress": { "curve": "beat", "range": ["#saFire", "#atriaDone"] }
+          },
           "say": ["kulakçık"]
         },
         {
@@ -227,7 +231,11 @@
           "fill": "none",
           "edge": "none",
           "clipTo": "heart",
-          "sweep": { "origin": [10, 120], "reach": 380, "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+          "sweep": {
+            "origin": [10, 120],
+            "reach": 380,
+            "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] }
+          },
           "say": ["karıncık", "aşağı"]
         }
       ],
@@ -480,8 +488,8 @@
         { "at": "@dive.end", "focus": [-8, -62], "zoom": 2, "easing": "inOutCubic" },
         { "at": { "cue": "Bir hücre" }, "focus": [-8, -62], "zoom": 2 },
         { "at": "@fire+0.5", "focus": [-12, -66], "zoom": 2.05, "easing": "outQuad" },
-        { "at": { "cue": "Dalga kulakçıklara" }, "focus": [15, -45], "zoom": 2 },
-        { "at": { "cue": "Peki ardından" }, "focus": [15, -45], "zoom": 2.05 },
+        { "at": { "cue": "Dalga kulakçıklara" }, "focus": [15, -62], "zoom": 2 },
+        { "at": { "cue": "Peki ardından" }, "focus": [15, -62], "zoom": 2.05 },
         { "at": { "cue": "Dalga tek" }, "focus": [-40, 179], "zoom": 1.85, "easing": "inOutCubic" },
         { "at": { "cue": "Peki ya o büyük" }, "focus": [-40, 170], "zoom": 1.9 },
         { "at": { "cue": "Kapı açılıyor" }, "focus": [15, 268], "zoom": 1.6, "easing": "inOutCubic" },
@@ -596,7 +604,8 @@
       "top": 220,
       "size": 48,
       "bar": true,
-      "sound": "tick"
+      "sound": "tick",
+      "pointTo": "body.sa"
     },
     {
       "text": "DAKİKADA 60–100",
@@ -614,7 +623,8 @@
       "top": 150,
       "size": 48,
       "bar": true,
-      "sound": "lock"
+      "sound": "lock",
+      "pointTo": "body.av"
     },
     {
       "text": "≈ 0,1 SN BEKLEME",
@@ -643,7 +653,8 @@
       "top": 150,
       "size": 48,
       "bar": true,
-      "sound": "tick"
+      "sound": "tick",
+      "pointTo": "body.his"
     },
     {
       "text": "KARINCIKLAR",
@@ -891,5 +902,7 @@
     }
   ],
   "styleExceptions": [],
-  "transitions": [{ "at": "@toBody.end", "from": "monitor", "to": "body", "kind": "match", "via": { "from": "pen", "to": "e2" } }]
+  "transitions": [
+    { "at": "@toBody.end", "from": "monitor", "to": "body", "kind": "match", "via": { "from": "pen", "to": "e2" } }
+  ]
 }

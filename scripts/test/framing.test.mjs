@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { IDENTITY, moveBox, overlaps, smoothAdjust, solve } from "../../src/kit/framing.ts";
-import { pointerLine } from "../../src/kit/overlays/pointer.ts";
+import { pointerLine, rowsInTheWay } from "../../src/kit/overlays/pointer.ts";
 import { composition } from "../lib/composition.mjs";
 
 const anchor = [540, 960];
@@ -87,13 +87,23 @@ test("composition: a spatial word only counts as a whole word", () => {
 test("a pointer leaves the panel side that faces its element and stops short of a point", () => {
   const label = { x1: 80, y1: 400, x2: 300, y2: 460 };
   const panel = { x1: 62, y1: 382, x2: 318, y2: 478 };
-  const [from, to] = pointerLine(label, panel, box(700, 700, 30));
+  const { from, to } = pointerLine(label, panel, box(700, 700, 30));
   assert.deepEqual(from, [318, 430]);
   assert.ok(Math.abs(Math.hypot(700 - to[0], 700 - to[1]) - 30) < 1e-6, JSON.stringify(to));
-  const [down] = pointerLine(label, panel, box(200, 900, 30));
-  assert.deepEqual(down, [200, 478]);
-  assert.deepEqual(pointerLine(label, panel, box(700, 700, 200))[1], [700, 700], "an area: into its centre");
+  const down = pointerLine(label, panel, box(200, 900, 30));
+  assert.deepEqual([down.from, down.side], [[200, 478], "bottom"]);
+  assert.deepEqual(pointerLine(label, panel, box(700, 700, 200)).to, [700, 700], "an area: into its centre");
   assert.equal(pointerLine(label, panel, box(200, 430, 10)), null, "inside the panel: nothing to draw");
+});
+
+test("a leader out of the bottom of a stack belongs to the bottom line only", () => {
+  const top = { x1: 80, y1: 150, x2: 300, y2: 208 };
+  const below = { x1: 80, y1: 220, x2: 500, y2: 278 };
+  const panel = { x1: 62, y1: 132, x2: 518, y2: 296 };
+  const down = pointerLine(top, panel, box(200, 500, 30));
+  assert.deepEqual(rowsInTheWay(down, top, [below]), [below]);
+  assert.deepEqual(rowsInTheWay(down, below, [top]), []);
+  assert.deepEqual(rowsInTheWay(pointerLine(top, panel, box(800, 500, 30)), top, [below]), [], "sideways: any line");
 });
 
 test("composition: a pointer's element must be on screen and its leader may not cross other text", () => {

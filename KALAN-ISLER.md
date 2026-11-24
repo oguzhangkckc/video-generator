@@ -15,7 +15,8 @@ Son güncelleme: 2026-11-24. Branch: `feat/genel-sahne-turleri` (push yok, PR yo
 | `69e0f9d` | gps-pilot qa'dan temiz geçti, regresyon referansı yenilendi; önemli öğe kare dışı kontrolü. Ayrıntı: aşağıda "gps-pilot düzeltmeleri". |
 | `9da5c71` | EKG qa'dan temiz geçti; etiketler kalp bölümlerinde yukarıda. Ayrıntı: aşağıda "EKG düzeltmeleri". |
 | `a88b4b4` | demo-flow ve demo-model3d qa'dan temiz geçti; model3d `section.close`. Ayrıntı: aşağıda "Demo düzeltmeleri". |
-| (commit'lenmedi) | Üst yazı etiketlerine `pointTo`: panelden sahne öğesine kılavuz çizgisi. Ayrıntı: aşağıda "pointTo". |
+| `52b6422` | Üst yazı etiketlerine `pointTo`: panelden sahne öğesine kılavuz çizgisi. Ayrıntı: aşağıda "pointTo". |
+| (commit'lenmedi) | EKG: SA, AV ve HIS → PURKİNJE etiketlerinde kılavuz; alttan çıkan kılavuz yalnız en alt satırın. |
 
 **Seslendirme v2 (`27cdfa3`):**
 - bölüm bölüm üretim, duraklamalar sessizlikten açılır;
@@ -84,6 +85,10 @@ Yeni sahne türleri zemini `useGround()` ile çizmeli (README, SKILL.md).
 - Check: katman ve öğe adı doğrulanır (model3d parçaları dosyadan). qa'da yeni satır "Kılavuz": öğe ekranda değil ya
   da kılavuz başka yazının üstünden geçiyor hata.
 - demo-flow'un üç etiketi örnek olarak kullanıyor (qa temiz). gps-pilot regresyonu birebir aynı (SSIM 1,0).
+- EKG: SA DÜĞÜMÜ → `body.sa`, AV DÜĞÜMÜ → `body.av`, HIS → PURKİNJE → `body.his`. Panelin altından çıkan kılavuz
+  yalnız en alt satıra ait (`rowsInTheWay`): altına yeni satır gelince söner, yoksa alttaki satırdan çıkıyormuş gibi
+  okunuyordu. Bu yüzden kılavuzlar ~1,3–1,6 sn görünür (düğüm tanıtılırken). SA etiket boyunca önemli sayılınca
+  kulakçık çekiminde çözücü 0,8×'e uzaklaşıyordu (kare %46 boş): kulakçık çekiminin odağı y −45 → −62.
 
 ## Bekleyen kararlar (kullanıcıya sor)
 

@@ -2,7 +2,7 @@
 // what each scene reported (QaProbe QA_SCENE), the overlay boxes (QA_BOXES) and how empty each frame looked.
 // Pure, so it can be tested with made-up samples.
 import { covered as coveredShare, isArea } from "../../src/kit/framing.ts";
-import { pointerLine, splitPointer } from "../../src/kit/overlays/pointer.ts";
+import { pointerLine, rowsInTheWay, splitPointer } from "../../src/kit/overlays/pointer.ts";
 import { mentions } from "../../src/spec/sentences.ts";
 
 export const LIMITS = {
@@ -201,11 +201,12 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
       }
       const own = `etiket paneli (${labelAlign(b.id)})`;
       const panel = cover.find((c) => c.kind === "panel" && c.id === own);
-      const line = panel && pointerLine(b, panel, e);
-      if (!line) continue;
+      const pointer = panel && pointerLine(b, panel, e);
+      const others = s.boxes.filter((x) => x.kind === "label" && x.id !== b.id && labelAlign(x.id) === labelAlign(b.id));
+      if (!pointer || rowsInTheWay(pointer, b, others).length) continue;
       for (const c of cover) {
         if (c.id === own || (c.kind === b.kind && c.id === b.id)) continue;
-        if (crosses(line[0], line[1], c)) pointing.add(`${b.id}|${c.id}`, s.t, `"${b.text}" kılavuz çizgisi ${c.kind === "caption" ? "altyazının" : `"${c.text || c.id}"`} üstünden geçiyor`);
+        if (crosses(pointer.from, pointer.to, c)) pointing.add(`${b.id}|${c.id}`, s.t, `"${b.text}" kılavuz çizgisi ${c.kind === "caption" ? "altyazının" : `"${c.text || c.id}"`} üstünden geçiyor`);
       }
     }
     const main = mainScene(s);
