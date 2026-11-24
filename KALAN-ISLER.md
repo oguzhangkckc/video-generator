@@ -1,7 +1,7 @@
 # Kalan işler
 
-Son güncelleme: 2026-11-24. `feat/genel-sahne-turleri` PR #1 ile main'e birleştirildi (`55d38de`). Şu anki iş:
-`feat/sistem-kurallari` (push yok, PR yok).
+Son güncelleme: 2026-11-24. `feat/genel-sahne-turleri` PR #1 (`55d38de`) ve `feat/sistem-kurallari` PR #2 (`40fe4f8`)
+main'e birleştirildi; yeni iş yeni branch'te.
 
 ## Yapılanlar (commit sırasıyla)
 
