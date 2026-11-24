@@ -18,7 +18,7 @@ Son güncelleme: 2026-11-24. Branch: `feat/genel-sahne-turleri` (push yok, PR yo
 | `52b6422` | Üst yazı etiketlerine `pointTo`: panelden sahne öğesine kılavuz çizgisi. Ayrıntı: aşağıda "pointTo". |
 | `38716f9` | EKG: SA, AV ve HIS → PURKİNJE etiketlerinde kılavuz; alttan çıkan kılavuz yalnız en alt satırın. |
 | `3d0e9a5` | Trace şemasından kullanılmayan `labelAt` ve ona bağlı ölü hesap kaldırıldı. |
-| (commit'lenmedi) | model3d kadraj kaydırması: önemli parçalar panel/altyazıdan mercek kaydırmasıyla uzak tutulur. Ayrıntı: aşağıda. |
+| `13dd7cc` | model3d kadraj kaydırması: önemli parçalar panel/altyazıdan mercek kaydırmasıyla uzak tutulur. Ayrıntı: aşağıda. |
 
 **Seslendirme v2 (`27cdfa3`):**
 - bölüm bölüm üretim, duraklamalar sessizlikten açılır;
