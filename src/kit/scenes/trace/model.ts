@@ -64,10 +64,8 @@ export const traceState = (layer: TraceLayer, wave: Waveform, clock: CurveFn, t:
       const to = k * (part.once ? 0 : wave.period) + part.range[1];
       const drawnTo = Math.min(to, now);
       if (drawnTo <= from || to < xFrom) return [];
-      const peak = Math.max(...samples(wave, from, to, (to - from) / 24).map(wave.value));
-      const [lx, ly] = toScreen([xAt((from + drawnTo) / 2), yAt(part.labelAt ?? Math.max(peak, 0) + 0.3)]);
       const glow = Math.max(0, ...part.lit.map(([a, b]) => envelope(t, [a, a + 0.2], [Math.max(a + 0.2, b - 0.2), b])));
-      return [{ part, from: Math.max(from, xFrom), to, drawnTo, lx, ly, glow, alpha: ramp(drawnTo - from, [0, (to - from) * 0.15]) }];
+      return [{ part, from: Math.max(from, xFrom), to, drawnTo, glow, alpha: ramp(drawnTo - from, [0, (to - from) * 0.15]) }];
     });
   });
 

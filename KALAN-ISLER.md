@@ -16,7 +16,8 @@ Son güncelleme: 2026-11-24. Branch: `feat/genel-sahne-turleri` (push yok, PR yo
 | `9da5c71` | EKG qa'dan temiz geçti; etiketler kalp bölümlerinde yukarıda. Ayrıntı: aşağıda "EKG düzeltmeleri". |
 | `a88b4b4` | demo-flow ve demo-model3d qa'dan temiz geçti; model3d `section.close`. Ayrıntı: aşağıda "Demo düzeltmeleri". |
 | `52b6422` | Üst yazı etiketlerine `pointTo`: panelden sahne öğesine kılavuz çizgisi. Ayrıntı: aşağıda "pointTo". |
-| (commit'lenmedi) | EKG: SA, AV ve HIS → PURKİNJE etiketlerinde kılavuz; alttan çıkan kılavuz yalnız en alt satırın. |
+| `38716f9` | EKG: SA, AV ve HIS → PURKİNJE etiketlerinde kılavuz; alttan çıkan kılavuz yalnız en alt satırın. |
+| (commit'lenmedi) | Trace şemasından kullanılmayan `labelAt` ve ona bağlı ölü hesap kaldırıldı. |
 
 **Seslendirme v2 (`27cdfa3`):**
 - bölüm bölüm üretim, duraklamalar sessizlikten açılır;
@@ -111,7 +112,6 @@ demo-trace temiz.
 
 **Planda olup yapılmayanlar:**
 - model3d için kadraj kaydırması: rapor var, kaydırma yok.
-- Trace şemasındaki `labelAt` artık kullanılmıyor; temizlenmeli.
 
 ## Seslendirme v2 Aşama B (ElevenLabs kredisi bekliyor)
 

@@ -95,8 +95,6 @@ export const traceSchema = <T extends z.ZodType, R extends z.ZodType, N extends 
               color: ColorToken.default("secondary"),
               /** Only the period that contains clock 0 (the reference beat); otherwise every period. */
               once: z.boolean().default(true),
-              /** Label height above the baseline, in waveform units. */
-              labelAt: z.number().optional(),
               /**
                * bracket: a stretch (a duration, a segment such as PR), labelled under the baseline with a bracket;
                * leader: a point or a wave (P, QRS, T), labelled above the line, tied to its peak by a short line.
