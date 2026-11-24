@@ -57,11 +57,10 @@
     ]
   },
   "marks": {
-    "space3d": [4.6, 23.5],
-    "mapToSpace": [4.8, 5.8],
-    "riseHazeIn": [4.2, 5.4],
-    "riseHazeOut": [5.6, 6.6],
-    "lock": [11, 13],
+    "space3d": [2.9, 23.5],
+    "rise": [2.4, 3.2],
+    "mapToSpace": [3.0, 3.5],
+    "lock": [10.6, 12.6],
     "signal": 15,
     "descent": [15.4, 21.5],
     "dive": [21.5, 23.8],
@@ -77,9 +76,19 @@
     "altitude": {
       "unit": "km",
       "segments": [
-        { "from": 0, "to": 6, "values": [0, 100], "scale": "log", "logOffset": 0.05 },
-        { "from": 6, "to": 12.5, "values": [100, 20200], "scale": "log", "easing": "inOutQuad" },
+        { "from": 0, "to": "@rise.start", "values": [0, 1], "scale": "log", "logOffset": 0.05 },
+        { "from": "@rise.start", "to": "@rise.end", "values": [1, 150], "scale": "log", "easing": "inOutQuad" },
+        { "from": "@rise.end", "to": 6, "values": [150, 200], "scale": "log" },
+        { "from": 6, "to": 12.5, "values": [200, 20200], "scale": "log", "easing": "inOutQuad" },
         { "from": "@descent.start", "to": "@descent.end", "values": [20200, 700], "easing": "inQuad" },
+        { "from": "@dive.start", "to": "@dive.end", "values": [700, 0], "scale": "log", "logOffset": 0.05 }
+      ]
+    },
+    "mapAltitude": {
+      "unit": "km",
+      "segments": [
+        { "from": 0, "to": "@rise.start", "values": [0, 0.8], "scale": "log", "logOffset": 0.05 },
+        { "from": "@rise.start", "to": "@mapToSpace.end", "values": [0.8, 0.9], "scale": "log" },
         { "from": "@dive.start", "to": "@dive.end", "values": [700, 0], "scale": "log", "logOffset": 0.05 }
       ]
     }
@@ -109,9 +118,18 @@
           "type": "pullback",
           "from": 0,
           "progress": { "curve": "altitude", "logRange": [100, 20200] },
+          "wideRadius": 4.5,
           "sweep": { "range": [5, 11.5], "angleRad": -0.32 }
         },
-        { "type": "follow", "from": "@lock.start", "blendIn": "@lock", "target": "hero" },
+        {
+          "type": "follow",
+          "from": "@lock.start",
+          "blendIn": "@lock",
+          "target": "hero",
+          "aimBelow": 0.78,
+          "back": 2.2,
+          "lift": 0.9
+        },
         {
           "type": "descend",
           "from": "@signal",
@@ -125,11 +143,7 @@
     {
       "type": "cityMap",
       "visible": [{ "out": "@mapToSpace" }, { "in": "@spaceToMap" }],
-      "zoom": {
-        "curve": "altitude",
-        "eyeKm": 0.4,
-        "pushIn": { "range": ["@landed", "@end"], "amount": 0.15 }
-      },
+      "zoom": { "curve": "mapAltitude", "eyeKm": 0.4, "pushIn": { "range": ["@landed", "@end"], "amount": 0.15 } },
       "rotation": {
         "unit": "deg",
         "segments": [
@@ -139,18 +153,11 @@
         ]
       },
       "marker": {
-        "exit": { "range": [4.7, 5.3] },
+        "exit": { "range": [2.9, 3.25] },
         "enter": { "at": 23.55, "haloAt": "@landed" },
         "pulse": [[0, 4.7], [24.01, "@end"]]
       },
       "offset": { "range": "@slide", "px": 240, "recenter": { "range": [25.6, 27.6] } }
-    },
-    {
-      "type": "haze",
-      "envelopes": [
-        { "in": "@riseHazeIn", "out": "@riseHazeOut" },
-        { "in": "@diveHazeIn", "out": "@diveHazeOut" }
-      ]
     },
     { "type": "speedLines", "envelope": { "in": [16.6, 17.3], "out": [21.7, 22.4] } },
     {
@@ -161,10 +168,41 @@
     { "type": "ringShrink", "range": "@ringShrink" }
   ],
   "labels": [
-    { "text": "20.200 km", "at": { "cue": "Yirmi bin", "offset": 0.1 }, "until": 14.6, "top": 470, "size": 56, "bar": true, "sound": "tick" },
-    { "text": "30+ UYDU", "at": { "cue": "otuzdan", "offset": 0.1 }, "until": 14.6, "top": 560, "size": 56, "bar": true, "sound": "tick" },
-    { "text": "14.000 km/sa", "at": { "cue": "saatte on", "offset": 0.1 }, "until": 14.6, "top": 650, "size": 56, "bar": true, "sound": "tick" },
-    { "text": "12 SAATTE 1 TUR", "at": { "cue": "kilometreyle", "offset": 0.5 }, "until": 14.6, "top": 740, "size": 56, "bar": true },
+    {
+      "text": "20.200 km",
+      "at": { "cue": "Yirmi bin", "offset": 0.1 },
+      "until": 14.6,
+      "top": 470,
+      "size": 56,
+      "bar": true,
+      "sound": "tick"
+    },
+    {
+      "text": "30+ UYDU",
+      "at": { "cue": "otuzdan", "offset": 0.1 },
+      "until": 14.6,
+      "top": 560,
+      "size": 56,
+      "bar": true,
+      "sound": "tick"
+    },
+    {
+      "text": "14.000 km/sa",
+      "at": { "cue": "saatte on", "offset": 0.1 },
+      "until": 14.6,
+      "top": 650,
+      "size": 56,
+      "bar": true,
+      "sound": "tick"
+    },
+    {
+      "text": "12 SAATTE 1 TUR",
+      "at": { "cue": "kilometreyle", "offset": 0.5 },
+      "until": 14.6,
+      "top": 740,
+      "size": 56,
+      "bar": true
+    },
     {
       "text": "SAAT 10:42:07.000000000",
       "at": { "cue": "“Saat" },
@@ -188,33 +226,74 @@
       "check": true,
       "sound": "confirm"
     },
-    { "text": "IŞIK HIZI ≈ 300.000 km/sn", "at": { "cue": "ışık hızıyla", "offset": 0.05 }, "until": 22.4, "top": 680, "size": 40, "align": "center", "sound": "tick" },
-    { "text": "GECİKME ≈ 0,070 sn", "at": { "cue": "yaklaşık yetmiş", "offset": 0.35 }, "until": 22.4, "top": 750, "size": 58, "align": "center", "color": "you", "sound": "tick" },
-    { "text": "1 MİKROSANİYE HATA", "at": { "cue": "bir mikrosaniye", "offset": 0.05 }, "until": 31, "top": 600, "size": 46, "align": "center", "color": "danger", "sound": "error" },
-    { "text": "= 300 m", "at": { "cue": "haritada", "offset": 0.5 }, "until": 31, "top": 670, "size": 150, "font": "sans", "align": "center", "color": "danger" }
+    {
+      "text": "IŞIK HIZI ≈ 300.000 km/sn",
+      "at": { "cue": "ışık hızıyla", "offset": 0.05 },
+      "until": 22.4,
+      "top": 680,
+      "size": 40,
+      "align": "center",
+      "sound": "tick"
+    },
+    {
+      "text": "GECİKME ≈ 0,070 sn",
+      "at": { "cue": "yaklaşık yetmiş", "offset": 0.35 },
+      "until": 22.4,
+      "top": 750,
+      "size": 58,
+      "align": "center",
+      "color": "you",
+      "sound": "tick"
+    },
+    {
+      "text": "1 MİKROSANİYE HATA",
+      "at": { "cue": "bir mikrosaniye", "offset": 0.05 },
+      "until": 31,
+      "top": 600,
+      "size": 46,
+      "align": "center",
+      "color": "danger",
+      "sound": "error"
+    },
+    {
+      "text": "= 300 m",
+      "at": { "cue": "haritada", "offset": 0.5 },
+      "until": 31,
+      "top": 670,
+      "size": 150,
+      "font": "sans",
+      "align": "center",
+      "color": "danger"
+    }
   ],
   "notes": [{ "text": "ÖLÇEKLİ DEĞİL", "at": 6.4, "until": 22.3, "top": 1330 }],
   "titles": [
     { "top": "CEBİNDE", "bottom": "BİR UYDU ALICISI VAR", "from": 0, "to": { "cue": "Ama uydular" } },
-    { "top": "UYDULAR SENİ", "bottom": "GÖRMÜYOR BİLE", "from": { "cue": "Ama uydular" }, "to": { "cue": "Peki telefonun" } },
+    {
+      "top": "UYDULAR SENİ",
+      "bottom": "GÖRMÜYOR BİLE",
+      "from": { "cue": "Ama uydular" },
+      "to": { "cue": "Peki telefonun" }
+    },
     { "top": "PEKİ NEREDE OLDUĞUNU", "bottom": "NASIL BİLİYOR?", "from": { "cue": "Peki telefonun" }, "to": 6 }
   ],
-  "darken": { "range": "@darken", "alpha": 0.92 },
+  "darken": { "range": "@darken", "alpha": 0.5 },
   "counter": {
     "label": "YÜKSEKLİK",
     "unit": "km",
     "curve": "altitude",
     "fadeIn": [0.2, 0.7],
-    "dim": { "range": "@darken", "amount": 0.6 }
+    "dim": { "range": "@darken", "amount": 0.6 },
+    "holds": [["@landed-0.4", "@end"]]
   },
   "sound": {
     "beds": [
       { "id": "city", "at": 0, "fadeIn": [0, 0.4], "fadeOut": "@mapToSpace" },
-      { "id": "space", "at": 4.4, "fadeIn": [4.4, 6], "fadeOut": "@darken" }
+      { "id": "space", "at": 2.6, "fadeIn": [2.6, 4], "fadeOut": "@darken" }
     ],
     "hits": [
       { "id": "ping", "at": 0.05 },
-      { "id": "rise", "at": "@riseHazeIn.start-0.2" },
+      { "id": "rise", "at": "@rise.start-0.2" },
       { "id": "lock", "at": "@lock.start" },
       { "id": "pulse", "at": "@signal" },
       { "id": "pulse", "at": "@signal+0.35", "gain": 0.75 },
@@ -226,27 +305,121 @@
     ]
   },
   "sources": [
-    { "claim": "GPS uyduları yaklaşık 20.200 km yükseklikte", "value": "20.200 km", "url": "https://www.gps.gov/systems/gps/space", "accessed": "2026-11-18", "status": "verified" },
-    { "claim": "Takımyıldızda otuzdan fazla çalışan uydu var", "value": "30+", "url": "https://www.gps.gov/systems/gps/space", "accessed": "2026-11-18", "status": "verified", "note": "Sayı zamanla değişir; 2023'te 31 çalışan uydu. En az 24 garanti ediliyor." },
-    { "claim": "Uydular saatte ~14.000 km hızla dönüyor", "value": "14.000 km/sa", "url": "https://www.sciencing.com/how-fast-do-gps-satellites-travel-12213923", "accessed": "2026-11-18", "status": "simplified", "note": "≈3,87 km/s ≈ 13.900 km/sa, Dünya merkezine göre." },
-    { "claim": "Her uydu 12 saatte bir tur atıyor", "value": "12 saatte 1 tur", "url": "https://www.gps.gov/systems/gps/space", "accessed": "2026-11-18", "status": "simplified", "note": "Gerçek periyot ≈11 sa 58 dk (günde iki tur)." },
-    { "claim": "Sinyal yaklaşık 70 milisaniyede ulaşıyor", "value": "≈0,070 sn", "url": "https://physics.nist.gov/cgi-bin/cuu/Value?c", "accessed": "2026-11-18", "status": "simplified", "note": "20.200 km / 299.792 km/s ≈ 67 ms (tepedeki uydu); ufka yakın uydularda ~85 ms'ye çıkar." },
-    { "claim": "Işık hızı ≈ 300.000 km/s", "value": "299.792,458 km/s", "url": "https://physics.nist.gov/cgi-bin/cuu/Value?c", "accessed": "2026-11-18", "status": "verified" },
-    { "claim": "Saatte 1 µs hata ≈ 300 m uzaklık hatası", "value": "≈300 m", "url": "https://physics.nist.gov/cgi-bin/cuu/Value?c", "accessed": "2026-11-18", "status": "simplified", "note": "c × 1 µs = 299,8 m uzaklık hatası; haritadaki konum hatası uydu geometrisine göre değişir." }
+    {
+      "claim": "GPS uyduları yaklaşık 20.200 km yükseklikte",
+      "value": "20.200 km",
+      "url": "https://www.gps.gov/systems/gps/space",
+      "accessed": "2026-11-18",
+      "status": "verified"
+    },
+    {
+      "claim": "Takımyıldızda otuzdan fazla çalışan uydu var",
+      "value": "30+",
+      "url": "https://www.gps.gov/systems/gps/space",
+      "accessed": "2026-11-18",
+      "status": "verified",
+      "note": "Sayı zamanla değişir; 2023'te 31 çalışan uydu. En az 24 garanti ediliyor."
+    },
+    {
+      "claim": "Uydular saatte ~14.000 km hızla dönüyor",
+      "value": "14.000 km/sa",
+      "url": "https://www.sciencing.com/how-fast-do-gps-satellites-travel-12213923",
+      "accessed": "2026-11-18",
+      "status": "simplified",
+      "note": "≈3,87 km/s ≈ 13.900 km/sa, Dünya merkezine göre."
+    },
+    {
+      "claim": "Her uydu 12 saatte bir tur atıyor",
+      "value": "12 saatte 1 tur",
+      "url": "https://www.gps.gov/systems/gps/space",
+      "accessed": "2026-11-18",
+      "status": "simplified",
+      "note": "Gerçek periyot ≈11 sa 58 dk (günde iki tur)."
+    },
+    {
+      "claim": "Sinyal yaklaşık 70 milisaniyede ulaşıyor",
+      "value": "≈0,070 sn",
+      "url": "https://physics.nist.gov/cgi-bin/cuu/Value?c",
+      "accessed": "2026-11-18",
+      "status": "simplified",
+      "note": "20.200 km / 299.792 km/s ≈ 67 ms (tepedeki uydu); ufka yakın uydularda ~85 ms'ye çıkar."
+    },
+    {
+      "claim": "Işık hızı ≈ 300.000 km/s",
+      "value": "299.792,458 km/s",
+      "url": "https://physics.nist.gov/cgi-bin/cuu/Value?c",
+      "accessed": "2026-11-18",
+      "status": "verified"
+    },
+    {
+      "claim": "Saatte 1 µs hata ≈ 300 m uzaklık hatası",
+      "value": "≈300 m",
+      "url": "https://physics.nist.gov/cgi-bin/cuu/Value?c",
+      "accessed": "2026-11-18",
+      "status": "simplified",
+      "note": "c × 1 µs = 299,8 m uzaklık hatası; haritadaki konum hatası uydu geometrisine göre değişir."
+    }
   ],
   "credits": [
-    { "item": "Seslendirme: Alice (eleven_multilingual_v2)", "kind": "voice", "author": "ElevenLabs", "license": "ElevenLabs ücretsiz plan: ticari kullanım yok, atıf koşulu Hizmet Şartları'na bağlı", "url": "https://elevenlabs.io/docs/help-center/legal/can-i-publish-the-content-i-generate-on-the-platform" },
-    { "item": "Ses efektleri ve uzay ambiyansı (eleven_text_to_sound_v2)", "kind": "sfx", "author": "ElevenLabs", "license": "ElevenLabs ücretsiz plan: ticari kullanım yok, atıf koşulu Hizmet Şartları'na bağlı", "url": "https://elevenlabs.io/service-specific-terms" },
-    { "item": "Dünya gece dokusu: Black Marble 2016", "kind": "texture", "author": "NASA Goddard Space Flight Center (Miguel Román, Joshua Stevens)", "license": "Kamu malı (ABD hükümeti eseri); NASA'ya kredi verilir", "url": "https://svs.gsfc.nasa.gov/30876" },
-    { "item": "Inter (yazı tipi)", "kind": "font", "author": "Rasmus Andersson", "license": "SIL Open Font License 1.1", "url": "https://github.com/rsms/inter" },
-    { "item": "JetBrains Mono (yazı tipi)", "kind": "font", "author": "JetBrains", "license": "SIL Open Font License 1.1", "url": "https://github.com/JetBrains/JetBrainsMono" },
-    { "item": "three.js", "kind": "code", "author": "three.js yazarları", "license": "MIT", "url": "https://github.com/mrdoob/three.js" },
-    { "item": "Remotion", "kind": "code", "author": "Remotion AG", "license": "Remotion License (3 kişiden büyük şirketler için şirket lisansı gerekir)", "url": "https://www.remotion.dev/license" }
+    {
+      "item": "Seslendirme: Alice (eleven_multilingual_v2)",
+      "kind": "voice",
+      "author": "ElevenLabs",
+      "license": "ElevenLabs ücretsiz plan: ticari kullanım yok, atıf koşulu Hizmet Şartları'na bağlı",
+      "url": "https://elevenlabs.io/docs/help-center/legal/can-i-publish-the-content-i-generate-on-the-platform"
+    },
+    {
+      "item": "Ses efektleri ve uzay ambiyansı (eleven_text_to_sound_v2)",
+      "kind": "sfx",
+      "author": "ElevenLabs",
+      "license": "ElevenLabs ücretsiz plan: ticari kullanım yok, atıf koşulu Hizmet Şartları'na bağlı",
+      "url": "https://elevenlabs.io/service-specific-terms"
+    },
+    {
+      "item": "Dünya gece dokusu: Black Marble 2016",
+      "kind": "texture",
+      "author": "NASA Goddard Space Flight Center (Miguel Román, Joshua Stevens)",
+      "license": "Kamu malı (ABD hükümeti eseri); NASA'ya kredi verilir",
+      "url": "https://svs.gsfc.nasa.gov/30876"
+    },
+    {
+      "item": "Inter (yazı tipi)",
+      "kind": "font",
+      "author": "Rasmus Andersson",
+      "license": "SIL Open Font License 1.1",
+      "url": "https://github.com/rsms/inter"
+    },
+    {
+      "item": "JetBrains Mono (yazı tipi)",
+      "kind": "font",
+      "author": "JetBrains",
+      "license": "SIL Open Font License 1.1",
+      "url": "https://github.com/JetBrains/JetBrainsMono"
+    },
+    {
+      "item": "three.js",
+      "kind": "code",
+      "author": "three.js yazarları",
+      "license": "MIT",
+      "url": "https://github.com/mrdoob/three.js"
+    },
+    {
+      "item": "Remotion",
+      "kind": "code",
+      "author": "Remotion AG",
+      "license": "Remotion License (3 kişiden büyük şirketler için şirket lisansı gerekir)",
+      "url": "https://www.remotion.dev/license"
+    }
   ],
   "styleExceptions": [
     "Pilot, STYLE.md yazılmadan önce yapıldı ve referans olarak olduğu gibi korunuyor.",
     "Bölümler her zaman \"Peki…?\" ile açılmıyor; soru kancanın sonunda ve videonun bitişinde.",
     "Geri sayımlı doruk, tek cümlelik özet ve kavram adı yok; video bir soruyla (uçurumla) bitiyor.",
-    "Üçüncü kanca başlığı 6. saniyeye kadar sürüyor (STYLE: ilk 5 saniyede 3 başlık)."
+    "Üçüncü kanca başlığı 6. saniyeye kadar sürüyor (STYLE: ilk 5 saniyede 3 başlık).",
+    "Yerleşim, güvenli alan kuralından önceki hâliyle sabitlendi (layout: rightInset 72, contentWidth 960); sayaç, notlar, başlıklar ve altyazı sağdaki 120 px'e taşabiliyor."
+  ],
+  "transitions": [
+    { "at": 3.25, "from": "cityMap#1", "to": "earth", "kind": "match", "via": { "from": "marker", "to": "location" } },
+    { "at": 22.9, "from": "earth", "to": "cityMap#1", "kind": "match", "via": { "from": "location", "to": "marker" } }
   ]
 }

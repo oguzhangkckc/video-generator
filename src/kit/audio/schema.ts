@@ -15,11 +15,16 @@ export const soundSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, 
               fadeOut: k.range.optional(),
               /** Fraction removed while speaking (0.5 ≈ −6 dB). */
               duck: z.number().min(0).max(1).default(0.5),
+              /** Repeat with an equal-power crossfade until the end, so a short bed never cuts out. */
+              loop: z.boolean().default(false),
+              crossfade: z.number().positive().default(2),
             })
             .strict(),
         )
         .default([]),
       hits: z.array(z.object({ id: SfxId, at: k.time, gain: z.number().min(0).default(1) }).strict()).default([]),
+      /** Gaps shorter than this count as speech for ducking, so beds hold steady through breaths. */
+      duckBridge: z.number().min(0).optional(),
       /** A licensed track from public/kit/music (see `npm run music -- list`). */
       music: z
         .object({

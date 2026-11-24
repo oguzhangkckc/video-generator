@@ -1,0 +1,17 @@
+{
+  "city": 6,
+  "ping": 1.48,
+  "rise": 2.426,
+  "space": 26,
+  "tick": 0.48,
+  "lock": 2,
+  "pulse": 1.48,
+  "typing": 0.986,
+  "confirm": 0.8,
+  "dive": 2.48,
+  "land": 1.48,
+  "error": 1,
+  "glitch": 1.28,
+  "boom": 3,
+  "monitor-beep": 0.6
+}

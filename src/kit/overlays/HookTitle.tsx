@@ -1,6 +1,7 @@
 import { fitText } from "@remotion/layout-utils";
 import { spring, useVideoConfig } from "remotion";
 import type { Spec } from "../../spec/schema";
+import { useLayout } from "../layout";
 import { COLOR, SANS, TEXT_SHADOW } from "../theme";
 import { ramp, sec, useTime } from "../time";
 
@@ -9,6 +10,7 @@ type Props = Spec["titles"][number];
 export const HookTitle: React.FC<Props> = ({ top, bottom, from, to }) => {
   const t = useTime();
   const { fps } = useVideoConfig();
+  const { contentWidth } = useLayout();
   if (t < from || t >= to) return null;
 
   // The opening title must already be readable on frame 0 (thumbnail, first impression).
@@ -21,7 +23,7 @@ export const HookTitle: React.FC<Props> = ({ top, bottom, from, to }) => {
   const exit = ramp(t, [to - 0.2, to]);
   const bottomSize = Math.min(
     118,
-    fitText({ text: bottom, withinWidth: 960, fontFamily: SANS, fontWeight: 800 }).fontSize,
+    fitText({ text: bottom, withinWidth: contentWidth, fontFamily: SANS, fontWeight: 800 }).fontSize,
   );
 
   return (

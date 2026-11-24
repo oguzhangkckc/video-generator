@@ -13,6 +13,10 @@ export const shotSchema = <T extends z.ZodType, R extends z.ZodType, F extends z
       rotate: z.number().default(0),
       /** Easing of the move from the previous shot into this one. */
       easing: EasingName.default("inOutSine"),
+      /** wide / medium / close; read from the zoom when left out (< 0.8 wide, ≥ 2 close). */
+      kind: z.enum(["wide", "medium", "close"]).optional(),
+      /** Ids of what this shot is about (qa: it must fill 35 % of the frame height); the scene's default otherwise. */
+      subject: z.array(z.string()).optional(),
     })
     .strict();
 

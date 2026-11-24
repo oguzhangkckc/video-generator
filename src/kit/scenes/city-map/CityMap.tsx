@@ -4,6 +4,8 @@ import type { LayerOf } from "../../../spec/schema";
 import type { CurveFn } from "../../curves";
 import { curveFn } from "../../curves";
 import { CX, CY, HEIGHT, WIDTH } from "../../format";
+import { IDENTITY, pointBox, useFraming } from "../../framing";
+import { groundGradient, useGround } from "../../ground";
 import { COLOR } from "../../theme";
 import { EASING, ramp, sec, useTime, windowAlpha } from "../../time";
 import { LAYOUTS, buildCity } from "./layouts";
@@ -17,9 +19,11 @@ const DEG = Math.PI / 180;
 type CityMapLayer = LayerOf<"cityMap">;
 
 /** Top-down stylised city with a location marker; the zoom follows a curve (camera height in km). */
-export const CityMap: React.FC<{ layer: CityMapLayer; curve: (name: string) => CurveFn }> = ({ layer, curve }) => {
+export const CityMap: React.FC<{ layer: CityMapLayer; curve: (name: string) => CurveFn; name: string }> = ({ layer, curve, name }) => {
   const t = useTime();
+  const ground = useGround();
   const { fps } = useVideoConfig();
+  const { report } = useFraming();
   const city = useMemo(() => buildCity(layer.seed), [layer.seed]);
   const rotationAt = useMemo(() => (layer.rotation ? curveFn(layer.rotation) : () => 0), [layer.rotation]);
   const { water, avenues, bridges } = LAYOUTS[layer.layout];
@@ -58,12 +62,25 @@ export const CityMap: React.FC<{ layer: CityMapLayer; curve: (name: string) => C
     entered && marker.enter ? ramp(t, [marker.enter.haloAt - 0.05, marker.enter.haloAt + 0.05]) : dotAlpha;
   const blink = 0.5 + 0.5 * Math.sin((t * 2 * Math.PI) / 1.2);
   const pulse = (t % 1.4) / 1.4;
+  // qa: the map fills the frame and is its own subject; the marker is what matters on it.
+  if (report) {
+    report({
+      layer: name,
+      type: "cityMap",
+      t,
+      opacity,
+      shot: { kind: scale < 0.8 ? "wide" : scale < 2 ? "medium" : "close" },
+      subject: { x1: 0, y1: 0, x2: WIDTH, y2: HEIGHT },
+      elements: [{ id: "marker", kind: "marker", ...pointBox([dot.x, dot.y], MARKER_HALO_R), important: dotAlpha > 0, say: [] }],
+      adjust: IDENTITY,
+    });
+  }
   const pulsing = marker.pulse.some(([from, to]) => t >= from && t < to);
   const ghost = offset?.ghost ? ramp(t, [offset.range[0] - 0.05, offset.range[0] + 0.15]) : 0;
   const cityGlow = 0.55 * ramp(scale, [0.04, 0.35], [1, 0], Easing.linear);
 
   return (
-    <AbsoluteFill style={{ opacity, background: `linear-gradient(180deg, ${COLOR.bgTop} 0%, ${COLOR.bgBottom} 100%)` }}>
+    <AbsoluteFill style={{ opacity, background: groundGradient(ground) }}>
       <svg width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} style={{ position: "absolute", inset: 0 }}>
         <defs>
           <radialGradient id="map-fade" cx={0} cy={0} r={MAP_R} gradientUnits="userSpaceOnUse">

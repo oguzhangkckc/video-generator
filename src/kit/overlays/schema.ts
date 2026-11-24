@@ -24,6 +24,11 @@ export const labelSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, 
       letterSpacing: z.string().default("0.02em"),
       /** Plays at `at`, so the sound moves with the line. */
       sound: SfxId.optional(),
+      /**
+       * "layer.element" (the layer's id, else type#index; element ids as in transitions' `via`): a thin leader runs
+       * from the label panel to that element while the line shows, and the element counts as important.
+       */
+      pointTo: z.string().regex(/^[^.]+\..+$/, `"layer.element", e.g. "heart.sa"`).optional(),
     })
     .strict();
 
@@ -49,6 +54,12 @@ export const counterSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T
       curve: z.string(),
       fadeIn: k.range,
       dim: z.object({ range: k.range, amount: z.number().min(0).max(1) }).strict().optional(),
+      /** The curve's units per real second; when it runs slower or faster the counter says so ("×100 YAVAŞ"). */
+      timeScale: z.object({ unitPerSec: z.number().positive() }).strict().optional(),
+      /** Where the shown value may stand still for more than 3 s; anywhere else `npm run check` fails. */
+      holds: z.array(k.range).default([]),
+      /** Fades the counter out here (it also hides itself for the concept card). */
+      until: k.time.optional(),
       format: z
         .object({ zeroBelow: z.number().min(0).default(0.05), oneDecimalBelow: z.number().min(0).default(10) })
         .strict()
@@ -61,8 +72,22 @@ export const captionsSchema = z
     /** Vertical centre as a fraction of the frame height. */
     y: z.number().min(0).max(1).default(0.77),
     maxFont: z.number().positive().default(60),
-    maxWidth: z.number().positive().default(960),
-    lingerMs: z.number().min(0).default(450),
+    /** Defaults to layout.contentWidth. */
+    maxWidth: z.number().positive().optional(),
+    /** Long enough to bridge a section pause, so the caption line never blinks empty mid-thought. */
+    lingerMs: z.number().min(0).default(800),
+  })
+  .strict();
+
+/** Safe-area layout (STYLE.md); the defaults keep text out of the right 120 px. */
+export const layoutSchema = z
+  .object({
+    rightInset: z.number().min(0).default(132),
+    contentWidth: z.number().positive().max(1080).default(840),
+    /** Dark panel behind each column of data lines. */
+    labelBackdrop: z.boolean().default(true),
+    /** Move shots so the scene's important elements stay clear of panels, strips and captions (src/kit/framing.ts). */
+    framing: z.boolean().default(true),
   })
   .strict();
 

@@ -50,7 +50,8 @@ export const globeSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, 
       /** Mounted only inside this range (WebGL is expensive). */
       window: k.range,
       texture: z.string().default("kit/earth/black-marble-8k.jpg"),
-      location: z.object({ lat: z.number().min(-90).max(90), lon: z.number().min(-180).max(180) }),
+      /** `say`: words the narration uses for this place (see flow `say`). */
+      location: z.object({ lat: z.number().min(-90).max(90), lon: z.number().min(-180).max(180), say: z.array(z.string().min(1)).default([]) }),
       orbits: z
         .object({
           count: z.number().int().min(1).default(6),
@@ -70,6 +71,8 @@ export const globeSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, 
         .object({
           visible: envelopeSchema(k),
           dim: z.object({ range: k.range, amount: z.number().min(0).max(1) }).optional(),
+          /** Words the narration uses for the satellite ("uydu", "yukarı"). */
+          say: z.array(z.string().min(1)).default([]),
         })
         .strict()
         .optional(),

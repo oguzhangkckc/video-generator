@@ -1,6 +1,6 @@
 // Shared helpers for the scripts: paths, spec loading (same zod schema as Remotion), ffmpeg, loudness.
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 import { Timing, VideoSpec } from "../../src/spec/schema.ts";
@@ -59,3 +59,47 @@ export const loudness = (file) => {
 
 export const duration = (file) =>
   Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file], { encoding: "utf8" }));
+
+export const SAMPLE_RATE = 48000;
+const rawPcm = (channels) => ["-f", "f32le", "-ar", String(SAMPLE_RATE), "-ac", String(channels)];
+const asBuffer = (samples) => Buffer.from(samples.buffer, samples.byteOffset, samples.byteLength);
+
+/** Interleaved float samples at SAMPLE_RATE from a file path, encoded bytes (Buffer) or raw samples (Float32Array). */
+export const readPcm = (input, { channels = 1, filter } = {}) => {
+  const raw = input instanceof Float32Array;
+  const out = execFileSync(
+    "ffmpeg",
+    [
+      ...["-hide_banner", "-loglevel", "error"],
+      ...(raw ? rawPcm(channels) : []),
+      ...["-i", typeof input === "string" ? input : "pipe:0"],
+      ...(filter ? ["-af", filter] : []),
+      ...rawPcm(channels),
+      "pipe:1",
+    ],
+    { input: typeof input === "string" ? undefined : raw ? asBuffer(input) : input, maxBuffer: 1 << 30 },
+  );
+  return new Float32Array(out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength));
+};
+
+/**
+ * A voice-over brought to −14 LUFS (true peak ≤ −1.5 dBTP) by one gain, as stereo WAV. A dynamic loudnorm would
+ * lift the quiet between sentences relative to the speech and shorten the pauses qa measures.
+ */
+export const writeVoice = (file, samples, { channels = 1 } = {}) => {
+  const raw = `${file}.raw.wav`;
+  writeWav(raw, samples, { channels });
+  const { lufs, truePeak } = loudness(raw);
+  rmSync(raw);
+  const gain = Math.min(-14 - lufs, -1.5 - truePeak);
+  writeWav(file, samples, { channels, filter: `aformat=channel_layouts=stereo,volume=${gain.toFixed(2)}dB` });
+  return gain;
+};
+
+/** Interleaved float samples at SAMPLE_RATE → 16-bit WAV, through an optional ffmpeg filter. */
+export const writeWav = (file, samples, { channels = 1, filter } = {}) =>
+  execFileSync(
+    "ffmpeg",
+    ["-hide_banner", "-loglevel", "error", "-y", ...rawPcm(channels), "-i", "pipe:0", ...(filter ? ["-af", filter] : []), "-c:a", "pcm_s16le", file],
+    { input: asBuffer(samples) },
+  );

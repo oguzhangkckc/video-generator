@@ -16,6 +16,10 @@ import { Line2 } from "three/examples/jsm/lines/Line2.js";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import type { LayerOf } from "../../../spec/schema";
+import { HEIGHT } from "../../format";
+import { applyLensShift } from "../../lens";
+import { currentShot, pointBox, pointsBox, useFraming, type SceneElement, type SceneReport, type Vec } from "../../framing";
+import { useGround } from "../../ground";
 import { COLOR, GLOW_STOPS } from "../../theme";
 import { envelope, ramp, sec, windowAlpha } from "../../time";
 import { CAMERA, type GlobeRig } from "./rig";
@@ -128,6 +132,7 @@ const CameraRig: React.FC<{ t: number; rig: GlobeRig }> = ({ t, rig }) => {
     camera.up.copy(up);
     camera.lookAt(target);
     camera.updateMatrixWorld();
+    applyLensShift(camera as THREE.PerspectiveCamera, rig.adjustAt(t));
   }, [camera, t, rig]);
   return null;
 };
@@ -241,6 +246,10 @@ const Orbits: React.FC<{ t: number; glow: THREE.Texture; orbits: NonNullable<Glo
   );
 };
 
+/** Half extents of the hero along its own axes: solar panels (side), body and dish (up), body (forward). */
+const HERO_EXTENT = { side: 0.195, up: 0.055, forward: 0.035 };
+const FLASH_END = 0.7;
+
 const HeroSatellite: React.FC<{ t: number; glow: THREE.Texture; hero: NonNullable<Globe["hero"]>; rig: GlobeRig }> = ({
   t,
   glow,
@@ -288,7 +297,7 @@ const HeroSatellite: React.FC<{ t: number; glow: THREE.Texture; hero: NonNullabl
 /** Emission flash above the location at orbit height; any rings are drawn in 2D (signalPass). */
 const Flash: React.FC<{ t: number; glow: THREE.Texture; at: number; rig: GlobeRig }> = ({ t, glow, at, rig }) => {
   if (t < at - 0.1 || t > at + 1) return null;
-  const flash = envelope(t, [at, at + 0.12], [at + 0.25, at + 0.7]);
+  const flash = envelope(t, [at, at + 0.12], [at + 0.25, at + FLASH_END]);
 
   return (
     <group position={rig.anchor("emitter", t)}>
@@ -299,21 +308,76 @@ const Flash: React.FC<{ t: number; glow: THREE.Texture; at: number; rig: GlobeRi
   );
 };
 
-const GlobeScene: React.FC<{ layer: Globe; startFrame: number }> = ({ layer, startFrame }) => {
+const SHOT_KIND = { pullback: "wide", follow: "medium", descend: "close" } as const;
+
+/** The hero satellite (while shown) and the location (important on the near side), via `project` (raw or framed). */
+export const globeElements = (layer: Globe, rig: GlobeRig, t: number, project: GlobeRig["project"]): SceneElement[] => {
+  const elements: SceneElement[] = [];
+  const shot = currentShot(layer.camera.map((c) => ({ ...c, at: c.from })), t);
+  if (layer.hero && t >= layer.hero.visible.in[0] && t <= layer.hero.visible.out[1]) {
+    const centre = rig.heroPos(t);
+    const up = centre.clone().normalize();
+    const forward = rig.heroVel(t);
+    const side = new THREE.Vector3().crossVectors(up, forward).normalize();
+    const p = project(centre, t);
+    const ends = [side.multiplyScalar(HERO_EXTENT.side), up.multiplyScalar(HERO_EXTENT.up), forward.multiplyScalar(HERO_EXTENT.forward)]
+      .flatMap((v) => [centre.clone().add(v), centre.clone().sub(v)])
+      .map((q): Vec => {
+        const s = project(q, t);
+        return [s.x, s.y];
+      });
+    const box = pointsBox([...ends, [p.x - 30, p.y - 30], [p.x + 30, p.y + 30]])!;
+    // Coming down to the place, the satellite matters until its emission flash is over.
+    const leftBehind = shot.type === "descend" && t > (layer.flash?.at ?? shot.from) + FLASH_END;
+    elements.push({ id: "hero", kind: "satellite", ...box, important: !p.behind && !leftBehind, hidden: p.behind, say: layer.hero.say });
+  }
+  const camera = rig.cameraAt(t);
+  const facing = rig.location.dot(camera.position.clone().sub(rig.location)) > 0;
+  const where = project(rig.location, t);
+  // The place matters while the camera leaves it or comes down to it; following the satellite, the satellite does.
+  elements.push({ id: "location", kind: "marker", ...pointBox([where.x, where.y], 30), important: facing && shot.type !== "follow", say: layer.location.say });
+  return elements;
+};
+
+/** qa: the planet's disk is the subject; the hero satellite and the location (on the near side) are what matter. */
+const report = (layer: Globe, rig: GlobeRig, t: number, name: string): SceneReport => {
+  const camera = rig.cameraAt(t);
+  const distance = camera.position.length();
+  const center = rig.project(new THREE.Vector3(0, 0, 0), t);
+  const { s } = rig.adjustAt(t);
+  const radius = (s * ((HEIGHT / 2) * Math.tan(Math.asin(Math.min(1, 1 / distance))))) / Math.tan(THREE.MathUtils.degToRad(CAMERA.fov / 2));
+  const elements = globeElements(layer, rig, t, rig.project);
+  const shot = currentShot(layer.camera.map((c) => ({ ...c, at: c.from })), t);
+  return {
+    layer: name,
+    type: "globe",
+    t,
+    opacity: 1,
+    shot: { kind: SHOT_KIND[shot.type] },
+    subject: pointBox([center.x, center.y], radius),
+    elements,
+    adjust: rig.adjustAt(t),
+  };
+};
+
+const GlobeScene: React.FC<{ layer: Globe; startFrame: number; name: string }> = ({ layer, startFrame, name }) => {
   const frame = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
   const t = (frame + startFrame) / fps;
   const rig = useRig(layer.id);
+  const { report: log } = useFraming();
+  const { space } = useGround();
   const texture = useTexture(layer.texture);
   const glow = useMemo(makeGlowTexture, []);
   const cameraRadius = rig.cameraAt(t).position.length();
+  if (log) log(report(layer, rig, t, name));
   // Close to the surface the texture is magnified ~50×; soften it so texels read as haze, not blocks.
   const blur = ramp(cameraRadius - 1, [0.02, 0.15], [14, 0], Easing.linear);
   // Mount the canvas only with the texture in hand, so its own first-frame wait already includes it.
-  if (!texture) return <AbsoluteFill style={{ backgroundColor: COLOR.space }} />;
+  if (!texture) return <AbsoluteFill style={{ backgroundColor: space }} />;
 
   return (
-    <AbsoluteFill style={{ backgroundColor: COLOR.space, filter: blur > 0.1 ? `blur(${blur.toFixed(2)}px)` : undefined }}>
+    <AbsoluteFill style={{ backgroundColor: space, filter: blur > 0.1 ? `blur(${blur.toFixed(2)}px)` : undefined }}>
       <ThreeCanvas width={width} height={height} flat gl={{ antialias: true }} camera={CAMERA}>
         <CameraRig t={t} rig={rig} />
         <ambientLight intensity={0.45} />
@@ -330,11 +394,11 @@ const GlobeScene: React.FC<{ layer: Globe; startFrame: number }> = ({ layer, sta
 };
 
 /** Planet with optional orbits, hero satellite and emission flash; mounted only inside its window. */
-export const Globe: React.FC<{ layer: Globe }> = ({ layer }) => {
+export const Globe: React.FC<{ layer: Globe; name: string }> = ({ layer, name }) => {
   const from = sec(layer.window[0]);
   return (
     <Sequence from={from} durationInFrames={sec(layer.window[1]) - from} premountFor={sec(1)} name={`globe: ${layer.id}`}>
-      <GlobeScene layer={layer} startFrame={from} />
+      <GlobeScene layer={layer} startFrame={from} name={name} />
     </Sequence>
   );
 };

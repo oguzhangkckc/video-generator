@@ -1,32 +1,33 @@
+import { pauseAfter } from "./pauses.ts";
 import type { Caption, Timing, VideoSpecInput } from "./schema";
 
 export type Phrase = { text: string; start: number; end: number };
 export type CaptionPage = { startMs: number; endMs: number; tokens: Caption[] };
 type Section = VideoSpecInput["voiceover"]["sections"][number];
 
-/** STYLE.md speaking rate; drafts use it before any voice-over exists. */
-export const WORDS_PER_SECOND = 2.5;
+/** STYLE.md speaking rate while actually speaking (pauses come on top); drafts use it before any voice-over. */
+export const WORDS_PER_SECOND = 2.8;
 const LEAD = 0.2;
 const TAIL = 0.15;
-const GAP = 0.12;
 
 export const wordCount = (text: string) => text.split(" ").length;
 const weight = (word: string) => word.replace(/[^\p{L}\p{N}]/gu, "").length + 1;
 
 export const phraseTexts = (sections: Section[]) => sections.flatMap((s) => s.phrases);
 
-/** Draft timing: phrases at the STYLE.md rate from each section's start, squeezed if the window is too short. */
+/** Draft timing: phrases at the STYLE.md rate with STYLE pauses between them, squeezed if the window is too short. */
 export const estimatePhrases = (sections: Section[]): Phrase[] =>
   sections.flatMap(({ window: [s0, s1], phrases }) => {
     const durations = phrases.map((p) => wordCount(p) / WORDS_PER_SECOND);
-    const needed = durations.reduce((a, b) => a + b, 0) + GAP * (phrases.length - 1);
+    const gaps = phrases.map((text, i) => (i < phrases.length - 1 ? pauseAfter(text) : 0));
+    const needed = durations.reduce((a, b) => a + b, 0) + gaps.reduce((a, b) => a + b, 0);
     const squeeze = Math.min(1, Math.max(0.1, s1 - s0 - LEAD - TAIL) / needed);
     let cursor = s0 + LEAD;
     return phrases.map((text, i) => {
       const start = cursor;
       cursor += durations[i] * squeeze;
       const phrase = { text, start, end: cursor };
-      cursor += GAP * squeeze;
+      cursor += gaps[i] * squeeze;
       return phrase;
     });
   });
