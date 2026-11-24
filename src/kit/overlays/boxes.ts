@@ -51,7 +51,7 @@ export const overlayBoxes = (video: Video, t: number, layout: Layout, when: When
     if (!within(t, title.from, title.to, when)) return;
     const bottom = Math.min(118, fitText({ text: title.bottom, withinWidth: contentWidth, fontFamily: SANS, fontWeight: 800 }).fontSize);
     const w = Math.max(width(title.top, SANS, 46, 600, "0.04em"), width(title.bottom, SANS, bottom, 800));
-    add("title", `titles[${i}]`, `${title.top} / ${title.bottom}`, CX - w / 2, 560, w, 46 * LINE + bottom * 1.02);
+    add("title", `titles[${i}]`, `${title.top} / ${title.bottom}`, CX - w / 2, title.y, w, 46 * LINE + bottom * 1.02);
   });
   if (s.counter) {
     const c = s.counter;

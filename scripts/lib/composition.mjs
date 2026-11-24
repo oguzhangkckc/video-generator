@@ -172,9 +172,10 @@ const SAFE = { right: W - 120, bottom: Math.round(H * 0.85) };
 
 /**
  * The first seconds are the cover image, so they are judged frame by frame with no grace: every overlay counts from its
- * first visible frame, nothing may hold a fault for any time, and frame 0 must show the hook title. Returns errors.
+ * first visible frame, nothing may hold a fault for any time, and frame 0 must show the hook title when the video has
+ * titles (a type demo has none). Returns errors.
  */
-export const coverFindings = ({ samples, labelAlign = () => "left" }) => {
+export const coverFindings = ({ samples, labelAlign = () => "left", titled = true }) => {
   const found = spans();
   for (const s of samples) {
     const boxes = s.strict ?? s.boxes;
@@ -204,7 +205,7 @@ export const coverFindings = ({ samples, labelAlign = () => "left" }) => {
   }
   const errors = found.list().map((m) => `kapak: ${m}`);
   const first = samples.find((s) => s.t === 0);
-  if (first && !(first.strict ?? first.boxes).some((b) => b.kind === "title")) errors.push("kapak: kare 0'da kanca başlığı yok (ilk kare kapak görseli)");
+  if (titled && first && !(first.strict ?? first.boxes).some((b) => b.kind === "title")) errors.push("kapak: kare 0'da kanca başlığı yok (ilk kare kapak görseli)");
   return errors;
 };
 

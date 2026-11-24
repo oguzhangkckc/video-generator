@@ -150,6 +150,7 @@ test("cover: one bad frame is enough, a fading text counts, frame 0 needs the ho
   assert.ok(empty.some((e) => e.includes("boş")), empty.join("\n"));
   const untitled = coverFindings({ samples: [ok(0, { boxes: [], strict: [] })] });
   assert.ok(untitled.some((e) => e.includes("kanca başlığı yok")), untitled.join("\n"));
+  assert.deepEqual(coverFindings({ samples: [ok(0, { boxes: [], strict: [] })], titled: false }), [], "a video with no titles (a demo)");
 });
 
 test("captions: a long phrase becomes two balanced pages of 2–6 words, split after a comma when it can", () => {

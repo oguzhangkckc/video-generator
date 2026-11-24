@@ -435,10 +435,12 @@ export const resolveVideo = (rawSpec: unknown, rawTiming: unknown): Video => {
   checkScript(raw, spec, phrases);
   const lineWidth = spec.captions.maxWidth ?? spec.layout.contentWidth;
   const fits = (text: string) => textWidth(text, SANS, spec.captions.size, 800) <= lineWidth;
-  for (const p of raw.template ? [] : phrases) {
-    if (!splitPage(p.text.split(" ").map((text) => ({ text })), fits)) {
-      fail("captions", `"${p.text}" does not fit the caption line at ${spec.captions.size} px, not even as two pages of 2–6 words — shorten the sentence`);
-    }
+  const tooLong = (raw.template ? [] : phrases).filter((p) => !splitPage(p.text.split(" ").map((text) => ({ text })), fits));
+  if (tooLong.length) {
+    fail(
+      "captions",
+      `${tooLong.length} phrase(s) do not fit the caption line at ${spec.captions.size} px, not even as two pages of 2–6 words — shorten or reword them:\n  ${tooLong.map((p) => `"${p.text}"`).join("\n  ")}`,
+    );
   }
   return {
     spec,

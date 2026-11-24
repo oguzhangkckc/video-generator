@@ -36,10 +36,12 @@ kullanılır.
 ## Kanca (ilk 5 saniye)
 
 - İlk 5 saniyede **2'şer saniyelik 3 başlık** (`titles`), birlikte tek bir **soru** kurar. İlk başlık 0. karede
-  okunur durumdadır (kapak görseli).
+  okunur durumdadır (kapak görseli). Başlık varsayılan olarak y 560'tadır; sahnenin öznesi (örneğin bir veri
+  çizgisi) başlık ile altyazı arasına %35'iyle sığmıyorsa başlık yukarı alınır (`titles[].y`).
 - **İlk 3 saniye kapaktır ve kare kare temiz olur:** hiçbir yazı (belirirken bile) başka bir yazıya, altyazı bandına
   ya da güvenli alana girmez; önemli öğe örtülmez, özne ≥ %35, kare ≤ %40 boş, ve bunlar tek bir karede bile bozulmaz.
   qa bu aralığı her 2 karede bir payısız ölçer ("Kapak" satırı) ve kare 0'ı `out/<slug>/cover.png` olarak kaydeder.
+  Kare 0'da kanca başlığı şartı yalnız başlığı olan videolara uygulanır (tür demolarında başlık yoktur).
 - Kanca, izleyicinin elindeki gündelik bir şeyle başlar ("Cebinde bir uydu alıcısı var.").
 - **Kancadaki soru finalde açıkça cevaplanır.** Tek cümlelik özet, kancanın sorusunun cevabıdır.
 
