@@ -16,7 +16,8 @@ import { Line2 } from "three/examples/jsm/lines/Line2.js";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import type { LayerOf } from "../../../spec/schema";
-import { HEIGHT, WIDTH } from "../../format";
+import { HEIGHT } from "../../format";
+import { applyLensShift } from "../../lens";
 import { currentShot, pointBox, pointsBox, useFraming, type SceneElement, type SceneReport, type Vec } from "../../framing";
 import { useGround } from "../../ground";
 import { COLOR, GLOW_STOPS } from "../../theme";
@@ -131,11 +132,7 @@ const CameraRig: React.FC<{ t: number; rig: GlobeRig }> = ({ t, rig }) => {
     camera.up.copy(up);
     camera.lookAt(target);
     camera.updateMatrixWorld();
-    // Framing as a lens shift: the frame stays full while the planet moves aside (p' = c + s·(p − c) + d).
-    const { dx, dy, s } = rig.adjustAt(t);
-    const perspective = camera as THREE.PerspectiveCamera;
-    if (dx === 0 && dy === 0 && s === 1) perspective.clearViewOffset();
-    else perspective.setViewOffset(WIDTH, HEIGHT, ((WIDTH / 2) * (s - 1) - dx) / s, ((HEIGHT / 2) * (s - 1) - dy) / s, WIDTH / s, HEIGHT / s);
+    applyLensShift(camera as THREE.PerspectiveCamera, rig.adjustAt(t));
   }, [camera, t, rig]);
   return null;
 };

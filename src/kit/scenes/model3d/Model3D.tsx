@@ -6,8 +6,9 @@ import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { LayerOf } from "../../../spec/schema";
-import { HEIGHT, WIDTH } from "../../format";
-import { IDENTITY, pointBox, useFraming, type SceneElement, type SceneReport } from "../../framing";
+import { CX, CY, HEIGHT, WIDTH } from "../../format";
+import { adjustFor, applyAdjust, moveBox, pointBox, useFraming, type Adjust, type SceneElement, type SceneReport, type Vec } from "../../framing";
+import { applyLensShift } from "../../lens";
 import { groundGradient, useGround } from "../../ground";
 import { COLOR, tokenColor } from "../../theme";
 import { EASING, envelope, ramp, sec, windowAlpha } from "../../time";
@@ -122,33 +123,56 @@ const cameraAt = (layer: Model3DLayer, model: Model, t: number) => {
   return { position, target, fov: lerp(a.fov, b.fov), shot: p < 0.5 ? a : b };
 };
 
-/** qa: the whole model is the subject; highlighted parts and the part the camera aims at are what matter. */
-const report = (layer: Model3DLayer, model: Model, t: number, name: string): SceneReport => {
+/** How far the exploded view has moved a part at t, in the model's own units. */
+const explodeOffset = (layer: Model3DLayer, model: Model, id: string, part: Part, t: number) => {
+  const explode = layer.explode;
+  if (!explode || (explode.parts && !explode.parts.includes(id))) return new THREE.Vector3();
+  const dir = part.center.lengthSq() > 1e-6 ? part.center.clone().normalize() : new THREE.Vector3(0, 1, 0);
+  return dir.multiplyScalar(explode.distance * model.radius * ramp(t, explode.range, [0, 1], EASING.inOutCubic));
+};
+
+/** The written camera at t, projecting model space to screen px before any framing move. */
+const viewAt = (layer: Model3DLayer, model: Model, t: number) => {
   const { position, target, fov, shot } = cameraAt(layer, model, t);
   const camera = new THREE.PerspectiveCamera(fov, WIDTH / HEIGHT, 0.01, 100);
   camera.position.copy(position);
   camera.lookAt(target);
   camera.updateMatrixWorld();
-  const toScreen = (v: THREE.Vector3): [number, number] => {
+  const toScreen = (v: THREE.Vector3): Vec => {
     const ndc = v.clone().applyMatrix4(model.root.matrixWorld).project(camera);
     return [((ndc.x + 1) / 2) * WIDTH, ((1 - ndc.y) / 2) * HEIGHT];
   };
-  const center = toScreen(new THREE.Vector3());
-  const distance = position.length();
-  const radius = ((HEIGHT / 2) * Math.tan(Math.asin(Math.min(1, model.radius / distance)))) / Math.tan(THREE.MathUtils.degToRad(fov / 2));
-  const elements: SceneElement[] = [...model.parts].map(([id, part]) => ({
+  return { toScreen, position, fov, shot };
+};
+
+/** Each part as a point at its centre; highlighted parts and the part the camera aims at are what matter. */
+const partElements = (layer: Model3DLayer, model: Model, t: number): SceneElement[] => {
+  const { toScreen, shot } = viewAt(layer, model, t);
+  return [...model.parts].map(([id, part]) => ({
     id,
     kind: "part",
-    ...pointBox(toScreen(part.center), 40),
+    ...pointBox(toScreen(part.center.clone().add(explodeOffset(layer, model, id, part, t))), 40),
     important: shot.target === id || layer.highlight.some((h) => h.part === id && t >= h.range[0] && t <= h.range[1]),
     say: [],
   }));
+};
+
+/** The lens shift is around the frame centre. */
+const ANCHOR: Vec = [CX, CY];
+
+/** qa: the whole model is the subject; everything as framed. */
+const report = (layer: Model3DLayer, model: Model, t: number, name: string, adjust: Adjust): SceneReport => {
+  const { toScreen, position, fov } = viewAt(layer, model, t);
+  const distance = position.length();
+  const radius = (adjust.s * ((HEIGHT / 2) * Math.tan(Math.asin(Math.min(1, model.radius / distance))))) / Math.tan(THREE.MathUtils.degToRad(fov / 2));
+  const elements = partElements(layer, model, t).map((e) => ({ ...e, ...moveBox(e, ANCHOR, adjust) }));
   const kind = distance > 2.5 * model.radius ? "wide" : distance > 1.2 * model.radius ? "medium" : "close";
-  return { layer: name, type: "model3d", t, opacity: windowAlpha(t, layer.fade), shot: { kind }, subject: pointBox(center, radius), elements, adjust: IDENTITY };
+  const subject = pointBox(applyAdjust(toScreen(new THREE.Vector3()), ANCHOR, adjust), radius);
+  return { layer: name, type: "model3d", t, opacity: windowAlpha(t, layer.fade), shot: { kind }, subject, elements, adjust };
 };
 
 /** Applies camera, highlights, section and explode for time t; a layout effect so it lands before the frame. */
-const Rig: React.FC<{ layer: Model3DLayer; model: Model; t: number }> = ({ layer, model, t }) => {
+const Rig: React.FC<{ layer: Model3DLayer; model: Model; t: number; adjust: Adjust }> = ({ layer, model, t, adjust }) => {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
 
   useLayoutEffect(() => {
@@ -160,6 +184,7 @@ const Rig: React.FC<{ layer: Model3DLayer; model: Model; t: number }> = ({ layer
     camera.updateProjectionMatrix();
     camera.lookAt(target);
     camera.updateMatrixWorld();
+    applyLensShift(camera, adjust);
 
     const level = new Map<string, number>();
     for (const h of layer.highlight) {
@@ -194,14 +219,9 @@ const Rig: React.FC<{ layer: Model3DLayer; model: Model; t: number }> = ({ layer
     for (const m of model.materials) m.clippingPlanes = planes;
 
     if (layer.explode) {
-      const e = ramp(t, layer.explode.range, [0, 1], EASING.inOutCubic);
-      for (const [name, part] of model.parts) {
-        if (layer.explode.parts && !layer.explode.parts.includes(name)) continue;
-        const dir = part.center.lengthSq() > 1e-6 ? part.center.clone().normalize() : new THREE.Vector3(0, 1, 0);
-        part.object.position.copy(part.rest).addScaledVector(dir, layer.explode.distance * model.radius * e);
-      }
+      for (const [id, part] of model.parts) part.object.position.copy(part.rest).add(explodeOffset(layer, model, id, part, t));
     }
-  }, [camera, layer, model, t]);
+  }, [camera, layer, model, t, adjust]);
 
   return null;
 };
@@ -211,17 +231,18 @@ const Scene: React.FC<{ layer: Model3DLayer; startFrame: number; name: string }>
   const { width, height, fps } = useVideoConfig();
   const t = (frame + startFrame) / fps;
   const model = useModel(layer.file);
-  const { report: log } = useFraming();
+  const framing = useFraming();
   const opacity = windowAlpha(t, layer.fade);
   const background = groundGradient(useGround());
   if (!model) return <AbsoluteFill style={{ background, opacity }} />;
-  if (log) log(report(layer, model, t, name));
+  const adjust = adjustFor(framing, name, (u) => partElements(layer, model, u), ANCHOR, t);
+  if (framing.report) framing.report(report(layer, model, t, name, adjust));
 
   return (
     <AbsoluteFill style={{ background, opacity }}>
       <ThreeCanvas width={width} height={height} gl={{ antialias: true, alpha: true }} camera={{ fov: 35, near: 0.01, far: 100 }}>
         <Environment />
-        <Rig layer={layer} model={model} t={t} />
+        <Rig layer={layer} model={model} t={t} adjust={adjust} />
         <ambientLight intensity={0.35} color={COLOR.light} />
         <directionalLight position={[3, 4, 5]} intensity={1.8} color={COLOR.light} />
         <directionalLight position={[-4, 2, -3]} intensity={0.9} color={COLOR.light} />

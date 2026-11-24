@@ -17,7 +17,8 @@ Son güncelleme: 2026-11-24. Branch: `feat/genel-sahne-turleri` (push yok, PR yo
 | `a88b4b4` | demo-flow ve demo-model3d qa'dan temiz geçti; model3d `section.close`. Ayrıntı: aşağıda "Demo düzeltmeleri". |
 | `52b6422` | Üst yazı etiketlerine `pointTo`: panelden sahne öğesine kılavuz çizgisi. Ayrıntı: aşağıda "pointTo". |
 | `38716f9` | EKG: SA, AV ve HIS → PURKİNJE etiketlerinde kılavuz; alttan çıkan kılavuz yalnız en alt satırın. |
-| (commit'lenmedi) | Trace şemasından kullanılmayan `labelAt` ve ona bağlı ölü hesap kaldırıldı. |
+| `3d0e9a5` | Trace şemasından kullanılmayan `labelAt` ve ona bağlı ölü hesap kaldırıldı. |
+| (commit'lenmedi) | model3d kadraj kaydırması: önemli parçalar panel/altyazıdan mercek kaydırmasıyla uzak tutulur. Ayrıntı: aşağıda. |
 
 **Seslendirme v2 (`27cdfa3`):**
 - bölüm bölüm üretim, duraklamalar sessizlikten açılır;
@@ -91,6 +92,11 @@ Yeni sahne türleri zemini `useGround()` ile çizmeli (README, SKILL.md).
   okunuyordu. Bu yüzden kılavuzlar ~1,3–1,6 sn görünür (düğüm tanıtılırken). SA etiket boyunca önemli sayılınca
   kulakçık çekiminde çözücü 0,8×'e uzaklaşıyordu (kare %46 boş): kulakçık çekiminin odağı y −45 → −62.
 
+**model3d kadraj kaydırması (2026-11-24):** sahne, önemli parçalarını (vurgulanan, kameranın hedefi, `pointTo` ile
+gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç globe'daki gibi mercek kaydırması
+(`src/kit/lens.ts`, ortak). qa raporu kaydırılmış konumları verir. Render'da ölçüldü: kayma raporla birebir (1,87 sn
+9/4 px, 5,07 sn 2/−28 px). demo-model3d qa temiz; gps-pilot regresyonu birebir aynı.
+
 ## Bekleyen kararlar (kullanıcıya sor)
 
 Şu an bekleyen karar yok.
@@ -110,8 +116,7 @@ Kaynak: `npm run qa -- <slug> --layout` (2026-11-24, kare dışı kontrolü dahi
 
 demo-trace temiz.
 
-**Planda olup yapılmayanlar:**
-- model3d için kadraj kaydırması: rapor var, kaydırma yok.
+**Planda olup yapılmayanlar:** yok.
 
 ## Seslendirme v2 Aşama B (ElevenLabs kredisi bekliyor)
 
