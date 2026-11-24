@@ -117,6 +117,11 @@ Sıra her zaman aynıdır:
   plan gelir (kalpten önce göğüs, uydudan önce gezegen). Ölçek değiştiren her geçişte önce geniş, sonra yakın plan.
   Çekim türü (`kind`: wide / medium / close) yazılmazsa zoom'dan okunur (< 0,8 geniş, ≥ 2 yakın); `npm run check`
   geniş plansız yakın planı reddeder (bir `match`/`through` geçişinin indiği açılış hariç).
+- **Tanınabilir bağlam planı:** ölçek değişen her bölümde öznenin **tanınabilir silueti** en az 1 sn tamamen
+  kadrajdadır. Siluet, nesneyi tanıtan dış hattır: gövde için omuz ve boyun çizgisi, kalp için iki kulakçık ve
+  karıncıkların tepesi. Kırpılmış bir gövde bloğu ya da tek başına bir kalp kesiti bağlam değildir. qa: bir bölüm
+  boyunca ana sahnenin öznesi 1 sn kesintisiz tamamen kadraja girmiyorsa uyarı ("Bağlam planı"); siluetin
+  tanınabilirliğini kare kontrolünde göz yakalar.
 - **Düz kesme yoktur.** İki sahnenin ekranda örtüştüğü her an `transitions` altında yazılır (`npm run check`):
   1. **İçinden geçme** (`through`): kamera nesneye girer, kare onunla dolar, sonraki sahne eşleşen öğeden açılır.
      Aynı sahne içinde dıştan içe iniş de böyledir (göğüsten kalbe): kesintisiz yaklaşma, dış katman söner.

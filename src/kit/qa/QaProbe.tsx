@@ -27,7 +27,8 @@ export const QaProbe: React.FC<{ video: Video }> = ({ video }) => {
     const { sound, durationSec, labels } = video.spec;
     const shown = labels.map(({ text, at }) => ({ text, at }));
     const findings = sceneFindings(video.spec);
-    console.log(`QA_SPEC ${JSON.stringify({ sound, durationSec, phrases: video.phrases, labels: shown, findings, transitions: video.spec.transitions })}`);
+    const sections = video.spec.voiceover.sections.map(({ id, window }) => ({ id, window }));
+    console.log(`QA_SPEC ${JSON.stringify({ sound, durationSec, phrases: video.phrases, labels: shown, findings, transitions: video.spec.transitions, sections })}`);
   }, [frame, fps, video, layout]);
   return null;
 };

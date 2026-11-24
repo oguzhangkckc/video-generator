@@ -144,9 +144,11 @@ Birini gerekçesiyle öner. **Dur.**
    kamera hareketleri için. Ses henüz yok; altyazı tahmini zamanlamayla (2,8 kelime/sn + duraklamalar) çalışır.
 4. `npm run check` temiz olmalı.
 5. Kilit anları render et: her bölümün ilk saniyesi, her etiketin göründüğü an +0,3 sn, her geçişin ortası, geri
-   sayım, kavram kartı, son kare. Komut: `npm run stills -- <slug> 0.5s 4s … --sheet`.
+   sayım, kavram kartı, son kare. Komut: `npm run stills -- <slug> 0.5s 4s … --sheet`. Her bölümün geniş planında
+   öznenin silueti tanınıyor mu (gövdede omuz ve boyun çizgisi)? Kare 0 kapaktır: `out/<slug>/cover.png`'e ayrıca bak.
 6. **`npm run qa -- <slug> --layout` zorunlu.** Satırlar: yerleşim, önemli öğe (üst yazı altı, kare dışı), özne boyu, boş alan,
-   kenar kırpması, bağlam, veri etiketleri, geçişler, kamera. Hatalar kesin: önce çekimi, özneyi ya da geçişi
+   kenar kırpması, bağlam, veri etiketleri, kılavuz, kapak (ilk 3 sn, kare kare), altyazı (sabit boyut), bağlam planı
+   (özne bütün ≥ 1 sn), geçişler, kamera. Hatalar kesin: önce çekimi, özneyi ya da geçişi
    düzelt (kamera, zoom, `subject`, `say`, `transitions`), sonra tekrarla. Örnekler `out/<slug>/qa-samples.json`'da.
 7. Kareleri Read ile kendin incele ve STYLE.md kontrol listesini madde madde uygula. Uymayanları düzelt, yeniden
    render et.

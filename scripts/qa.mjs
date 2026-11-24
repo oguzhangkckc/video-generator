@@ -190,6 +190,7 @@ const layout = async () => {
     labelPointTo,
     phrases: (first.spec?.phrases ?? []).filter((p) => inRange(p.start) && inRange(p.end)),
     transitions: (first.spec?.transitions ?? []).filter((tr) => inRange(tr.at)),
+    sections: (first.spec?.sections ?? []).filter((s) => inRange(s.window[0]) && inRange(s.window[1])),
   });
   for (const f of first.spec?.findings ?? []) errors.push(f.replace(/^transitions: /, "geçiş: ").replace(/^camera: /, "kamera: "));
   errors.push(...found.errors);
@@ -310,6 +311,7 @@ const rows = [
     ["Kılavuz (etiketten öğeye)", "kılavuz"],
     ["Kapak (ilk 3 sn, kare kare)", "kapak"],
     ["Altyazı (sabit boyut)", "altyazı"],
+    ["Bağlam planı (özne bütün ≥ 1 sn)", "siluet"],
     ["Geçişler", "geçiş"],
     ["Kamera (geniş → yakın)", "kamera"],
   ].map(([name, prefix]) => [

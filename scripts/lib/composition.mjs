@@ -28,6 +28,8 @@ export const LIMITS = {
   match: 0.05,
   /** Through: the element fills at least this share of the frame. */
   through: 0.9,
+  /** Each voice-over section shows its subject whole, recognisable, for at least this long. */
+  wholeHold: 1,
 };
 const W = 1080;
 const H = 1920;
@@ -211,9 +213,10 @@ const mainScene = (sample) => [...sample.scene.layers].reverse().find((l) => l.t
 
 /**
  * samples: [{ t, boxes, scene: { zones, layers }, empty }] at `step` s apart; labelAlign(id) → the label's align;
- * labelPointTo(id) → its "layer.element" or undefined; phrases: [{ text, start, end }]. Returns { errors, warnings, stats }.
+ * labelPointTo(id) → its "layer.element" or undefined; phrases: [{ text, start, end }]; sections: the voice-over
+ * sections [{ id, window }]. Returns { errors, warnings, stats }.
  */
-export const composition = ({ samples, step, labelAlign, labelPointTo = () => undefined, phrases, transitions = [] }) => {
+export const composition = ({ samples, step, labelAlign, labelPointTo = () => undefined, phrases, transitions = [], sections = [] }) => {
   const errors = [];
   const warnings = [];
   const covered = spans();
@@ -397,5 +400,22 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
     subjectMin: Math.min(...subjectSeries.map((x) => x.v)),
     emptyMax: emptySeries.length ? Math.max(...emptySeries.map((x) => x.v)) : null,
   };
+  // STYLE "Kamera ve geçişler": every section shows its subject whole (a recognisable silhouette) for a while.
+  for (const { id, window: [from, to] } of sections) {
+    let run = 0;
+    let longest = 0;
+    let who = null;
+    for (const s of samples.filter((x) => x.t >= from && x.t < to)) {
+      const main = mainScene(s);
+      const b = main?.subject;
+      const whole = b && b.x1 >= -2 && b.y1 >= -2 && b.x2 <= W + 2 && b.y2 <= H + 2;
+      run = whole ? run + step : 0;
+      longest = Math.max(longest, run);
+      who = main?.layer ?? who;
+    }
+    if (who && longest < LIMITS.wholeHold) {
+      warnings.push(`siluet: "${id}" bölümü (${fmt(from)}–${fmt(to)}): ${who} öznesi ${longest ? `en fazla ${longest.toFixed(2)} sn` : "hiç"} tamamen kadrajda (en az ${LIMITS.wholeHold} sn tanınabilir geniş plan)`);
+    }
+  }
   return { errors, warnings, stats };
 };

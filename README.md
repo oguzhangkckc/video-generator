@@ -177,7 +177,9 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
   2 sn'den uzun hata; kare > %40 boş 1 sn'den uzun hata (tam boyutlu karede 40 px hücreler; zemin anahtar renge boyanıp ölçülür,
   dolgulu şekil içeriktir); özne kenarda kırpılıyor
   (yakın plan değilse) uyarı; söylenen öğe cümlenin yarısında ekranda değil hata; veri etiketleri değiyor ya da
-  çizgiyi kesiyor hata; `pointTo` öğesi ekranda değil ya da kılavuzu başka bir yazının üstünden geçiyor hata; şekil eşleştirme öğeleri aynı yerde değil, içinden geçişte kare dolmuyor, geçişte kare > %60
+  çizgiyi kesiyor hata; `pointTo` öğesi ekranda değil ya da kılavuzu başka bir yazının üstünden geçiyor hata;
+  altyazı boyutu değişiyor ya da sayfa satıra sığmıyor hata; bir seslendirme bölümünde ana sahnenin öznesi 1 sn
+  kesintisiz tamamen kadraja girmiyor uyarı (bağlam planı); şekil eşleştirme öğeleri aynı yerde değil, içinden geçişte kare dolmuyor, geçişte kare > %60
   boş hata. Render varsa 0,3 sn'den uzun donma hata. Örnekler: `out/<slug>/qa-samples.json`.
 - **Seslendirme** (`vo.wav` üzerinde, dinleyicinin duyduğu gibi): konuşulan sürede 2,6–3,0 kelime/sn dışındaysa
   uyarı; cümle sonu arası 0,25 sn'den kısaysa uyarı, ortalaması 0,35 sn'nin altındaysa hata; sonda +2 yarım tondan

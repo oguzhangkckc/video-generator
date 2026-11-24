@@ -172,3 +172,20 @@ test("captions: qa reports a page wider than the line and a size that changes", 
   assert.ok(errors.some((e) => e.startsWith("altyazı") && e.includes("sığmıyor")), errors.join("\n"));
   assert.ok(errors.some((e) => e.startsWith("altyazı") && e.includes("boyutu değişiyor")), errors.join("\n"));
 });
+
+test("context: a section whose subject is never wholly in frame for a second is a warning", () => {
+  const whole = { x1: 100, y1: 300, x2: 980, y2: 1500 };
+  const cropped = { x1: -200, y1: 300, x2: 980, y2: 2100 };
+  const run = (subjects) =>
+    composition({
+      samples: subjects.map((subject, i) => sample(i * 0.25, [scene({ subject })])),
+      step: 0.25,
+      labelAlign: () => "left",
+      phrases: [],
+      sections: [{ id: "kaynak", window: [0, 3] }],
+    }).warnings.filter((w) => w.startsWith("siluet"));
+  assert.equal(run(Array(12).fill(cropped)).length, 1);
+  assert.ok(run(Array(12).fill(cropped))[0].includes("hiç"));
+  assert.equal(run([...Array(4).fill(whole), ...Array(8).fill(cropped)]).length, 0, "1 s whole is enough");
+  assert.equal(run([whole, cropped, whole, cropped, ...Array(8).fill(cropped)]).length, 1, "it must be one stretch");
+});
