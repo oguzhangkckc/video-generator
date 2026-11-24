@@ -309,6 +309,7 @@ const rows = [
     ["Veri etiketleri", "veri etiketi"],
     ["Kılavuz (etiketten öğeye)", "kılavuz"],
     ["Kapak (ilk 3 sn, kare kare)", "kapak"],
+    ["Altyazı (sabit boyut)", "altyazı"],
     ["Geçişler", "geçiş"],
     ["Kamera (geniş → yakın)", "kamera"],
   ].map(([name, prefix]) => [

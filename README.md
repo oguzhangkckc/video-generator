@@ -71,7 +71,7 @@ de kareler incelenebilir.
 | `layers[]` | sahneler ve geçişler, dizi sırasıyla çizilir (aşağıdaki tablo) |
 | `labels[]`, `notes[]`, `titles[]` | monospace veri satırları (sesiyle; `pointTo: "katman.öğe"` ile panelden sahne öğesine kılavuz çizgisi, öğe adları geçişlerdeki `via` ile aynı), dürüstlük notları, kanca başlıkları |
 | `counter`, `countdown`, `concept`, `darken` | sağ üst sayaç, doruk geri sayımı, kavram kartı, final kararması |
-| `captions` | karaoke altyazı ayarları (varsayılanlar STYLE'a uygun) |
+| `captions` | karaoke altyazı ayarları (varsayılanlar STYLE'a uygun). `size` sabit yazı boyutu: sayfa küçülmez, uzun cümle 2–6 kelimelik iki sayfaya bölünür |
 | `sound` | `beds[]` (konuşmada kısılan ambiyans), `hits[]` (efektler), `music` (lisanslı parça) |
 | `sources[]` | her iddia: değer, url, erişim tarihi, `verified` / `simplified` / `disputed` |
 | `credits[]` | her model, ses, doku, yazı tipi, müzik ve kod: sahibi + lisansı |

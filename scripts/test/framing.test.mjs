@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { IDENTITY, moveBox, overlaps, smoothAdjust, solve } from "../../src/kit/framing.ts";
 import { pointerLine, rowsInTheWay } from "../../src/kit/overlays/pointer.ts";
+import { splitPage } from "../../src/spec/timing.ts";
 import { composition, coverFindings, textFindings } from "../lib/composition.mjs";
 
 const anchor = [540, 960];
@@ -149,4 +150,25 @@ test("cover: one bad frame is enough, a fading text counts, frame 0 needs the ho
   assert.ok(empty.some((e) => e.includes("boş")), empty.join("\n"));
   const untitled = coverFindings({ samples: [ok(0, { boxes: [], strict: [] })] });
   assert.ok(untitled.some((e) => e.includes("kanca başlığı yok")), untitled.join("\n"));
+});
+
+test("captions: a long phrase becomes two balanced pages of 2–6 words, split after a comma when it can", () => {
+  const words = (text) => text.split(" ").map((text) => ({ text }));
+  const pages = (text, fits = () => true) => splitPage(words(text), fits)?.map((p) => p.map((w) => w.text).join(" "));
+  assert.deepEqual(pages("Bu çizgiyi mutlaka görmüşsündür."), ["Bu çizgiyi mutlaka görmüşsündür."]);
+  assert.deepEqual(pages("Dalga kulakçıklara yayılıyor, kan aşağı itiliyor ve karıncıklar doluyor."), [
+    "Dalga kulakçıklara yayılıyor,",
+    "kan aşağı itiliyor ve karıncıklar doluyor.",
+  ]);
+  const narrow = (t) => t.length <= 24;
+  assert.deepEqual(pages("Kalbinin elektriği cildine ulaşıyor:", narrow), ["Kalbinin elektriği", "cildine ulaşıyor:"]);
+  assert.equal(splitPage(words("bir iki üç dört beş altı yedi sekiz dokuz on on bir on iki on üç"), () => true), null, "more than two pages' worth");
+});
+
+test("captions: qa reports a page wider than the line and a size that changes", () => {
+  const band = { x1: 120, y1: 1442, x2: 960, y2: 1514 };
+  const page = (t, size, x1, x2) => sample(t, [scene()], { band, boxes: [{ kind: "caption", id: "captions", text: `t${t}`, size, x1, y1: 1442, x2, y2: 1514 }] });
+  const { errors } = composition({ samples: [page(0, 60, 200, 880), page(0.25, 48, 100, 980)], step: 0.25, labelAlign: () => "left", phrases: [] });
+  assert.ok(errors.some((e) => e.startsWith("altyazı") && e.includes("sığmıyor")), errors.join("\n"));
+  assert.ok(errors.some((e) => e.startsWith("altyazı") && e.includes("boyutu değişiyor")), errors.join("\n"));
 });

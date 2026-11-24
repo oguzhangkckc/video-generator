@@ -8,7 +8,7 @@ import { MONO, SANS } from "../theme";
 import { counterOpacity, counterText, speedLabel } from "./Counter";
 import { LINE, labelBox, textWidth as width, type Box } from "./geometry";
 
-export type QaBox = Box & { kind: string; id: string; text: string };
+export type QaBox = Box & { kind: string; id: string; text: string; size?: number };
 
 /** Only fully faded-in text counts in qa; an overlap during a 0.3 s crossfade is not a layout error. */
 export const SETTLE = 0.3;
@@ -86,11 +86,10 @@ export const overlayBoxes = (video: Video, t: number, layout: Layout, when: When
   const page = video.pages.find((p, i) => ms >= p.startMs + 120 && ms < Math.min(video.pages[i + 1]?.startMs ?? Infinity, p.endMs + s.captions.lingerMs));
   if (page) {
     const text = page.tokens.map((token) => token.text).join(" ");
-    const maxWidth = s.captions.maxWidth ?? contentWidth;
-    const size = Math.min(s.captions.maxFont, fitText({ text, withinWidth: maxWidth, fontFamily: SANS, fontWeight: 800 }).fontSize);
+    const size = s.captions.size;
     const w = width(text, SANS, size, 800);
     const h = size * LINE;
-    add("caption", "captions", text, CX - w / 2, HEIGHT * s.captions.y - h / 2, w, h);
+    out.push({ kind: "caption", id: "captions", text, size, x1: CX - w / 2, y1: HEIGHT * s.captions.y - h / 2, x2: CX + w / 2, y2: HEIGHT * s.captions.y + h / 2 });
   }
   return out;
 };
@@ -100,7 +99,7 @@ export const captionBand = (video: Video, layout: Layout): Box | null => {
   if (!video.pages.length) return null;
   const c = video.spec.captions;
   const w = c.maxWidth ?? layout.contentWidth;
-  const h = c.maxFont * LINE;
+  const h = c.size * LINE;
   return { x1: CX - w / 2, y1: HEIGHT * c.y - h / 2, x2: CX + w / 2, y2: HEIGHT * c.y + h / 2 };
 };
 

@@ -222,6 +222,8 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
   const crossing = spans();
   const pointing = spans();
   const texting = spans();
+  const captionWide = spans();
+  const captionSizes = new Map();
   const outside = new Map();
   let present = new Set();
   const leave = (key, exiting) => {
@@ -279,6 +281,10 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
       }
     }
     for (const [key, message] of textFindings(s, s.boxes)) texting.add(key, s.t, message);
+    for (const c of s.boxes.filter((b) => b.kind === "caption")) {
+      if (c.size !== undefined && !captionSizes.has(c.size)) captionSizes.set(c.size, s.t);
+      if (s.band && c.x2 - c.x1 > s.band.x2 - s.band.x1 + 1) captionWide.add(c.text, s.t, `"${c.text}" altyazı satırına sığmıyor`);
+    }
     for (const b of s.boxes.filter((x) => x.kind === "label" && labelPointTo(x.id))) {
       const target = labelPointTo(b.id);
       const [name, id] = splitPointer(target);
@@ -311,6 +317,10 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
   errors.push(...touching.list().map((m) => `veri etiketi: ${m}`), ...crossing.list().map((m) => `veri etiketi: ${m}`));
   errors.push(...pointing.list().map((m) => `kılavuz: ${m}`));
   errors.push(...texting.list().map((m) => `yerleşim: ${m}`));
+  errors.push(...captionWide.list().map((m) => `altyazı: ${m}`));
+  if (captionSizes.size > 1) {
+    errors.push(`altyazı: yazı boyutu değişiyor (${[...captionSizes].map(([size, t]) => `${fmt(t)}'de ${size} px`).join(", ")}); altyazı hiç küçülmez`);
+  }
   warnings.push(...cropped.list().map((m) => `kenar: ${m}`));
 
   const subjectSeries = samples.map((s) => {

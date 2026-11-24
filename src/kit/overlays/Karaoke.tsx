@@ -1,9 +1,7 @@
-import { fitText } from "@remotion/layout-utils";
 import { AbsoluteFill, interpolate } from "remotion";
 import type { Spec } from "../../spec/schema";
 import type { CaptionPage } from "../../spec/timing";
 import { HEIGHT } from "../format";
-import { useLayout } from "../layout";
 import { COLOR, SANS, TEXT_SHADOW } from "../theme";
 import { useTime } from "../time";
 
@@ -12,9 +10,6 @@ type Props = { pages: CaptionPage[]; captions: Spec["captions"] };
 /** One line at a time: the spoken word is white, the words still to come are grey. */
 export const Karaoke: React.FC<Props> = ({ pages, captions }) => {
   const ms = useTime() * 1000;
-  const { contentWidth } = useLayout();
-  const maxWidth = captions.maxWidth ?? contentWidth;
-
   const index = pages.findIndex((page, i) => {
     const nextStart = pages[i + 1]?.startMs ?? Infinity;
     return ms >= page.startMs && ms < Math.min(nextStart, page.endMs + captions.lingerMs);
@@ -22,11 +17,6 @@ export const Karaoke: React.FC<Props> = ({ pages, captions }) => {
   if (index === -1) return null;
 
   const page = pages[index];
-  const text = page.tokens.map((token) => token.text).join(" ");
-  const fontSize = Math.min(
-    captions.maxFont,
-    fitText({ text, withinWidth: maxWidth, fontFamily: SANS, fontWeight: 800 }).fontSize,
-  );
   const opacity = interpolate(ms - page.startMs, [0, 120], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -45,7 +35,7 @@ export const Karaoke: React.FC<Props> = ({ pages, captions }) => {
           whiteSpace: "nowrap",
           fontFamily: SANS,
           fontWeight: 800,
-          fontSize,
+          fontSize: captions.size,
           textShadow: TEXT_SHADOW,
           opacity,
         }}

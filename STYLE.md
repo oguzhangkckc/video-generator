@@ -82,7 +82,8 @@ kullanılır.
 - **Seslendirmedeki büyüklük, ekrandaki etiketle aynı fiziksel niceliktir.** Etiket "≈ 1 mV" (gerilim) gösterirken
   seslendirme "akım" demez; gerilim, akım, süre, hız birbirine karışmaz (`src/spec/quantities.ts`, qa uyarısı).
 - **Kelime bütçesi** = (pencere − duraklamalar) × 2,8. 30 sn ≈ 65 kelime, 45 sn ≈ 95, 60 sn ≈ 125.
-- Cümleler kısa tutulur. Bir cümle bir altyazı sayfasıdır ve tek satıra sığmalıdır (≈ 32 karakter).
+- Cümleler kısa tutulur. Bir cümle bir altyazı sayfasıdır ve tek satıra sığmalıdır (≈ 32 karakter); sığmayan cümle
+  kelime sınırında 2–6 kelimelik iki sayfaya bölünür, iki sayfaya da sığmıyorsa `npm run check` hatası (cümleyi kısalt).
 - **Sağ ya da sol söylenen her yerde ekranda yön ipucu olur.** Anatomik görünümde izleyicinin sağı ekranın solunda
   kalır; "SENİN SAĞIN" gibi bir etiket ya da ok bunu gösterir.
 
@@ -139,7 +140,9 @@ Sıra her zaman aynıdır:
 ## Yerleşim
 
 - **Sayaç** sağ üstte, sabit (`counter`).
-- **Altyazı** yüksekliğin **%77'sinde**, tek satır karaoke: söylenen kelime beyaz, sıradakiler gri.
+- **Altyazı** yüksekliğin **%77'sinde**, tek satır karaoke: söylenen kelime beyaz, sıradakiler gri. **Yazı boyutu
+  video boyunca sabittir** (`captions.size`, varsayılan 60); sığdırmak için asla küçültülmez. qa: boyut değişirse ya da
+  bir sayfa satıra sığmazsa hata.
 - **Sahne her zaman tüm kareyi kullanır;** sabit bir bant ya da pencere yoktur. Koyu zeminli etiket panelleri
   (`layout.labelBackdrop`), veri şeritleri (`trace` + `panel`) ve altyazı sahnenin üstüne bindirilir.
 - Veri satırları üst yarıda (`top` ≈ 380–850). Ekranda kanca başlığı yokken ve sahnenin önemli öğeleri bu bandı

@@ -5,6 +5,8 @@ import lengths from "../kit/audio/sfx-durations.json";
 import { curveFn, type CurveFn } from "../kit/curves";
 import { FPS, formatCounter } from "../kit/format";
 import { speedLabel } from "../kit/overlays/Counter";
+import { textWidth } from "../kit/overlays/geometry";
+import { SANS } from "../kit/theme";
 import { needsReading, splitToken, unreadable } from "./lexicon.ts";
 import { KEY_REF, MARK_REF } from "./primitives";
 import { ResolvedSpec, Timing, VideoSpec, type LayerOf, type Spec } from "./schema";
@@ -14,6 +16,7 @@ import {
   captionPages,
   estimatePhrases,
   phraseTexts,
+  splitPage,
   timingMatches,
   type CaptionPage,
   type Phrase,
@@ -423,10 +426,17 @@ export const resolveVideo = (rawSpec: unknown, rawTiming: unknown): Video => {
   const curves = new Map(Object.entries(spec.curves).map(([name, c]) => [name, curveFn(c)]));
   checkTimeline(raw, spec, (name) => curves.get(name) ?? fail("curves", `unknown curve "${name}"`), FPS, phrases);
   checkScript(raw, spec, phrases);
+  const lineWidth = spec.captions.maxWidth ?? spec.layout.contentWidth;
+  const fits = (text: string) => textWidth(text, SANS, spec.captions.size, 800) <= lineWidth;
+  for (const p of raw.template ? [] : phrases) {
+    if (!splitPage(p.text.split(" ").map((text) => ({ text })), fits)) {
+      fail("captions", `"${p.text}" does not fit the caption line at ${spec.captions.size} px, not even as two pages of 2–6 words — shorten the sentence`);
+    }
+  }
   return {
     spec,
     phrases,
-    pages: captionPages(phrases, timing ? timing.words : null),
+    pages: captionPages(phrases, timing ? timing.words : null, fits),
     curve: (name) => curves.get(name) ?? fail("curves", `unknown curve "${name}"`),
     timed: timing !== null,
     voiceoverAudio: spec.voiceover.audio ?? timing?.audio,

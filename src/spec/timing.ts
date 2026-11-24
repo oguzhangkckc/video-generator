@@ -51,14 +51,38 @@ const estimateWords = ({ start, end, text }: Phrase): Caption[] => {
   });
 };
 
-/** One caption page per phrase, filled with the spoken word timings when there are any. */
-export const captionPages = (phrases: Phrase[], words: Caption[] | null): CaptionPage[] => {
+/** STYLE: a caption page holds this many words, on one line at the fixed caption size. */
+export const PAGE_WORDS = { min: 2, max: 6 };
+
+/**
+ * A phrase's words as one page, or, when it has too many words or is too wide, as two pages of 2–6 words each, as even
+ * as possible and preferably split after a comma; null when no such split fits.
+ */
+export const splitPage = <T extends { text: string }>(tokens: T[], fits: (text: string) => boolean): T[][] | null => {
+  const join = (ts: T[]) => ts.map((x) => x.text).join(" ");
+  if (tokens.length <= PAGE_WORDS.max && fits(join(tokens))) return [tokens];
+  let best: { k: number; score: number } | null = null;
+  for (let k = PAGE_WORDS.min; k <= tokens.length - PAGE_WORDS.min; k++) {
+    const [a, b] = [tokens.slice(0, k), tokens.slice(k)];
+    if (a.length > PAGE_WORDS.max || b.length > PAGE_WORDS.max || !fits(join(a)) || !fits(join(b))) continue;
+    const pause = /[,;:]$/.test(a[a.length - 1].text) ? 8 : 0;
+    const score = Math.abs(join(a).length - join(b).length) - pause;
+    if (!best || score < best.score) best = { k, score };
+  }
+  return best ? [tokens.slice(0, best.k), tokens.slice(best.k)] : null;
+};
+
+/**
+ * Caption pages from the phrases, filled with the spoken word timings when there are any; a phrase too long for one
+ * line becomes two pages (splitPage). `fits` says whether a text fits the caption line at the caption size.
+ */
+export const captionPages = (phrases: Phrase[], words: Caption[] | null, fits: (text: string) => boolean = () => true): CaptionPage[] => {
   let cursor = 0;
-  return phrases.map((phrase) => {
+  return phrases.flatMap((phrase) => {
     const count = wordCount(phrase.text);
     const tokens = words ? words.slice(cursor, cursor + count) : estimateWords(phrase);
     cursor += count;
-    return { startMs: tokens[0].startMs, endMs: tokens[tokens.length - 1].endMs, tokens };
+    return (splitPage(tokens, fits) ?? [tokens]).map((part) => ({ startMs: part[0].startMs, endMs: part[part.length - 1].endMs, tokens: part }));
   });
 };
 

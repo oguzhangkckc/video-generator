@@ -71,7 +71,8 @@ export const captionsSchema = z
   .object({
     /** Vertical centre as a fraction of the frame height. */
     y: z.number().min(0).max(1).default(0.77),
-    maxFont: z.number().positive().default(60),
+    /** One size for every page: captions never shrink to fit; a long sentence becomes two pages (STYLE). */
+    size: z.number().positive().default(60),
     /** Defaults to layout.contentWidth. */
     maxWidth: z.number().positive().optional(),
     /** Long enough to bridge a section pause, so the caption line never blinks empty mid-thought. */
