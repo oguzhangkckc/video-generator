@@ -152,6 +152,8 @@ export type SceneReport = {
   subject: Box | null;
   elements: SceneElement[];
   labels?: SceneLabel[];
+  /** Every text the scene draws itself (part labels, a legend), so qa can check it against the overlays. */
+  texts?: (Box & { text: string })[];
   /** The drawn data line, sampled in screen px. */
   line?: Vec[];
   adjust: Adjust;

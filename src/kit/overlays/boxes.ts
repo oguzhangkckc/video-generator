@@ -1,5 +1,6 @@
 import { fitText } from "@remotion/layout-utils";
 import type { Video } from "../../spec/resolve";
+import { layerName } from "../../spec/scenes";
 import { CX, HEIGHT, WIDTH } from "../format";
 import type { Layout } from "../layout";
 import { windowAlpha } from "../time";
@@ -94,6 +95,15 @@ export const overlayBoxes = (video: Video, t: number, layout: Layout, when: When
   return out;
 };
 
+/** The caption line's band: where a page can be, whatever its words. Null when the video has no captions. */
+export const captionBand = (video: Video, layout: Layout): Box | null => {
+  if (!video.pages.length) return null;
+  const c = video.spec.captions;
+  const w = c.maxWidth ?? layout.contentWidth;
+  const h = c.maxFont * LINE;
+  return { x1: CX - w / 2, y1: HEIGHT * c.y - h / 2, x2: CX + w / 2, y2: HEIGHT * c.y + h / 2 };
+};
+
 /** A trace drawn as a data strip: a dark panel across the frame at panel.top. */
 export const stripBox = (panel: { top: number; height: number }): Box => ({
   x1: STRIP_MARGIN,
@@ -122,13 +132,9 @@ export const reservedZones = (video: Video, t: number, layout: Layout): QaBox[] 
   video.spec.layers.forEach((layer, i) => {
     if (layer.type !== "trace" || !layer.panel) return;
     if (!layer.visible.some((w) => windowAlpha(t, w) > 0 || windowAlpha(t + when.lead, w) > 0)) return;
-    boxes.push({ kind: "strip", id: layer.id ?? `layers[${i}]`, text: "", ...stripBox(layer.panel) });
+    boxes.push({ kind: "strip", id: layerName(layer, i), text: "", ...stripBox(layer.panel) });
   });
-  if (video.pages.length) {
-    const c = video.spec.captions;
-    const w = c.maxWidth ?? layout.contentWidth;
-    const h = c.maxFont * LINE;
-    boxes.push({ kind: "caption", id: "captions", text: "", x1: CX - w / 2, y1: HEIGHT * c.y - h / 2 - 12, x2: CX + w / 2, y2: HEIGHT * c.y + h / 2 + 12 });
-  }
+  const band = captionBand(video, layout);
+  if (band) boxes.push({ kind: "caption", id: "captions", text: "", ...band, y1: band.y1 - 12, y2: band.y2 + 12 });
   return boxes;
 };

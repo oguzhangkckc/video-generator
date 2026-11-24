@@ -14,6 +14,18 @@ type Progress = FlowLayer["signals"][number]["progress"];
 
 /** A node stays important this long after it fires or a wave reaches it. */
 const HOLD = 1.5;
+/** A travelling signal's way that matters, in seconds around its tip, marked every `spacing` screen px. */
+const ROUTE = { behind: 0.25, ahead: 0.5, spacing: 40 };
+
+/** The point `d` world px along a chain of paths. */
+const along = (chain: { points: Vec[]; length: number }[], d: number): Vec => {
+  let left = d;
+  for (const path of chain) {
+    if (left <= path.length) return slice(path.points, path.length ? left / path.length : 0, path.length).tip;
+    left -= path.length;
+  }
+  return chain[chain.length - 1].points[chain[chain.length - 1].points.length - 1];
+};
 
 /** Geometry that only changes with the spec. */
 export const flowGeometry = (layer: FlowLayer) => {
@@ -32,8 +44,8 @@ export type FlowGeometry = ReturnType<typeof flowGeometry>;
 /** Camera, signals and lights at t; `adjust` is the framing move (p' = anchor + s·(p − anchor) + d). */
 export const flowState = (layer: FlowLayer, geo: FlowGeometry, curve: (name: string) => CurveFn, t: number, adjust: Adjust = IDENTITY) => {
   const place = (p: string | Vec): Vec => (Array.isArray(p) ? p : geo.nodes.get(p)!.at);
-  const progressAt = (p: Progress) =>
-    "times" in p ? ramp(t, p.times, [0, 1], EASING.linear) : ramp(curve(p.curve)(t), p.range, [0, 1], EASING.linear);
+  const progressAt = (p: Progress, u = t) =>
+    "times" in p ? ramp(u, p.times, [0, 1], EASING.linear) : ramp(curve(p.curve)(u), p.range, [0, 1], EASING.linear);
   const written = viewAt(layer.camera, place, layer.drift, t);
   const view: View = { ...written, zoom: written.zoom * adjust.s };
   const anchor: Vec = [CX + adjust.dx, layer.anchorY + adjust.dy];
@@ -57,7 +69,15 @@ export const flowState = (layer: FlowLayer, geo: FlowGeometry, curve: (name: str
       return take > 0 ? slice(path.points, take / path.length, path.length) : null;
     });
     const tip = [...pieces].reverse().find(Boolean)?.tip;
-    return { s, pieces, tip: p > 0 && p < 1 ? tip : undefined };
+    const moving = p > 0 && p < 1;
+    const route: Vec[] = [];
+    if (moving) {
+      const [from, to] = [progressAt(s.progress, t - ROUTE.behind) * total, progressAt(s.progress, t + ROUTE.ahead) * total];
+      const step = ROUTE.spacing / view.zoom;
+      for (let d = from; d < to; d += step) route.push(along(chain, d));
+      route.push(along(chain, to));
+    }
+    return { s, pieces, tip: moving ? tip : undefined, route };
   });
 
   const arrivals = new Map<string, number[]>();
@@ -75,7 +95,8 @@ export type FlowState = ReturnType<typeof flowState>;
 
 /**
  * Every visible element in screen px. Important: a node that is lit, firing, reached by a wave or highlighted; a
- * travelling signal's head; a region that is highlighted or being swept; and anything the phrase being spoken names.
+ * travelling signal's head and its way (just drawn and the next half second, as points); a region that is highlighted
+ * or being swept; and anything the phrase being spoken names.
  */
 export const flowElements = (layer: FlowLayer, geo: FlowGeometry, st: FlowState, t: number, spoken: string): SceneElement[] => {
   const said = (say: string[]) => say.some((a) => mentions(spoken, a));
@@ -104,8 +125,9 @@ export const flowElements = (layer: FlowLayer, geo: FlowGeometry, st: FlowState,
     const hidden = !shown(n.visible);
     out.push({ id: n.id, kind: "node", ...pointBox(st.toScreen(n.at), r), important: !hidden && (active || said(n.say)), say: n.say, hidden });
   }
-  st.signals.forEach(({ s, tip }, i) => {
+  st.signals.forEach(({ s, tip, route }, i) => {
     if (tip && s.head) out.push({ id: `signal${i}`, kind: "signal", ...pointBox(st.toScreen(tip), 24), important: true, say: [] });
+    route.forEach((at, k) => out.push({ id: `signal${i}:route${k}`, kind: "route", ...pointBox(st.toScreen(at), 12), important: true, say: [] }));
   });
   return out;
 };

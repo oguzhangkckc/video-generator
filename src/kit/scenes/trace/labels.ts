@@ -43,33 +43,48 @@ const extent = (line: Vec[], x1: number, x2: number) => {
   return { top, bottom };
 };
 
-/** Labels for the drawn parts; `line` is the whole visible line, so a label clears every bit of it. */
-export const placeLabels = (parts: PartPlace[], line: Vec[]): PlacedLabel[] => {
+/** Height a label of `height` needs above a peak (leader) or below the line (bracket), first row. */
+export const labelRoom = (height: number) => ({ above: ABOVE + height, below: BELOW + GAP + height });
+
+/**
+ * Labels for the drawn parts; `line` is the whole visible line, so a label clears every bit of it. A label stays
+ * inside `area` (a strip's panel clips the rest) when any spot there is free; otherwise it takes the first free one
+ * and qa reports it.
+ */
+export const placeLabels = (parts: PartPlace[], line: Vec[], area?: Box): PlacedLabel[] => {
   const placed: PlacedLabel[] = [];
-  const clear = (b: Box) => !placed.some((p) => overlaps(b, p)) && (() => {
+  let within = Boolean(area);
+  const inside = (b: Box) => !within || !area || (b.x1 >= area.x1 && b.x2 <= area.x2 && b.y1 >= area.y1 && b.y2 <= area.y2);
+  const clear = (b: Box) => inside(b) && !placed.some((p) => overlaps(b, p)) && (() => {
     const { top, bottom } = extent(line, b.x1 - GAP, b.x2 + GAP);
     return !(b.y2 + GAP > top && b.y1 - GAP < bottom);
   })();
 
   const leaders = parts.filter((p) => p.marker === "leader" && p.points.length);
   const brackets = parts.filter((p) => p.marker === "bracket" && p.points.length);
+  const firstFree = (search: () => PlacedLabel | null) => {
+    within = Boolean(area);
+    const spot = search();
+    if (spot || !area) return spot;
+    within = false;
+    return search();
+  };
 
   for (const p of [...leaders].sort((a, b) => a.points[0][0] - b.points[0][0])) {
     const peak = p.points.reduce((best, q) => (q[1] < best[1] ? q : best), p.points[0]);
-    let spot: PlacedLabel | null = null;
-    for (let row = 0; row < ROWS && !spot; row++) {
-      for (const shift of [0, 0.6, -0.6, 1.2, -1.2]) {
-        const cx = peak[0] + shift * p.width;
-        const x1 = cx - p.width / 2;
-        const { top } = extent(line, x1 - GAP, x1 + p.width + GAP);
-        const y2 = Math.min(top, peak[1]) - ABOVE - row * (p.height + GAP);
-        const box = { x1, y1: y2 - p.height, x2: x1 + p.width, y2 };
-        if (clear(box)) {
-          spot = { ...box, text: p.text, marker: "leader", leader: [[peak[0], peak[1] - 6], [cx, y2 + 4]] };
-          break;
+    const spot = firstFree(() => {
+      for (let row = 0; row < ROWS; row++) {
+        for (const shift of [0, 0.6, -0.6, 1.2, -1.2]) {
+          const cx = peak[0] + shift * p.width;
+          const x1 = cx - p.width / 2;
+          const { top } = extent(line, x1 - GAP, x1 + p.width + GAP);
+          const y2 = Math.min(top, peak[1]) - ABOVE - row * (p.height + GAP);
+          const box = { x1, y1: y2 - p.height, x2: x1 + p.width, y2 };
+          if (clear(box)) return { ...box, text: p.text, marker: "leader", leader: [[peak[0], peak[1] - 6], [cx, y2 + 4]] };
         }
       }
-    }
+      return null;
+    });
     if (spot) placed.push(spot);
   }
 
@@ -78,13 +93,15 @@ export const placeLabels = (parts: PartPlace[], line: Vec[]): PlacedLabel[] => {
     const [bx1, bx2] = [Math.min(...xs), Math.max(...xs)];
     const { bottom } = extent(line, bx1, bx2);
     const cx = (bx1 + bx2) / 2;
-    let spot: PlacedLabel | null = null;
-    for (let row = 0; row < ROWS && !spot; row++) {
-      const y = bottom + BELOW + row * (p.height + TICK + 2 * GAP);
-      const x1 = cx - p.width / 2;
-      const box = { x1: Math.min(x1, bx1), y1: y - TICK, x2: Math.max(x1 + p.width, bx2), y2: y + GAP + p.height };
-      if (clear(box)) spot = { x1, y1: y + GAP, x2: x1 + p.width, y2: y + GAP + p.height, text: p.text, marker: "bracket", bracket: { x1: bx1, x2: bx2, y } };
-    }
+    const spot = firstFree(() => {
+      for (let row = 0; row < ROWS; row++) {
+        const y = bottom + BELOW + row * (p.height + TICK + 2 * GAP);
+        const x1 = cx - p.width / 2;
+        const box = { x1: Math.min(x1, bx1), y1: y - TICK, x2: Math.max(x1 + p.width, bx2), y2: y + GAP + p.height };
+        if (clear(box)) return { x1, y1: y + GAP, x2: x1 + p.width, y2: y + GAP + p.height, text: p.text, marker: "bracket", bracket: { x1: bx1, x2: bx2, y } };
+      }
+      return null;
+    });
     if (spot) placed.push(spot);
   }
   return placed;

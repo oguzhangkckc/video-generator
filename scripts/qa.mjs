@@ -11,7 +11,7 @@ import { openBrowser, renderStill, selectComposition } from "@remotion/renderer"
 import { GROUND_KEY } from "../src/kit/ground.ts";
 import { quantityMismatches } from "../src/spec/quantities.ts";
 import { parseArgs } from "./lib/args.mjs";
-import { composition } from "./lib/composition.mjs";
+import { composition, coverFindings } from "./lib/composition.mjs";
 import { flagText } from "./lib/review.mjs";
 import { speechReport } from "./lib/speech.mjs";
 import { ROOT, duration, loadSpec, loadTiming, outDir, readPcm, requireSlug } from "./lib/video.mjs";
@@ -125,6 +125,21 @@ const emptyShare = (png) => {
   return empty / ((W / C) * (H / C));
 };
 
+/** STYLE "Kapak": the first seconds, every COVER.every frames, judged with no grace; frame 0 saved as cover.png. */
+const COVER = { seconds: 3, every: 2 };
+const cover = async (tmp, first, last, labelAlign) => {
+  const samples = [];
+  for (let frame = 0; frame <= Math.min(last, COVER.seconds * FPS); frame += COVER.every) {
+    const { boxes, scene } = frame === 0 ? first : await probe(frame, { probe: true }, path.join(tmp, "probe.png"));
+    if (!boxes || !scene) continue;
+    const full = path.join(tmp, "full.png");
+    await probe(frame, { probe: false, ground: true }, full);
+    samples.push({ t: boxes.t, boxes: boxes.boxes, strict: boxes.strict, band: boxes.band, scene, empty: emptyShare(full) });
+  }
+  await probe(0, {}, path.join(outDir(slug), "cover.png"));
+  return coverFindings({ samples, labelAlign });
+};
+
 const layout = async () => {
   const tmp = mkdtempSync(path.join(os.tmpdir(), `qa-${slug}-`));
   const first = await probe(0, { probe: true }, path.join(tmp, "probe.png"));
@@ -148,7 +163,7 @@ const layout = async () => {
       await probe(frame, { probe: false, ground: true }, full);
       empty = emptyShare(full);
     }
-    if (scene) samples.push({ t: boxes.t, boxes: boxes.boxes, scene, empty });
+    if (scene) samples.push({ t: boxes.t, boxes: boxes.boxes, band: boxes.band, scene, empty });
     for (const b of boxes.boxes) {
       if (b.x2 > SAFE_RIGHT + 0.5) unsafe.add(`${b.id}:right`, boxes.t, `${b.id} "${b.text}" reaches x ${Math.round(b.x2)} (right safe area starts at ${SAFE_RIGHT})`);
       if (b.y2 > SAFE_BOTTOM + 0.5) unsafe.add(`${b.id}:bottom`, boxes.t, `${b.id} "${b.text}" reaches y ${Math.round(b.y2)} (bottom safe area starts at ${SAFE_BOTTOM})`);
@@ -179,6 +194,7 @@ const layout = async () => {
   for (const f of first.spec?.findings ?? []) errors.push(f.replace(/^transitions: /, "geçiş: ").replace(/^camera: /, "kamera: "));
   errors.push(...found.errors);
   warnings.push(...found.warnings);
+  if (inRange(0)) errors.push(...(await cover(tmp, first, last, labelAlign)));
   rmSync(tmp, { recursive: true, force: true });
   return { frames: frames.length, spec: first.spec, stats: found.stats };
 };
@@ -292,6 +308,7 @@ const rows = [
     ["Bağlam (söylenen yer ekranda)", "bağlam"],
     ["Veri etiketleri", "veri etiketi"],
     ["Kılavuz (etiketten öğeye)", "kılavuz"],
+    ["Kapak (ilk 3 sn, kare kare)", "kapak"],
     ["Geçişler", "geçiş"],
     ["Kamera (geniş → yakın)", "kamera"],
   ].map(([name, prefix]) => [

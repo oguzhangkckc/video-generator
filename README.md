@@ -166,7 +166,11 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
 
 - **Yerleşim** (render gerekmez): her 0,25 sn'de bir kare tarayıcıda açılır, üst yazıların kutuları
   `@remotion/layout-utils` ile ölçülür. Yazılar birbirine ya da altyazıya biniyorsa, sağdaki 120 px'e ya da alttaki
-  %15'e taşıyorsa hata.
+  %15'e taşıyorsa hata. Sahnelerin kendi yazıları da (`QA_LAYER` `texts`: veri çizgisi etiketleri, ölçek notu) bütün
+  yazılara karşı denetlenir; altyazı bandına giren her yazı, panelinden taşan şerit yazısı ve başlığa ya da altyazı
+  bandına giren veri çizgisi hata.
+- **Kapak** (ilk 3 sn): her 2 karede bir, belirmekte olan yazılar dahil, süre payı olmadan: çakışma, güvenli alan,
+  önemli öğe, özne, boş alan tek karede bile hata; kare 0'da kanca başlığı olmalı. Kare 0 → `out/<slug>/cover.png`.
 - **Kompozisyon** (render gerekmez; sahneler her karede önemli öğelerini, öznelerini, veri etiketlerini raporlar,
   `QA_LAYER`): önemli öğe üst yazı / şerit / altyazı altında (nokta hiç, alan en fazla %25) hata; önemli öğe
   kareden taşıyor (nokta hiç, alan en fazla %25; 0,5 sn, giriş/çıkışta 1 sn) hata; özne < %35 yükseklik

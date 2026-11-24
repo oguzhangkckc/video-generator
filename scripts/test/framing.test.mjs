@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { IDENTITY, moveBox, overlaps, smoothAdjust, solve } from "../../src/kit/framing.ts";
 import { pointerLine, rowsInTheWay } from "../../src/kit/overlays/pointer.ts";
-import { composition } from "../lib/composition.mjs";
+import { composition, coverFindings, textFindings } from "../lib/composition.mjs";
 
 const anchor = [540, 960];
 const box = (x, y, r = 20) => ({ x1: x - r, y1: y - r, x2: x + r, y2: y + r });
@@ -121,4 +121,32 @@ test("composition: a pointer's element must be on screen and its leader may not 
   assert.deepEqual(run(node(700, 700)), []);
   assert.ok(run(node(700, 700, { hidden: true }))[0]?.includes("ekranda değil"));
   assert.ok(run(node(540, 1700))[0]?.includes("altyazının üstünden"));
+});
+
+test("text: a scene's text in the caption band, a strip label out of its panel, the line in a title", () => {
+  const band = { x1: 120, y1: 1442, x2: 960, y2: 1514 };
+  const title = { kind: "title", id: "titles[0]", text: "BU ÇİZGİ / NE ANLATIYOR?", x1: 200, y1: 560, x2: 880, y2: 736 };
+  const monitor = scene({ layer: "monitor", type: "trace", texts: [{ text: "25 mm/sn", x1: 80, y1: 1480, x2: 300, y2: 1509 }], line: [[300, 900], [320, 700], [340, 900]] });
+  const strip = scene({ layer: "strip", type: "strip", texts: [{ text: "QRS", x1: 600, y1: 1030, x2: 650, y2: 1066 }] });
+  const s = sample(0, [monitor, strip], { boxes: [title], band });
+  s.scene.zones = [{ kind: "strip", id: "strip", x1: 40, y1: 1036, x2: 1040, y2: 1370 }];
+  const found = textFindings(s, s.boxes).map(([, m]) => m);
+  assert.ok(found.some((m) => m.includes("25 mm/sn") && m.includes("altyazı bandına")), found.join("\n"));
+  assert.ok(found.some((m) => m.includes("QRS") && m.includes("panelin dışına")), found.join("\n"));
+  assert.ok(found.some((m) => m.includes("monitor veri çizgisi başlığa")), found.join("\n"));
+  const clean = sample(0, [scene({ layer: "monitor", type: "trace", texts: [{ text: "25 mm/sn", x1: 80, y1: 1400, x2: 300, y2: 1429 }], line: [[300, 900], [320, 760]] })], { boxes: [title], band });
+  assert.deepEqual(textFindings(clean, clean.boxes), []);
+});
+
+test("cover: one bad frame is enough, a fading text counts, frame 0 needs the hook title", () => {
+  const title = { kind: "title", id: "titles[0]", text: "BAŞLIK", x1: 200, y1: 560, x2: 880, y2: 736 };
+  const note = { kind: "note", id: "notes[0]", text: "NOT", x1: 700, y1: 700, x2: 900, y2: 726 };
+  const ok = (t, extra = {}) => sample(t, [scene()], { boxes: [title], strict: [title], ...extra });
+  assert.deepEqual(coverFindings({ samples: [ok(0), ok(1 / 15)] }), []);
+  const fading = coverFindings({ samples: [ok(0), ok(1 / 15, { strict: [title, note] })] });
+  assert.ok(fading.some((e) => e.includes("çakışıyor")), fading.join("\n"));
+  const empty = coverFindings({ samples: [ok(0), ok(1 / 15, { empty: 0.5 })] });
+  assert.ok(empty.some((e) => e.includes("boş")), empty.join("\n"));
+  const untitled = coverFindings({ samples: [ok(0, { boxes: [], strict: [] })] });
+  assert.ok(untitled.some((e) => e.includes("kanca başlığı yok")), untitled.join("\n"));
 });
