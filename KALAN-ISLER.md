@@ -118,13 +118,17 @@ demo-trace temiz.
 
 **Planda olup yapılmayanlar:** yok.
 
-## Seslendirme v2 Aşama B (ElevenLabs kredisi bekliyor)
+## Seslendirme v2 Aşama B (ElevenLabs kredisi ya da Azure anahtarı bekliyor)
 
 Hesapta kredi bitti (2026-11-19'da 4 kredi kalmıştı). Gereken ≈ 2.500–3.000 kredi. Ücretsiz plandaki ses ticari
 kullanılamaz; kullanıcıya hatırlat.
 
-1. Sesi yeniden üret:
+0. Sağlayıcı seçimi: ElevenLabs (kredi) ya da Azure Speech (SSML; `.env`'e `AZURE_SPEECH_KEY`,
+   `AZURE_SPEECH_REGION` — hesabı kullanıcı açar, ücretsiz kotayı birlikte kontrol ederiz). Önce geçici sesle
+   (`--provider say`) zamanlama ve altyazı denenebilir; render yalnız `--draft`.
+1. Önce tahmin, kullanıcıya söyle, sonra üret (bütçe aşılırsa betik durur; kullanıcıya sor):
    ```bash
+   npm run voiceover -- build ekg Xb7hH8MSUJpSbSDYk0k2 --widen --estimate
    npm run voiceover -- build ekg Xb7hH8MSUJpSbSDYk0k2 --widen
    npm run voiceover -- build gps-pilot Xb7hH8MSUJpSbSDYk0k2 --widen
    ```
@@ -143,7 +147,8 @@ kullanılamaz; kullanıcıya hatırlat.
   olabiliyor (`.ts` hatası verir); `nvm use 22` ya da
   `PATH=/Volumes/KINGSTON/DevTools/NodeJS/nvm/versions/node/v22.23.1/bin:$PATH`.
 - **EKG'nin eski sesi:** `out/ekg/v3.1-backup/`. Metin değiştiği için kullanılamaz.
-- **whisper.cpp kurulumu bozuk** (eski bir yola bağlı). `align` için `out/whisper/whisper.cpp` silinip yeniden kurulmalı.
+- **whisper.cpp** 2026-11-24'te statik olarak yeniden derlendi (eski yola bağlıydı); `align` proje taşınırsa kendini yeniden
+  derler. İnsan kaydı yolu (`npm run align`) çalışıyor (geçici sesle denendi, 8/8 kelime eşleşti).
 - **Spec'leri betikle düzenlerken JSON metnine regex uygulama.** Bir kez cümle sonlarını ve "1,5" gibi değerleri
   bozdu; JSON'u her zaman değerlerden yeniden üret.
 - **Kullanıcı bir videoda sorun bildirirse önce sistemi düzelt** (kural ya da qa kontrolü), sonra videoyu

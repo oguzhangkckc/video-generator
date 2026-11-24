@@ -1,18 +1,26 @@
-// node scripts/render.mjs <slug> → out/<slug>.mp4 at −14 LUFS with a ≈ −1.5 dBTP ceiling.
+// node scripts/render.mjs <slug> [--draft] → out/<slug>.mp4 at −14 LUFS with a ≈ −1.5 dBTP ceiling.
+// A placeholder voice (macOS say, timing.json source "placeholder:…") is for timing tests only: such a video renders
+// only with --draft, to out/<slug>.draft.mp4.
 // Remotion renders lossless audio into an intermediate MKV; the mix is gained to target, peak-limited at 4× rate
 // (≈ true peak) and encoded to AAC once. The video stream is copied untouched.
 import { execFileSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
-import { ROOT, duration, ffmpeg, loudness, outDir, requireSlug } from "./lib/video.mjs";
+import { ROOT, duration, ffmpeg, loadTiming, loudness, outDir, requireSlug } from "./lib/video.mjs";
 
 const TARGET_LUFS = -14;
 const LIMIT = 0.79; // −2 dBFS at 192 kHz; AAC adds a few tenths on top.
 
 const slug = requireSlug(process.argv[2]);
+const draft = process.argv.includes("--draft");
+const placeholder = loadTiming(slug)?.source.startsWith("placeholder");
+if (placeholder && !draft) {
+  console.error(`${slug}: the voice-over is the placeholder (${loadTiming(slug).source}) — make the real one, or render a test with --draft`);
+  process.exit(1);
+}
 mkdirSync(outDir(slug), { recursive: true });
 const raw = path.join(outDir(slug), "render-raw.mkv");
-const output = path.join(ROOT, "out", `${slug}.mp4`);
+const output = path.join(ROOT, "out", `${slug}${draft ? ".draft" : ""}.mp4`);
 
 execFileSync("npx", ["remotion", "render", slug, raw, "--codec=h264-mkv"], { cwd: ROOT, stdio: "inherit" });
 

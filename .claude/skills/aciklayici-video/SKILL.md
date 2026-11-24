@@ -185,15 +185,20 @@ Seslendirme dosyası verildiğinde:
 7. Kullanıcıya bildir: dosya yolu, süre, loudness, **qa sonuç tablosu**, kontrol listesinin son durumu, kredilerin
    özeti.
 
-Seslendirme dosyası yoksa ve kullanıcı taslak ses isterse: `npm run voiceover -- build <slug> <voiceId>`. Bu
-ElevenLabs kredisi harcar ve ücretsiz planda çıkan ses ticari kullanılamaz; ikisini de önceden söyle. Kredi tahmini:
-metnin karakter sayısı + işaretlenecek cümleler için 3 × cümle uzunluğu.
+Seslendirme dosyası yoksa: önce ücretsiz geçici sesle zamanlamayı ve altyazıyı dene
+(`npm run voiceover -- build <slug> --provider say`; render yalnız `--draft`, tonlama ölçülmez). Gerçek ses için
+sağlayıcı `voiceover.tts.provider` (elevenlabs ya da azure). **Kredi harcamadan önce** `--estimate` ile tahmini al ve
+kullanıcıya söyle (üretilecek okuma, karakter, hesapta kalan); ElevenLabs ücretsiz planında çıkan ses ticari
+kullanılamaz, bunu da söyle.
 
-- Her bölüm tek istekte üretilir (cümle sonları doğal tonlansın diye); duraklamalar yalnızca mevcut sessizliklerin
-  ortasından açılır. Hızlandırma en fazla ×1,05; istekler `out/<slug>/vo-takes/` altında önbellekte, tekrar
-  çalıştırmak kredi harcamaz. Ses kimliği spec'e (`voiceover.tts`) yazılır.
+- **Bütçe aşılacaksa betik durur (çıkış 3, "bütçe aşılıyor").** O zaman kullanıcıya sor; onay gelmeden
+  `--over-budget` ile yeniden çalıştırma. Bütçe `voiceover.tts.budget`, harcanan `out/<slug>/tts-ledger.json`.
+- Her cümle ayrı üretilir (komşu cümleler bağlam); önbellek cümle başına ve bağlamdan bağımsız (`out/tts-cache/`):
+  bir cümleyi değiştirmek yalnız o cümleyi yeniden ücretlendirir. Cümle aralarına STYLE duraklamaları konur; cümle
+  içi duraklamalar mevcut sessizliklerden açılır (azure'da `<break>` ile gelir). Hızlandırma en fazla ×1,05. Ses
+  kimliği spec'e (`voiceover.tts`) yazılır.
 - Bir bölüm sığmazsa script durup tablo basar: `--widen` ile pencereleri genişlet ya da metni kısaltmayı öner.
-- Tonlaması işaretlenen her cümle için 3 alternatif üretilir ve en iyisi otomatik seçilir. Kullanıcıya
+- Tonlaması işaretlenen her cümle için `voiceover.tts.takes` (varsayılan 3) alternatif üretilir ve en iyisi otomatik seçilir. Kullanıcıya
   `npm run review -- <slug>` komutunu ver: sayfada (`out/<slug>/review.html`) dinler, seçer; seçim spec'e
   (`voiceover.picks`) yazılır, ses önbellekten kredisiz yeniden kurulur ve sonraki üretimlerde korunur.
 - Kredi yoksa, eski bir taslak sesin aralarını `npm run align -- <slug> --timing` açar (Whisper'sız, mevcut kelime

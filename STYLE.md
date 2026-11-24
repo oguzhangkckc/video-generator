@@ -215,6 +215,8 @@ Sıra her zaman aynıdır:
 - Yatak ya da müzik **videonun tamamı boyunca kesintisiz** çalar. Kısa bir yatak `loop: true` ile döner; müzik
   kullanılmıyorsa varsayılan yatak `space`, `loop: true`, 0'dan sona.
 - Konuşma hızı, duraklamalar ve tonlama seslendirme dosyasında ölçülür (`npm run qa`); ölçüler "Anlatım"da.
+- **Geçici ses (macOS `say`, Yelda) yalnız zamanlama ve altyazı denemesidir:** tonlama ve konuşma hızı ona
+  uygulanmaz, final render onunla yapılmaz (`npm run render` durur; deneme için `--draft`).
 - Efekt görsel bir olaya bağlıdır: bir etiket, bir geçiş, bir çarpma. Olaysız efekt yoktur.
 
 ## Dürüstlük

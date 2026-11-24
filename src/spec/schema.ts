@@ -44,11 +44,24 @@ const voiceoverSchema = z
     audio: z.string().optional(),
     /** Who or what speaks; also listed in credits. */
     voice: z.string().optional(),
-    /** The ElevenLabs voice and model of `npm run voiceover -- build`; picks below belong to this voice. */
-    tts: z.object({ voice: z.string(), model: z.string().default("eleven_multilingual_v2") }).strict().optional(),
     /**
-     * Takes chosen on out/<slug>/review.html for sentences whose intonation was flagged: seed 0 is the sentence as
-     * read in its section, 1–3 the alternatives. A pick whose sentence text changed is reported and ignored.
+     * The voice of `npm run voiceover -- build`; picks below belong to it. `say` is the free placeholder (timing and
+     * caption tests only, never a final render). `takes`: alternatives made for a sentence whose intonation is
+     * flagged. `budget`: characters this video may spend in all; past it the build stops and asks.
+     */
+    tts: z
+      .object({
+        provider: z.enum(["elevenlabs", "azure", "say"]).default("elevenlabs"),
+        voice: z.string(),
+        model: z.string().optional(),
+        takes: z.number().int().min(0).max(6).default(3),
+        budget: z.number().int().positive().optional(),
+      })
+      .strict()
+      .optional(),
+    /**
+     * Takes chosen on out/<slug>/review.html for sentences whose intonation was flagged: seed 0 is the main reading,
+     * 1… the alternatives. A pick whose sentence text changed is reported and ignored.
      */
     picks: z.array(z.object({ sentence: z.string(), seed: z.number().int().min(0) }).strict()).default([]),
     sections: z
@@ -58,8 +71,10 @@ const voiceoverSchema = z
             id: z.string(),
             /** Seconds; drafts spread the phrases inside it, scripts/voiceover.mjs fits each section into it. */
             window: z.tuple([z.number().min(0), z.number().positive()]),
-            /** One caption page each. */
+            /** One caption page each (two when a phrase is too long for one line). */
             phrases: z.array(z.string().min(1)).min(1),
+            /** Words (or short phrases) read with stress; only an SSML voice (azure) can do it. */
+            stress: z.array(z.string().min(1)).default([]),
           })
           .strict(),
       )
