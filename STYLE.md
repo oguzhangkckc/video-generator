@@ -139,7 +139,8 @@ Sıra her zaman aynıdır:
 - **Altyazı** yüksekliğin **%77'sinde**, tek satır karaoke: söylenen kelime beyaz, sıradakiler gri.
 - **Sahne her zaman tüm kareyi kullanır;** sabit bir bant ya da pencere yoktur. Koyu zeminli etiket panelleri
   (`layout.labelBackdrop`), veri şeritleri (`trace` + `panel`) ve altyazı sahnenin üstüne bindirilir.
-- Veri satırları üst yarıda (`top` ≈ 380–850). **Önemli öğe panele girmez:** her sahne o anki önemli öğelerini
+- Veri satırları üst yarıda (`top` ≈ 380–850). Ekranda kanca başlığı yokken ve sahnenin önemli öğeleri bu bandı
+  kullanıyorsa (büyük bir diyagram), satırlar sayacın soluna, `top` ≈ 150–330'a çıkabilir. **Önemli öğe panele girmez:** her sahne o anki önemli öğelerini
   bildirir (yanan düğüm, ilerleyen sinyal, vurgulanan bölge, kalem, adı söylenen öğe) ve kamera onları panel, şerit
   ve altyazı bölgelerinin dışında tutar (`src/kit/framing.ts`; panel belirmeden 0,6 sn önce yumuşakça yer açar).
   Noktasal öğe üst yazıya hiç değmez, alan öğesinin en fazla %25'i örtülebilir; panelin arkasında kalan arka plan

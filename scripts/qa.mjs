@@ -1,5 +1,6 @@
 // Automatic quality checks (STYLE.md). Layout runs in the browser bundle before any render; audio checks the render.
-//   node scripts/qa.mjs <slug> [--layout] [--audio] [--every 0.25]
+//   node scripts/qa.mjs <slug> [--layout] [--audio] [--every 0.25] [--from s] [--to s]
+//   --from/--to: layout only over that stretch (for iterating on a section); the full run decides.
 //   No flag: layout, plus audio when out/<slug>.mp4 exists. Writes out/<slug>/qa.json and exits 1 on any error.
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -27,7 +28,8 @@ const GROUND = { tolerance: 12, minShade: 0.1 };
 /** Longer than this with no change on screen is a freeze (ffmpeg freezedetect noise in dB). */
 const FREEZE = { seconds: 0.3, noiseDb: -60 };
 
-const { positional, flags } = parseArgs(process.argv.slice(2), { layout: "boolean", audio: "boolean", every: "number" });
+const { positional, flags } = parseArgs(process.argv.slice(2), { layout: "boolean", audio: "boolean", every: "number", from: "number", to: "number" });
+const inRange = (t) => t >= (flags.from ?? 0) && t <= (flags.to ?? Infinity);
 const slug = requireSlug(positional[0]);
 const { json: rawSpec } = loadSpec(slug);
 const mp4 = path.join(ROOT, "out", `${slug}.mp4`);
@@ -127,9 +129,10 @@ const layout = async () => {
   const tmp = mkdtempSync(path.join(os.tmpdir(), `qa-${slug}-`));
   const first = await probe(0, { probe: true }, path.join(tmp, "probe.png"));
   const last = first.durationInFrames - 1;
-  const frames = [];
+  let frames = [];
   for (let f = 0; f <= last; f += Math.max(1, Math.round(every * FPS))) frames.push(f);
   if (frames.at(-1) !== last) frames.push(last);
+  frames = frames.filter((f) => inRange(f / FPS));
 
   const overlaps = spans();
   const unsafe = spans();
@@ -167,8 +170,8 @@ const layout = async () => {
     samples,
     step: frames.length > 1 ? (frames[1] - frames[0]) / FPS : every,
     labelAlign,
-    phrases: first.spec?.phrases ?? [],
-    transitions: first.spec?.transitions ?? [],
+    phrases: (first.spec?.phrases ?? []).filter((p) => inRange(p.start) && inRange(p.end)),
+    transitions: (first.spec?.transitions ?? []).filter((tr) => inRange(tr.at)),
   });
   for (const f of first.spec?.findings ?? []) errors.push(f.replace(/^transitions: /, "geçiş: ").replace(/^camera: /, "kamera: "));
   errors.push(...found.errors);
@@ -268,7 +271,8 @@ const laid = runLayout ? await layout() : null;
 const shown = laid ? laid.spec : (await probe(0, { probe: true }, path.join(os.tmpdir(), `qa-${slug}.png`))).spec;
 quantities(shown);
 const audioResult = runAudio ? await audio(shown?.sound) : null;
-const frozen = existsSync(mp4) ? freezes() : null;
+const ranged = flags.from != null || flags.to != null;
+const frozen = existsSync(mp4) && !ranged ? freezes() : null;
 if (browserState) await browserState.instance.close({ silent: true });
 
 const report = { slug, checked: { layout: runLayout, audio: runAudio }, errors, warnings, audio: audioResult };
@@ -305,7 +309,7 @@ const rows = [
   ["Dijital sessizlik", runAudio ? (errors.some((e) => e.startsWith("sessizlik")) ? "HATA" : "temiz") : "—"],
   ["Yatak sürekliliği", runAudio ? (errors.some((e) => e.startsWith("yatak")) ? "HATA" : warnings.some((w) => w.startsWith("yatak")) ? "uyarı" : "temiz") : "—"],
 ];
-console.log(`\nQA ${slug}`);
+console.log(`\nQA ${slug}${flags.from != null || flags.to != null ? ` (yalnız ${flags.from ?? 0}–${flags.to ?? "son"} sn)` : ""}`);
 for (const [name, result] of rows) console.log(`  ${name.padEnd(36)} ${result}`);
 if (laid?.stats) {
   const { subjectMin, emptyMax } = laid.stats;

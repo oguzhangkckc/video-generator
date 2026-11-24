@@ -12,7 +12,8 @@ Son güncelleme: 2026-11-24. Branch: `feat/genel-sahne-turleri` (push yok, PR yo
 | `269d65f` | Görsel altyapı: sahne raporları (`QA_LAYER`), kompozisyon qa'sı, kadraj çözücüsü (kapalı); gps-pilot birebir aynı kaldı |
 | `a327b2a` | Görsel sistem v2. Ayrıntı: aşağıda "Görsel sistem v2". |
 | `2918510` | Boş alan ölçümü (karar 1a): yalnız zemin boş sayılır. Ayrıntı: aşağıda. |
-| `feat(gps-pilot)` | gps-pilot qa'dan temiz geçti, regresyon referansı yenilendi; önemli öğe kare dışı kontrolü. Ayrıntı: aşağıda "gps-pilot düzeltmeleri". |
+| `69e0f9d` | gps-pilot qa'dan temiz geçti, regresyon referansı yenilendi; önemli öğe kare dışı kontrolü. Ayrıntı: aşağıda "gps-pilot düzeltmeleri". |
+| `feat(ekg)` | EKG qa'dan temiz geçti; etiketler kalp bölümlerinde yukarıda. Ayrıntı: aşağıda "EKG düzeltmeleri". |
 
 **Seslendirme v2 (`27cdfa3`):**
 - bölüm bölüm üretim, duraklamalar sessizlikten açılır;
@@ -49,6 +50,20 @@ Yeni sahne türleri zemini `useGround()` ile çizmeli (README, SKILL.md).
 - Regresyon referansı kullanıcı onayıyla yenilendi (2026-11-24): `out/baseline/frames` (90 kare) ve
   `out/baseline/gps-pilot.mp4`. Eski referans `out/baseline-2026-11-18/`.
 
+**EKG düzeltmeleri (2026-11-24):** render + tam qa 0 hata (önce 10), 2 uyarı (kalp kenarda kırpılıyor; ses yok).
+Önce/sonra: `out/ekg-once-sonra.png` (9 / 18,9 / 22 / 26 / 34 / 45 / 54 sn).
+- Kullanıcı onayıyla: kalp bölümlerinde (18,9–49,4 sn) veri etiketleri `top` 150 / 220 / 290 (sayacın solu);
+  STYLE'a istisna eklendi. Sebep: etiket paneli 382–616'da kalınca SA, AV ve sol duvar sinyali panelden kaçsın diye
+  kalp en fazla ~1,2× olabiliyordu, kare %50–60 boş kalıyordu.
+- Kamera: geçişte gövde kamerası monitör kaybolana kadar `e2`'de bekler (6,06 sn kayması kameranın erken
+  kalkmasıydı, dalga değil); gövde 0,66 / 0,72; dalışta deri 0,4 sn geç kaybolur; SA 2,0–2,05× (SA y≈470), kulakçık
+  2,0×, AV 1,85–1,9× (AV y≈410, karıncıkların şerit altında kalanı %25'ten az), QRS ve final 1,6–1,72× (karıncıklar
+  şeridin üstünde, finalde yavaş yaklaşma → donma yok).
+- Ders: önemli bir alan (kulakçık) kareden %20'den fazla taşarsa kadraj çözücüsü uzaklaşır ve kare boşalır;
+  yaklaşmayı bölgenin genişliğine göre sınırla (kalp için ≈ 2,05×).
+- Araçlar: `npm run stills -- <slug> … --ground` (qa'nın boş alanı nasıl gördüğü), `npm run qa -- <slug> --layout
+  --from s --to s` (bölüm üzerinde hızlı deneme).
+
 ## Bekleyen kararlar (kullanıcıya sor)
 
 Şu an bekleyen karar yok.
@@ -62,10 +77,7 @@ Kaynak: `npm run qa -- <slug> --layout` (2026-11-24, kare dışı kontrolü dahi
 | Video | Hata | Ne kaldı | Yapılacak |
 |---|---|---|---|
 | gps-pilot | 0 | duraklama ve tonlama uyarıları | eski sesten geliyor; seslendirme Aşama B'de çözülür |
-| EKG | 10 | 6,06 sn el değiştirme: kalem ile `e2` 64 px kayık. `focus: "pen"` taban çizgisini gösteriyor, kalem ucu dalganın değerinde | el değiştirmeyi dalganın düz anına al |
-| EKG | | kulakçık 21,3–22,1 sn %36, karıncık 33,9–34,9 sn %32 panel altında; `av` 34,9 sn panel altında; `signal8` 40,8 sn şerit altında | kamera çekimleri ya da çözücü ayarı |
-| EKG | | boş alan: 7,5–11,7 sn %59, 17,6–28,8 sn %75 (kalp karenin ~%22'si), 34,1–35,2 sn %42, 39,5–59,2 sn %62 (kalp + şerit; alt üçte bir ve sol üst boş). Gövdenin içi (5,9–7,4 sn) artık boş sayılmıyor | kalbi büyüt / kamerayı yaklaştır; şeritli bölümde boşluğu doldur |
-| EKG | | 57,7–58,2 sn donma (final) | final çekimine hareket ya da `drift` |
+| EKG | 0 | konuşma uyarısı: ses yok (timing.json yok) | seslendirme Aşama B |
 | demo-flow | 2 | seyrek diyagram: özne %31, kare %90 boş | diyagramı büyüt, bölge ekle |
 | demo-model3d | 2 | kare 0–1,6 sn %47, 5,9–10,5 sn %85 boş | kamera mesafesi, patlatma sonu |
 

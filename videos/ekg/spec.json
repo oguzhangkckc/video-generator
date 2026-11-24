@@ -162,7 +162,7 @@
           ],
           "fill": "skin",
           "edge": "faint",
-          "visible": { "out": ["@dive.start+0.4", "@dive.start+1.4"] },
+          "visible": { "out": ["@dive.start+0.8", "@dive.start+1.8"] },
           "say": ["göğüs", "göğs"]
         },
         {
@@ -467,24 +467,27 @@
       ],
       "camera": [
         { "at": "@toBody.end-0.3", "focus": "e2", "zoom": 4, "subject": ["skin"] },
-        { "at": "@toBody.end", "focus": "e2", "zoom": 4, "subject": ["skin"] },
+        { "at": "@toBody.end+0.1", "focus": "e2", "zoom": 4, "subject": ["skin"] },
         {
           "at": { "cue": "Göğsündeki", "offset": 0.4 },
           "focus": [200, 140],
-          "zoom": 0.42,
+          "zoom": 0.66,
           "easing": "outCubic",
           "subject": ["skin"]
         },
-        { "at": { "cue": "Cihazın kendi" }, "focus": [80, 120], "zoom": 0.6, "subject": ["skin"] },
-        { "at": "@dive.start", "focus": [40, 80], "zoom": 0.7, "subject": ["heart"] },
-        { "at": "@dive.end", "focus": [10, 20], "zoom": 1.1, "easing": "inOutCubic" },
-        { "at": { "cue": "Bir hücre" }, "focus": "sa", "zoom": 2.2 },
-        { "at": "@fire+0.5", "focus": "sa", "zoom": 2.35, "easing": "outQuad" },
-        { "at": { "cue": "Dalga kulakçıklara" }, "focus": [-60, -160], "zoom": 1.2 },
-        { "at": { "cue": "Dalga tek" }, "focus": "av", "zoom": 2 },
-        { "at": { "cue": "Peki ya o büyük" }, "focus": "av", "zoom": 2.3 },
-        { "at": { "cue": "karıncıklar birden" }, "focus": [20, 150], "zoom": 1.1, "easing": "inOutCubic" },
-        { "at": "@summary", "focus": [10, 30], "zoom": 1.1 }
+        { "at": { "cue": "Cihazın kendi" }, "focus": [80, 120], "zoom": 0.72, "subject": ["skin"] },
+        { "at": "@dive.start", "focus": [40, 80], "zoom": 0.75, "subject": ["heart"] },
+        { "at": "@dive.end", "focus": [-8, -62], "zoom": 2, "easing": "inOutCubic" },
+        { "at": { "cue": "Bir hücre" }, "focus": [-8, -62], "zoom": 2 },
+        { "at": "@fire+0.5", "focus": [-12, -66], "zoom": 2.05, "easing": "outQuad" },
+        { "at": { "cue": "Dalga kulakçıklara" }, "focus": [15, -45], "zoom": 2 },
+        { "at": { "cue": "Peki ardından" }, "focus": [15, -45], "zoom": 2.05 },
+        { "at": { "cue": "Dalga tek" }, "focus": [-40, 179], "zoom": 1.85, "easing": "inOutCubic" },
+        { "at": { "cue": "Peki ya o büyük" }, "focus": [-40, 170], "zoom": 1.9 },
+        { "at": { "cue": "Kapı açılıyor" }, "focus": [15, 268], "zoom": 1.6, "easing": "inOutCubic" },
+        { "at": "@summary", "focus": [15, 255], "zoom": 1.62 },
+        { "at": "@reveal", "focus": [15, 245], "zoom": 1.66 },
+        { "at": "@end", "focus": [15, 240], "zoom": 1.72 }
       ],
       "drift": { "degPerSec": 0.15, "px": 8, "periodSec": 8 }
     },
@@ -581,7 +584,7 @@
       "text": "◀ SENİN SAĞIN",
       "at": { "cue": "Kalbinin sağ", "offset": 0.3 },
       "until": { "cue": "Peki ardından", "offset": -0.15 },
-      "top": 400,
+      "top": 150,
       "size": 44,
       "color": "secondary",
       "sound": "tick"
@@ -590,7 +593,7 @@
       "text": "SA DÜĞÜMÜ",
       "at": { "cue": "Bir hücre", "offset": 0.2 },
       "until": { "cue": "Peki ardından", "offset": -0.15 },
-      "top": 470,
+      "top": 220,
       "size": 48,
       "bar": true,
       "sound": "tick"
@@ -599,7 +602,7 @@
       "text": "DAKİKADA 60–100",
       "at": { "cue": "dakikada", "offset": 0.1 },
       "until": { "cue": "Peki ardından", "offset": -0.15 },
-      "top": 540,
+      "top": 290,
       "size": 48,
       "bar": true,
       "sound": "tick"
@@ -608,7 +611,7 @@
       "text": "AV DÜĞÜMÜ",
       "at": { "cue": "Dalga tek", "offset": 0.4 },
       "until": { "cue": "Peki ya o büyük", "offset": -0.15 },
-      "top": 400,
+      "top": 150,
       "size": 48,
       "bar": true,
       "sound": "lock"
@@ -617,7 +620,7 @@
       "text": "≈ 0,1 SN BEKLEME",
       "at": { "cue": "saniyenin onda", "offset": 0.2 },
       "until": { "cue": "Peki ya o büyük", "offset": -0.15 },
-      "top": 470,
+      "top": 220,
       "size": 48,
       "bar": true,
       "sound": "tick"
@@ -626,7 +629,7 @@
       "text": "KARINCIKLAR DOLUYOR",
       "at": { "cue": "Kan aşağı", "offset": 0.1 },
       "until": { "cue": "Peki ya o büyük", "offset": -0.15 },
-      "top": 540,
+      "top": 290,
       "size": 40,
       "color": "secondary",
       "typeSpeed": 24,
@@ -637,7 +640,7 @@
       "text": "HIS → PURKİNJE",
       "at": { "cue": "Kapı açılıyor", "offset": 0.2 },
       "until": "@summary-0.15",
-      "top": 400,
+      "top": 150,
       "size": 48,
       "bar": true,
       "sound": "tick"
@@ -646,7 +649,7 @@
       "text": "KARINCIKLAR",
       "at": { "cue": "karıncıklar birden", "offset": 0.2 },
       "until": "@summary-0.15",
-      "top": 470,
+      "top": 220,
       "size": 48,
       "bar": true,
       "sound": "tick"
@@ -655,7 +658,7 @@
       "text": "KASILMA SONRA GELİR",
       "at": { "cue": "Kas bir an", "offset": 0.2 },
       "until": "@summary-0.15",
-      "top": 540,
+      "top": 290,
       "size": 40,
       "color": "secondary",
       "bar": true,

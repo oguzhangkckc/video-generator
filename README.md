@@ -41,7 +41,7 @@ de kareler incelenebilir.
 | `npm run studio` | Remotion Studio |
 | `npm run check` | `tsc` + her `spec.json`'un doğrulanması ve çözülmesi (hatalar alan yoluyla) |
 | `npm run new -- <slug> "<başlık>"` | `videos/sablon`'dan yeni tarif |
-| `npm run stills -- <slug> <kare\|12.5s>… [--every N] [--out dir] [--sheet]` | still kareler (+ kare sayfası) |
+| `npm run stills -- <slug> <kare\|12.5s>… [--every N] [--out dir] [--sheet] [--ground]` | still kareler (+ kare sayfası); `--ground`: zemin anahtar renkte, qa'nın boş alan ölçümünün gördüğü gibi |
 | `npm run align -- <slug> <ses> [--dry]` | whisper.cpp (yerel) ile kelime zamanları → `timing.json`, `vo.wav` |
 | `npm run align -- <slug> --timing [--dry]` | Whisper'sız: mevcut `timing.json`'un kelime zamanlarıyla `vo.wav`'daki kısa cümle aralarına sessizlik ekler |
 | `npm run voiceover -- build <slug> [voiceId] [--widen] [--offline]` | ElevenLabs taslak seslendirme: bölüm başına tek istek, duraklamalar sessizliklerden açılır, tonlaması işaretli cümleye 3 alternatif → `timing.json`, `vo.wav`, `out/<slug>/review.html`; sığmazsa tablo basar, `--widen` pencereleri genişletir |
@@ -52,7 +52,7 @@ de kareler incelenebilir.
 | `npm run sfx [id…]` | ElevenLabs efektlerini katalogdan üretir → `public/kit/sfx/` |
 | `npm run music -- list` | lisanslı müzik kütüphanesini listeler ve doğrular |
 | `npm run compare -- <dirA> <dirB>` | kare kare SSIM (ya da iki ses dosyasında null test); regresyon kontrolü |
-| `npm run qa -- <slug> [--layout] [--audio] [--every 0.25]` | otomatik kalite kontrolü (aşağıda); `out/<slug>/qa.json`, hata varsa çıkış kodu 1 |
+| `npm run qa -- <slug> [--layout] [--audio] [--every 0.25] [--from s] [--to s]` | otomatik kalite kontrolü (aşağıda); `out/<slug>/qa.json`, hata varsa çıkış kodu 1. `--from`/`--to`: bir bölüm üzerinde çalışırken yalnız o aralığın yerleşimi; son karar tam çalıştırmada |
 | `npm run models -- list` | 3D model kütüphanesini doğrular (lisans kaydı) ve parça adlarını listeler |
 | `npm run models -- pack <file.gltf> <id> [--max 1024] [--jpeg]` | glTF'i dokuları küçültülmüş tek GLB'ye paketler → `public/kit/models/<id>.glb` |
 | `npm run sfx -- --index` | efekt süre dizinini (`src/kit/audio/sfx-durations.json`) API'siz yeniden yazar |
