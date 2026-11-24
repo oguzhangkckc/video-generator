@@ -19,7 +19,7 @@
           "Kalbinin elektriği cildine ulaşıyor:",
           "gerilimi, kalem pilin binde birinden az.",
           "Cihazın kendi akımı ise",
-          "hissedemeyeceğin kadar küçük."
+          "o kadar küçük ki hissedemezsin."
         ]
       },
       {
@@ -30,7 +30,7 @@
           "Kalbinin sağ üst köşesinden.",
           "Bir hücre kümesi ateşleniyor:",
           "dakikada altmış ila yüz kez.",
-          "Dalga kulakçıklara yayılırken",
+          "Dalga kulakçıklar boyunca yayılırken",
           "ilk küçük tepe çiziliyor: P dalgası."
         ]
       },
@@ -123,8 +123,8 @@
         "qrs": { "range": ["#hisDone", "#ventDone"] },
         "t": { "range": ["#tStart", "#tEnd"] }
       },
-      "grid": { "pxPerX": 1.15, "pxPerY": 460, "minorX": 40, "minorY": 0.1, "legend": "25 mm/sn · 10 mm/mV" },
-      "baselineY": 1250,
+      "grid": { "pxPerX": 0.45, "pxPerY": 480, "minorX": 40, "minorY": 0.1, "legend": "25 mm/sn · 10 mm/mV" },
+      "baselineY": 1130,
       "anchorY": 870,
       "camera": [
         { "at": 0, "focus": "frame", "zoom": 1, "kind": "wide" },
@@ -141,24 +141,44 @@
       "anchorY": 870,
       "regions": [
         {
+          "id": "head",
+          "points": [
+            [70, -1230],
+            [34, -1102],
+            [-61, -1022],
+            [-179, -1022],
+            [-274, -1102],
+            [-310, -1230],
+            [-274, -1358],
+            [-179, -1438],
+            [-61, -1438],
+            [34, -1358]
+          ],
+          "fill": "skin",
+          "edge": "faint",
+          "visible": { "out": ["@dive.start+0.8", "@dive.start+1.8"] }
+        },
+        {
           "id": "skin",
           "points": [
-            [-300, -700],
-            [-700, -660],
-            [-900, -560],
-            [-990, -380],
-            [-1000, -100],
-            [-980, 300],
-            [-960, 900],
-            [-950, 1700],
-            [710, 1700],
-            [720, 900],
-            [740, 300],
-            [760, -100],
-            [750, -380],
-            [660, -560],
-            [460, -660],
-            [60, -700]
+            [-250, -1000],
+            [-260, -800],
+            [-560, -720],
+            [-860, -600],
+            [-960, -420],
+            [-990, -100],
+            [-970, 300],
+            [-950, 900],
+            [-940, 1700],
+            [700, 1700],
+            [710, 900],
+            [730, 300],
+            [750, -100],
+            [720, -420],
+            [620, -600],
+            [320, -720],
+            [20, -800],
+            [10, -1000]
           ],
           "fill": "skin",
           "edge": "faint",
@@ -478,24 +498,42 @@
         { "at": "@toBody.end+0.1", "focus": "e2", "zoom": 4, "subject": ["skin"] },
         {
           "at": { "cue": "Göğsündeki", "offset": 0.4 },
-          "focus": [200, 140],
-          "zoom": 0.66,
+          "focus": [-120, 0],
+          "zoom": 0.53,
           "easing": "outCubic",
-          "subject": ["skin"]
+          "subject": ["skin", "head"]
         },
+        { "at": { "cue": "Kalbinin elektriği" }, "focus": [-120, 0], "zoom": 0.55, "subject": ["skin", "head"] },
         { "at": { "cue": "Cihazın kendi" }, "focus": [80, 120], "zoom": 0.72, "subject": ["skin"] },
         { "at": "@dive.start", "focus": [40, 80], "zoom": 0.75, "subject": ["heart"] },
         { "at": "@dive.end", "focus": [-8, -62], "zoom": 2, "easing": "inOutCubic" },
         { "at": { "cue": "Bir hücre" }, "focus": [-8, -62], "zoom": 2 },
         { "at": "@fire+0.5", "focus": [-12, -66], "zoom": 2.05, "easing": "outQuad" },
-        { "at": { "cue": "Dalga kulakçıklara" }, "focus": [15, -62], "zoom": 2 },
-        { "at": { "cue": "Peki ardından" }, "focus": [15, -62], "zoom": 2.05 },
+        { "at": { "cue": "Dalga kulakçıklar" }, "focus": [15, -62], "zoom": 2 },
+        { "at": { "cue": "Peki ardından", "offset": -0.3 }, "focus": [15, -62], "zoom": 2.03 },
+        {
+          "at": { "cue": "Peki ardından", "offset": 0.6 },
+          "focus": [45, 205],
+          "zoom": 1.65,
+          "easing": "inOutCubic",
+          "subject": ["heart"]
+        },
+        { "at": { "cue": "Dalga tek", "offset": -0.8 }, "focus": [45, 205], "zoom": 1.66, "subject": ["heart"] },
         { "at": { "cue": "Dalga tek" }, "focus": [-40, 179], "zoom": 1.85, "easing": "inOutCubic" },
-        { "at": { "cue": "Peki ya o büyük" }, "focus": [-40, 170], "zoom": 1.9 },
+        { "at": { "cue": "Peki ya o büyük", "offset": -0.3 }, "focus": [-40, 170], "zoom": 1.9 },
+        {
+          "at": { "cue": "Peki ya o büyük", "offset": 0.6 },
+          "focus": [45, 205],
+          "zoom": 1.65,
+          "easing": "inOutCubic",
+          "subject": ["heart"]
+        },
+        { "at": { "cue": "Kapı açılıyor", "offset": -0.6 }, "focus": [45, 205], "zoom": 1.66, "subject": ["heart"] },
         { "at": { "cue": "Kapı açılıyor" }, "focus": [15, 268], "zoom": 1.6, "easing": "inOutCubic" },
-        { "at": "@summary", "focus": [15, 255], "zoom": 1.62 },
-        { "at": "@reveal", "focus": [15, 245], "zoom": 1.66 },
-        { "at": "@end", "focus": [15, 240], "zoom": 1.72 }
+        { "at": "@summary", "focus": [45, 205], "zoom": 1.65, "easing": "inOutCubic", "subject": ["heart"] },
+        { "at": "@summary+1.5", "focus": [45, 205], "zoom": 1.66, "subject": ["heart"] },
+        { "at": "@reveal", "focus": [45, 222], "zoom": 1.68 },
+        { "at": "@end", "focus": [45, 232], "zoom": 1.72 }
       ],
       "drift": { "degPerSec": 0.15, "px": 8, "periodSec": 8 }
     },
@@ -537,18 +575,20 @@
     }
   ],
   "titles": [
-    { "top": "BU ÇİZGİYİ", "bottom": "MUTLAKA GÖRMÜŞSÜNDÜR", "from": 0, "to": { "cue": "Ama okumayı" } },
+    { "top": "BU ÇİZGİYİ", "bottom": "MUTLAKA GÖRMÜŞSÜNDÜR", "from": 0, "to": { "cue": "Ama okumayı" }, "y": 300 },
     {
       "top": "AMA OKUMAYI",
       "bottom": "KİMSE ÖĞRETMEDİ",
       "from": { "cue": "Ama okumayı" },
-      "to": { "cue": "Bu çizgi ne anlatıyor" }
+      "to": { "cue": "Bu çizgi ne anlatıyor" },
+      "y": 300
     },
     {
       "top": "BU ÇİZGİ",
       "bottom": "NE ANLATIYOR?",
       "from": { "cue": "Bu çizgi ne anlatıyor" },
-      "to": { "cue": "Peki cihaz", "offset": -0.1 }
+      "to": { "cue": "Peki cihaz", "offset": -0.1 },
+      "y": 300
     }
   ],
   "labels": [
@@ -581,7 +621,7 @@
     },
     {
       "text": "HİSSETME EŞİĞİ ≈ 1 mA",
-      "at": { "cue": "hissedemeyeceğin", "offset": 0.1 },
+      "at": { "cue": "o kadar küçük", "offset": 0.1 },
       "until": "@dive.start",
       "top": 610,
       "size": 48,
