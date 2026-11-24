@@ -354,6 +354,7 @@ const report = (layer: Globe, rig: GlobeRig, t: number, name: string): SceneRepo
   return {
     layer: name,
     type: "globe",
+    t,
     opacity: 1,
     shot: { kind: SHOT_KIND[shot.type] },
     subject: pointBox([center.x, center.y], radius),

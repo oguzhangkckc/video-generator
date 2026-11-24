@@ -145,6 +145,7 @@ export type SceneLabel = Box & {
 export type SceneReport = {
   layer: string;
   type: string;
+  t: number;
   opacity: number;
   shot: { kind: ShotKind; subject?: string[] };
   /** What the shot is about, in screen px; null when the layer has no subject (a transition). */
@@ -163,22 +164,38 @@ export type Framing = {
   zonesAt: (t: number) => Box[];
   /** The phrase being spoken at t ("" in a pause). */
   spokenAt: (t: number) => string;
+  /** Ids of the layer's elements a data line points to at t (`labels[].pointTo`); they count as important. */
+  pointed: (layer: string, t: number) => ReadonlySet<string>;
   /**
-   * qa only: a scene reports what it drew each time it renders (a 3D scene renders again once its model loads);
-   * scripts/qa.mjs keeps the last report per layer.
+   * A scene reports what it drew each time it renders (a 3D scene renders again once its model loads), for qa
+   * (scripts/qa.mjs keeps the last report per layer) and for the leaders of data lines; null when neither needs it.
    */
   report: ((r: SceneReport) => void) | null;
+  /** The last report per layer, read by overlays rendered after the scenes in the same frame. */
+  board: Map<string, SceneReport>;
 };
 
-export const FramingContext = createContext<Framing>({ enabled: false, zonesAt: () => [], spokenAt: () => "", report: null });
+const NONE: ReadonlySet<string> = new Set();
+export const FramingContext = createContext<Framing>({
+  enabled: false,
+  zonesAt: () => [],
+  spokenAt: () => "",
+  pointed: () => NONE,
+  report: null,
+  board: new Map(),
+});
 export const logReport = (r: SceneReport) => console.log(`QA_LAYER ${JSON.stringify(r)}`);
 export const useFraming = () => useContext(FramingContext);
+
+/** Pointed-to elements made important, as the camera treats them (adjustFor). */
+export const markPointed = (r: SceneReport, ids: ReadonlySet<string>): SceneReport =>
+  ids.size ? { ...r, elements: r.elements.map((e) => (ids.has(e.id) && !e.hidden ? { ...e, important: true } : e)) } : r;
 
 /** Solved moves on the grid, per video (a new Framing comes with every spec change) and per scene. */
 const solved = new WeakMap<Framing, Map<string, Map<number, Adjust>>>();
 
-/** The move for one scene (`key`) at t, from its important boxes at any time (as drawn with no move). */
-export const adjustFor = (framing: Framing, key: string, importantAt: (t: number) => Box[], anchor: Vec, t: number): Adjust => {
+/** The move for one scene (`key`) at t, from its important (or pointed-to) elements at any time, drawn with no move. */
+export const adjustFor = (framing: Framing, key: string, elementsAt: (t: number) => SceneElement[], anchor: Vec, t: number): Adjust => {
   if (!framing.enabled) return IDENTITY;
   const scenes = solved.get(framing) ?? new Map<string, Map<number, Adjust>>();
   solved.set(framing, scenes);
@@ -187,7 +204,9 @@ export const adjustFor = (framing: Framing, key: string, importantAt: (t: number
   return smoothAdjust((u) => {
     const hit = cache.get(u);
     if (hit) return hit;
-    const a = solve(importantAt(u), framing.zonesAt(u), anchor);
+    const pointed = framing.pointed(key, u);
+    const important = elementsAt(u).filter((e) => e.important || (pointed.has(e.id) && !e.hidden));
+    const a = solve(important, framing.zonesAt(u), anchor);
     cache.set(u, a);
     return a;
   }, t);

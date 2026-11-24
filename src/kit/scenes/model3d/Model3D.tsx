@@ -144,7 +144,7 @@ const report = (layer: Model3DLayer, model: Model, t: number, name: string): Sce
     say: [],
   }));
   const kind = distance > 2.5 * model.radius ? "wide" : distance > 1.2 * model.radius ? "medium" : "close";
-  return { layer: name, type: "model3d", opacity: windowAlpha(t, layer.fade), shot: { kind }, subject: pointBox(center, radius), elements, adjust: IDENTITY };
+  return { layer: name, type: "model3d", t, opacity: windowAlpha(t, layer.fade), shot: { kind }, subject: pointBox(center, radius), elements, adjust: IDENTITY };
 };
 
 /** Applies camera, highlights, section and explode for time t; a layout effect so it lands before the frame. */

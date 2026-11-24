@@ -52,7 +52,8 @@
       "size": 52,
       "bar": true,
       "color": "you",
-      "sound": "tick"
+      "sound": "tick",
+      "pointTo": "flow#0.phone"
     },
     {
       "text": "SAĞLAYICI",
@@ -61,7 +62,8 @@
       "top": 560,
       "size": 52,
       "bar": true,
-      "sound": "tick"
+      "sound": "tick",
+      "pointTo": "flow#0.isp"
     },
     {
       "text": "SUNUCU",
@@ -70,7 +72,8 @@
       "top": 650,
       "size": 52,
       "bar": true,
-      "sound": "tick"
+      "sound": "tick",
+      "pointTo": "flow#0.server"
     }
   ],
   "notes": [{ "text": "ŞEMATİK", "at": 0.3, "until": 8, "top": 1330 }],

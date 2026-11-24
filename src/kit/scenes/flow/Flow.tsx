@@ -24,9 +24,8 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
   const opacity = Math.max(...layer.visible.map((w) => windowAlpha(t, w)));
   if (opacity <= 0) return null;
 
-  const importantAt = (u: number) =>
-    flowElements(layer, geo, flowState(layer, geo, curve, u), u, framing.spokenAt(u)).filter((e) => e.important);
-  const adjust = adjustFor(framing, name, importantAt, [CX, layer.anchorY], t);
+  const elementsAt = (u: number) => flowElements(layer, geo, flowState(layer, geo, curve, u), u, framing.spokenAt(u));
+  const adjust = adjustFor(framing, name, elementsAt, [CX, layer.anchorY], t);
   const st = flowState(layer, geo, curve, t, adjust);
   const { place, progressAt, view, anchor, toScreen, lit, signals, arrivals } = st;
   if (framing.report) {
@@ -35,6 +34,7 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
     framing.report({
       layer: name,
       type: "flow",
+      t,
       opacity,
       shot: { kind: shotKind(shot), subject: shot.subject },
       subject: flowSubject(layer, geo, st, t, elements),

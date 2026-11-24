@@ -14,7 +14,8 @@ Son güncelleme: 2026-11-24. Branch: `feat/genel-sahne-turleri` (push yok, PR yo
 | `2918510` | Boş alan ölçümü (karar 1a): yalnız zemin boş sayılır. Ayrıntı: aşağıda. |
 | `69e0f9d` | gps-pilot qa'dan temiz geçti, regresyon referansı yenilendi; önemli öğe kare dışı kontrolü. Ayrıntı: aşağıda "gps-pilot düzeltmeleri". |
 | `9da5c71` | EKG qa'dan temiz geçti; etiketler kalp bölümlerinde yukarıda. Ayrıntı: aşağıda "EKG düzeltmeleri". |
-| (commit'lenmedi) | demo-flow ve demo-model3d qa'dan temiz geçti; model3d `section.close`. Ayrıntı: aşağıda "Demo düzeltmeleri". |
+| `a88b4b4` | demo-flow ve demo-model3d qa'dan temiz geçti; model3d `section.close`. Ayrıntı: aşağıda "Demo düzeltmeleri". |
+| (commit'lenmedi) | Üst yazı etiketlerine `pointTo`: panelden sahne öğesine kılavuz çizgisi. Ayrıntı: aşağıda "pointTo". |
 
 **Seslendirme v2 (`27cdfa3`):**
 - bölüm bölüm üretim, duraklamalar sessizlikten açılır;
@@ -76,6 +77,14 @@ Yeni sahne türleri zemini `useGround()` ile çizmeli (README, SKILL.md).
   patlatma 0,3, son çekim hedefi yukarıda. Sınırda: kesitin en derin anı %45, son kare %41 boş (ikisi de 1 sn'den kısa).
 - `faint` dolgu (%3,5 beyaz) zemin sayılmaya devam ediyor: neredeyse görünmeyen bir ton, pus gibi.
 
+**pointTo (2026-11-24):** `labels[].pointTo: "katman.öğe"` → panel kenarından öğeye kılavuz çizgisi
+(`src/kit/overlays/LabelPointers.tsx`, geometri `pointer.ts`, qa da aynı geometriyi kullanır).
+- Sahneler o karede çizdiklerini `framing.board`'a raporlar (yalnız qa'da ya da spec'te `pointTo` varsa); kılavuz
+  oradan okunur, sahnelerden sonra çizilir. Gösterilen öğe etiket boyunca önemli sayılır (`framing.pointed`).
+- Check: katman ve öğe adı doğrulanır (model3d parçaları dosyadan). qa'da yeni satır "Kılavuz": öğe ekranda değil ya
+  da kılavuz başka yazının üstünden geçiyor hata.
+- demo-flow'un üç etiketi örnek olarak kullanıyor (qa temiz). gps-pilot regresyonu birebir aynı (SSIM 1,0).
+
 ## Bekleyen kararlar (kullanıcıya sor)
 
 Şu an bekleyen karar yok.
@@ -96,7 +105,6 @@ Kaynak: `npm run qa -- <slug> --layout` (2026-11-24, kare dışı kontrolü dahi
 demo-trace temiz.
 
 **Planda olup yapılmayanlar:**
-- Üst yazı etiketlerine `pointTo` (panelden sahne öğesine kılavuz çizgisi).
 - model3d için kadraj kaydırması: rapor var, kaydırma yok.
 - Trace şemasındaki `labelAt` artık kullanılmıyor; temizlenmeli.
 

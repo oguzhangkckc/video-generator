@@ -69,7 +69,7 @@ de kareler incelenebilir.
 | `marks` | adlandırılmış zamanlar ve aralıklar (`"signal": 15`, `"lock": [11, 13]`) |
 | `curves` | parçalı eğriler (doğrusal / log, easing); sayaç, harita zoom'u ve 3D kamera aynı eğriyi kullanır |
 | `layers[]` | sahneler ve geçişler, dizi sırasıyla çizilir (aşağıdaki tablo) |
-| `labels[]`, `notes[]`, `titles[]` | monospace veri satırları (sesiyle), dürüstlük notları, kanca başlıkları |
+| `labels[]`, `notes[]`, `titles[]` | monospace veri satırları (sesiyle; `pointTo: "katman.öğe"` ile panelden sahne öğesine kılavuz çizgisi, öğe adları geçişlerdeki `via` ile aynı), dürüstlük notları, kanca başlıkları |
 | `counter`, `countdown`, `concept`, `darken` | sağ üst sayaç, doruk geri sayımı, kavram kartı, final kararması |
 | `captions` | karaoke altyazı ayarları (varsayılanlar STYLE'a uygun) |
 | `sound` | `beds[]` (konuşmada kısılan ambiyans), `hits[]` (efektler), `music` (lisanslı parça) |
@@ -173,7 +173,7 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
   2 sn'den uzun hata; kare > %40 boş 1 sn'den uzun hata (tam boyutlu karede 40 px hücreler; zemin anahtar renge boyanıp ölçülür,
   dolgulu şekil içeriktir); özne kenarda kırpılıyor
   (yakın plan değilse) uyarı; söylenen öğe cümlenin yarısında ekranda değil hata; veri etiketleri değiyor ya da
-  çizgiyi kesiyor hata; şekil eşleştirme öğeleri aynı yerde değil, içinden geçişte kare dolmuyor, geçişte kare > %60
+  çizgiyi kesiyor hata; `pointTo` öğesi ekranda değil ya da kılavuzu başka bir yazının üstünden geçiyor hata; şekil eşleştirme öğeleri aynı yerde değil, içinden geçişte kare dolmuyor, geçişte kare > %60
   boş hata. Render varsa 0,3 sn'den uzun donma hata. Örnekler: `out/<slug>/qa-samples.json`.
 - **Seslendirme** (`vo.wav` üzerinde, dinleyicinin duyduğu gibi): konuşulan sürede 2,6–3,0 kelime/sn dışındaysa
   uyarı; cümle sonu arası 0,25 sn'den kısaysa uyarı, ortalaması 0,35 sn'nin altındaysa hata; sonda +2 yarım tondan

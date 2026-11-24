@@ -1,5 +1,7 @@
 import { staticFile } from "remotion";
+import { layerName } from "../../../spec/scenes";
 import type { Spec } from "../../../spec/schema";
+import { splitPointer } from "../../overlays/pointer";
 
 const GLB_MAGIC = 0x46546c67;
 
@@ -24,10 +26,12 @@ export const validateModels = async (spec: Spec) => {
     if (layer.type !== "model3d") continue;
     const where = `layers[${i}] (model3d ${layer.file})`;
     const names = new Set(((await gltfJson(layer.file)).nodes ?? []).map((n) => n.name).filter(Boolean));
+    const name = layerName(layer, i);
     const used = [
       ...layer.highlight.map((h) => h.part),
       ...(layer.explode?.parts ?? []),
       ...layer.camera.flatMap((c) => (typeof c.target === "string" ? [c.target] : [])),
+      ...spec.labels.flatMap((l) => (l.pointTo && splitPointer(l.pointTo)[0] === name ? [splitPointer(l.pointTo)[1]] : [])),
     ];
     for (const part of used) {
       if (!names.has(part)) throw new Error(`${where}: no part "${part}" — the file has: ${[...names].join(", ")}`);

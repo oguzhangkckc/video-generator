@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { IDENTITY, moveBox, overlaps, smoothAdjust, solve } from "../../src/kit/framing.ts";
+import { pointerLine } from "../../src/kit/overlays/pointer.ts";
 import { composition } from "../lib/composition.mjs";
 
 const anchor = [540, 960];
@@ -81,4 +82,33 @@ test("composition: a spatial word only counts as a whole word", () => {
   assert.equal(say("sağlayıcıdan geçip sunucuya varıyor.").length, 0);
   assert.equal(say("bunun için").length, 0);
   assert.equal(say("Kalbinin sağ üst köşesinden.").length, 1);
+});
+
+test("a pointer leaves the panel side that faces its element and stops short of a point", () => {
+  const label = { x1: 80, y1: 400, x2: 300, y2: 460 };
+  const panel = { x1: 62, y1: 382, x2: 318, y2: 478 };
+  const [from, to] = pointerLine(label, panel, box(700, 700, 30));
+  assert.deepEqual(from, [318, 430]);
+  assert.ok(Math.abs(Math.hypot(700 - to[0], 700 - to[1]) - 30) < 1e-6, JSON.stringify(to));
+  const [down] = pointerLine(label, panel, box(200, 900, 30));
+  assert.deepEqual(down, [200, 478]);
+  assert.deepEqual(pointerLine(label, panel, box(700, 700, 200))[1], [700, 700], "an area: into its centre");
+  assert.equal(pointerLine(label, panel, box(200, 430, 10)), null, "inside the panel: nothing to draw");
+});
+
+test("composition: a pointer's element must be on screen and its leader may not cross other text", () => {
+  const label = { kind: "label", id: "labels[0]", text: "SA DÜĞÜMÜ", x1: 80, y1: 400, x2: 300, y2: 460 };
+  const caption = { kind: "caption", id: "captions", text: "kalp atıyor", x1: 120, y1: 1430, x2: 960, y2: 1526 };
+  const node = (x, y, over = {}) => ({ id: "sa", kind: "node", important: true, say: [], ...box(x, y, 30), ...over });
+  const run = (sa) =>
+    composition({
+      samples: [0, 0.25, 0.5].map((t) => sample(t, [scene({ layer: "heart", elements: [sa] })], { boxes: [label, caption] })),
+      step: 0.25,
+      labelAlign: () => "left",
+      labelPointTo: () => "heart.sa",
+      phrases: [],
+    }).errors.filter((e) => e.startsWith("kılavuz"));
+  assert.deepEqual(run(node(700, 700)), []);
+  assert.ok(run(node(700, 700, { hidden: true }))[0]?.includes("ekranda değil"));
+  assert.ok(run(node(540, 1700))[0]?.includes("altyazının üstünden"));
 });

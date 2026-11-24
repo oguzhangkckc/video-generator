@@ -1,5 +1,6 @@
 // STYLE "Kamera ve geçişler" on the spec itself: every scene change is a declared transition (through > match >
 // flash, a flash only with a reason), and a scene shows the wide context before its first close-up.
+import { splitPointer } from "../kit/overlays/pointer";
 import { viewAt } from "../kit/scenes/camera2d/camera";
 import type { Layer, Spec } from "./schema";
 
@@ -60,6 +61,15 @@ export const sceneFindings = (spec: Spec): string[] => {
       }
     }
   }
+
+  spec.labels.forEach((l, i) => {
+    if (!l.pointTo) return;
+    const [name, id] = splitPointer(l.pointTo);
+    const layer = spec.layers.find((x, j) => layerName(x, j) === name);
+    const ids = layer && elementIds(layer);
+    if (!layer) out.push(`labels[${i}].pointTo: no layer "${name}" (${[...names].join(", ")})`);
+    else if (ids && !ids.includes(id)) out.push(`labels[${i}].pointTo: ${name} has no element "${id}" (${ids.join(", ")})`);
+  });
 
   for (let a = 0; a < scenes.length; a++) {
     for (let b = a + 1; b < scenes.length; b++) {

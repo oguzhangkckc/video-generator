@@ -61,7 +61,7 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
   // A data strip is itself an overlay: only a scene trace moves out of the way of the others.
   const adjust = panel
     ? { dx: 0, dy: 0, s: 1 }
-    : adjustFor(framing, name, (u) => traceElements(traceState(layer, wave, clock, u), framing.spokenAt(u)).filter((e) => e.important), [CX, layer.anchorY], t);
+    : adjustFor(framing, name, (u) => traceElements(traceState(layer, wave, clock, u), framing.spokenAt(u)), [CX, layer.anchorY], t);
   const st = traceState(layer, wave, clock, t, adjust);
   const { pen, view, anchor, toScreen, now, xAt, xFrom, points, parts, penScreen, reach, left } = st;
   const { subject, line } = traceLine(st, area);
@@ -71,6 +71,7 @@ export const Trace: React.FC<{ layer: TraceLayer; curve: (name: string) => Curve
     framing.report({
       layer: name,
       type: panel ? "strip" : "trace",
+      t,
       opacity,
       shot: { kind: shotKind(shot), subject: shot.subject },
       subject,

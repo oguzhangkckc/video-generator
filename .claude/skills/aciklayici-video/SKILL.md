@@ -113,6 +113,8 @@ Birini gerekçesiyle öner. **Dur.**
   parlaması (`flash`, haze) yalnızca son çare ve gerekçeyle. Neredeyse boş kareye eriyerek geçme.
 - Veri çizgisi parçaları: aralık anlatan `marker: "bracket"` (çizginin altında köşeli parantez), nokta ya da dalga
   anlatan `marker: "leader"` (üstte, kılavuz çizgiyle).
+- Bir veri satırı sahnede kendiliğinden seçilmeyen bir öğeyi adlandırıyorsa (birkaç düğümden biri) `pointTo:
+  "katman.öğe"` ile panelden öğeye kılavuz çiz (örnek: `videos/demo-flow`).
 - **Yeni tür gerekiyorsa açıkça söyle:** mevcutlar neden yetmiyor, önerilen ad, parametreler. Onay gelirse:
   1. `src/kit/<kategori>/` altına bileşeni ve zod şemasını yeniden kullanılabilir biçimde ekle. Renk ve font yalnızca
      `src/kit/theme.ts`'ten gelir; hikâyeye özgü her sabit bir spec parametresi olur. Zemini (gradyan, uzay, pus)

@@ -67,6 +67,7 @@ export const CityMap: React.FC<{ layer: CityMapLayer; curve: (name: string) => C
     report({
       layer: name,
       type: "cityMap",
+      t,
       opacity,
       shot: { kind: scale < 0.8 ? "wide" : scale < 2 ? "medium" : "close" },
       subject: { x1: 0, y1: 0, x2: WIDTH, y2: HEIGHT },

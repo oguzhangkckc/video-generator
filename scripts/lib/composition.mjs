@@ -2,6 +2,7 @@
 // what each scene reported (QaProbe QA_SCENE), the overlay boxes (QA_BOXES) and how empty each frame looked.
 // Pure, so it can be tested with made-up samples.
 import { covered as coveredShare, isArea } from "../../src/kit/framing.ts";
+import { pointerLine, splitPointer } from "../../src/kit/overlays/pointer.ts";
 import { mentions } from "../../src/spec/sentences.ts";
 
 export const LIMITS = {
@@ -124,15 +125,16 @@ const mainScene = (sample) => [...sample.scene.layers].reverse().find((l) => l.t
 
 /**
  * samples: [{ t, boxes, scene: { zones, layers }, empty }] at `step` s apart; labelAlign(id) → the label's align;
- * phrases: [{ text, start, end }]. Returns { errors, warnings, stats }.
+ * labelPointTo(id) → its "layer.element" or undefined; phrases: [{ text, start, end }]. Returns { errors, warnings, stats }.
  */
-export const composition = ({ samples, step, labelAlign, phrases, transitions = [] }) => {
+export const composition = ({ samples, step, labelAlign, labelPointTo = () => undefined, phrases, transitions = [] }) => {
   const errors = [];
   const warnings = [];
   const covered = spans();
   const cropped = spans();
   const touching = spans();
   const crossing = spans();
+  const pointing = spans();
   const outside = new Map();
   let present = new Set();
   const leave = (key, exiting) => {
@@ -189,6 +191,23 @@ export const composition = ({ samples, step, labelAlign, phrases, transitions = 
         }
       }
     }
+    for (const b of s.boxes.filter((x) => x.kind === "label" && labelPointTo(x.id))) {
+      const target = labelPointTo(b.id);
+      const [name, id] = splitPointer(target);
+      const e = s.scene.layers.find((l) => l.layer === name && l.opacity >= 0.5)?.elements.find((x) => x.id === id);
+      if (!e || e.hidden || !onScreen(e)) {
+        pointing.add(`${b.id}:target`, s.t, `"${b.text}" ${target} öğesini gösteriyor ama öğe ekranda değil`);
+        continue;
+      }
+      const own = `etiket paneli (${labelAlign(b.id)})`;
+      const panel = cover.find((c) => c.kind === "panel" && c.id === own);
+      const line = panel && pointerLine(b, panel, e);
+      if (!line) continue;
+      for (const c of cover) {
+        if (c.id === own || (c.kind === b.kind && c.id === b.id)) continue;
+        if (crosses(line[0], line[1], c)) pointing.add(`${b.id}|${c.id}`, s.t, `"${b.text}" kılavuz çizgisi ${c.kind === "caption" ? "altyazının" : `"${c.text || c.id}"`} üstünden geçiyor`);
+      }
+    }
     const main = mainScene(s);
     if (main) {
       const b = main.subject;
@@ -201,6 +220,7 @@ export const composition = ({ samples, step, labelAlign, phrases, transitions = 
   for (const key of [...outside.keys()]) leave(key, false);
   errors.push(...covered.list().map((m) => `önemli öğe: ${m}`));
   errors.push(...touching.list().map((m) => `veri etiketi: ${m}`), ...crossing.list().map((m) => `veri etiketi: ${m}`));
+  errors.push(...pointing.list().map((m) => `kılavuz: ${m}`));
   warnings.push(...cropped.list().map((m) => `kenar: ${m}`));
 
   const subjectSeries = samples.map((s) => {

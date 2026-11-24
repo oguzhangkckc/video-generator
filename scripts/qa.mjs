@@ -165,11 +165,14 @@ const layout = async () => {
 
   mkdirSync(outDir(slug), { recursive: true });
   writeFileSync(path.join(outDir(slug), "qa-samples.json"), JSON.stringify(samples));
-  const labelAlign = (id) => rawSpec.labels[Number(/\[(\d+)\]/.exec(id)?.[1])]?.align ?? "left";
+  const labelOf = (id) => rawSpec.labels[Number(/\[(\d+)\]/.exec(id)?.[1])];
+  const labelAlign = (id) => labelOf(id)?.align ?? "left";
+  const labelPointTo = (id) => labelOf(id)?.pointTo;
   const found = composition({
     samples,
     step: frames.length > 1 ? (frames[1] - frames[0]) / FPS : every,
     labelAlign,
+    labelPointTo,
     phrases: (first.spec?.phrases ?? []).filter((p) => inRange(p.start) && inRange(p.end)),
     transitions: (first.spec?.transitions ?? []).filter((tr) => inRange(tr.at)),
   });
@@ -288,6 +291,7 @@ const rows = [
     ["Kenar kırpması", "kenar"],
     ["Bağlam (söylenen yer ekranda)", "bağlam"],
     ["Veri etiketleri", "veri etiketi"],
+    ["Kılavuz (etiketten öğeye)", "kılavuz"],
     ["Geçişler", "geçiş"],
     ["Kamera (geniş → yakın)", "kamera"],
   ].map(([name, prefix]) => [

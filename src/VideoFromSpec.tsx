@@ -8,7 +8,9 @@ import { Counter } from "./kit/overlays/Counter";
 import { DataLabel, NoteLabel } from "./kit/overlays/DataLabel";
 import { HookTitle } from "./kit/overlays/HookTitle";
 import { CX, CY } from "./kit/format";
-import { FramingContext, adjustFor, logReport, type Framing } from "./kit/framing";
+import { FramingContext, adjustFor, logReport, markPointed, type Framing, type SceneReport } from "./kit/framing";
+import { LabelPointers } from "./kit/overlays/LabelPointers";
+import { splitPointer } from "./kit/overlays/pointer";
 import { GroundContext, groundOf } from "./kit/ground";
 import { globeElements } from "./kit/scenes/globe/Globe";
 import { layerName } from "./spec/scenes";
@@ -38,7 +40,20 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
       return cache.get(key)!;
     };
     const spokenAt = (t: number) => video.phrases.find((p) => t >= p.start && t <= p.end)?.text ?? "";
-    return { enabled: video.spec.layout.framing, zonesAt, spokenAt, report: qa?.probe ? logReport : null };
+    const pointers = video.spec.labels.flatMap((l) => (l.pointTo ? [{ at: l.at, until: l.until, target: splitPointer(l.pointTo) }] : []));
+    const pointed = (layer: string, t: number) =>
+      new Set(pointers.filter((p) => p.target[0] === layer && t >= p.at && t <= p.until).map((p) => p.target[1]));
+    const board = new Map<string, SceneReport>();
+    const probe = Boolean(qa?.probe);
+    const report =
+      probe || pointers.length
+        ? (r: SceneReport) => {
+            const marked = markPointed(r, pointed(r.layer, r.t));
+            board.set(r.layer, marked);
+            if (probe) logReport(marked);
+          }
+        : null;
+    return { enabled: video.spec.layout.framing, zonesAt, spokenAt, pointed, report, board };
   }, [video, qa?.probe]);
   const strips = (layer: Layer) => layer.type === "trace" && Boolean(layer.panel);
   const rigs = useMemo(
@@ -50,7 +65,7 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
           const name = layerName(l, i);
           // The planet moves aside (lens shift) for its satellite and location, like a 2D scene for its elements.
           rig.setFraming((t) =>
-            adjustFor(framing, name, (u) => globeElements(l, rig, u, rig.rawProject).filter((e) => e.important), [CX, CY], t),
+            adjustFor(framing, name, (u) => globeElements(l, rig, u, rig.rawProject), [CX, CY], t),
           );
           return [[l.id, rig]];
         }),
@@ -71,6 +86,7 @@ export const VideoFromSpec: React.FC<z.input<typeof VideoProps>> = ({ spec, timi
         {qa?.overlays === false ? null : (
           <>
             {s.layout.labelBackdrop ? <LabelBackdrop labels={s.labels} /> : null}
+            <LabelPointers labels={s.labels} />
             {s.labels.map((label, i) => (
               <DataLabel key={`label-${i}`} label={label} />
             ))}

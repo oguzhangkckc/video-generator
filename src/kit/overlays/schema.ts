@@ -24,6 +24,11 @@ export const labelSchema = <T extends z.ZodType, R extends z.ZodType>(k: Kit<T, 
       letterSpacing: z.string().default("0.02em"),
       /** Plays at `at`, so the sound moves with the line. */
       sound: SfxId.optional(),
+      /**
+       * "layer.element" (the layer's id, else type#index; element ids as in transitions' `via`): a thin leader runs
+       * from the label panel to that element while the line shows, and the element counts as important.
+       */
+      pointTo: z.string().regex(/^[^.]+\..+$/, `"layer.element", e.g. "heart.sa"`).optional(),
     })
     .strict();
 
