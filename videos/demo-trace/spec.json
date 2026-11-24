@@ -44,7 +44,7 @@
         "qrs": { "range": ["#qrsStart", "#qrsEnd"] },
         "t": { "range": ["#tStart", "#tEnd"] }
       },
-      "grid": { "legend": "25 mm/sn · 10 mm/mV", "pxPerX": 1.2, "pxPerY": 480 },
+      "grid": { "legend": "25 mm/sn · 10 mm/mV", "pxPerX": 0.45, "pxPerY": 480 },
       "camera": [
         { "at": 0, "focus": "frame", "zoom": 1, "kind": "wide" },
         { "at": 3, "focus": "pen", "zoom": 1.7 },
@@ -58,7 +58,7 @@
         { "text": "T", "range": ["#tStart", "#tEnd"] }
       ],
       "beep": { "id": "monitor-beep", "ranges": [[0, 8]] },
-      "baselineY": 1300,
+      "baselineY": 1100,
       "anchorY": 1150
     }
   ],
