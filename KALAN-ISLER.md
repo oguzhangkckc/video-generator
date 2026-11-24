@@ -133,8 +133,8 @@ kullanılamaz; kullanıcıya hatırlat.
 4. gps-pilot'un sesi değişince regresyon referansı yeniden yenilenir (önce/sonra göster, onayla):
    `npm run stills -- gps-pilot --every 10 --out out/baseline/frames` ve
    `npm run render -- gps-pilot && cp out/gps-pilot.mp4 out/baseline/gps-pilot.mp4`.
-5. EKG'nin yeni render'ını `~/Desktop/ekg.mp4`'e kopyala. Şu anki kopya eski v3.1; Kingston'daki yeni render
-   sessiz.
+5. EKG'nin sesli render'ını `~/Desktop/ekg.mp4`'e kopyala. Şu anki kopya sessiz render (2026-11-24, kılavuzlu
+   son hâl).
 
 ## Notlar
 
