@@ -2,19 +2,25 @@ import type { Spec } from "../../spec/schema";
 import { useLayout } from "../layout";
 import { COLOR } from "../theme";
 import { useTime } from "../time";
+import { conceptAlpha, conceptBox } from "./boxes";
 import { labelAlpha, labelBox, type Box } from "./geometry";
 
 const PAD = 18;
 
-/** One dark panel behind each column of visible data lines, so they stay readable over any scene. */
-export const LabelBackdrop: React.FC<{ labels: Spec["labels"] }> = ({ labels }) => {
+/**
+ * One dark panel behind each column of visible data lines, so they stay readable over any scene; while the concept card
+ * shows, the centred column's panel takes the card in too (STYLE: every text of the final card sits on dark ground).
+ */
+export const LabelBackdrop: React.FC<{ labels: Spec["labels"]; concept?: Spec["concept"] }> = ({ labels, concept }) => {
   const t = useTime();
-  const { rightInset } = useLayout();
+  const { rightInset, contentWidth } = useLayout();
   const groups = new Map<string, { box: Box; alpha: number }>();
-  for (const l of labels) {
-    const alpha = labelAlpha(l, t);
+  const shown = labels.map((l) => ({ align: l.align, alpha: labelAlpha(l, t), box: () => labelBox(l, rightInset) }));
+  if (concept) shown.push({ align: "center", alpha: conceptAlpha(concept, t), box: () => conceptBox(concept, contentWidth) });
+  for (const l of shown) {
+    const alpha = l.alpha;
     if (alpha <= 0) continue;
-    const b = labelBox(l, rightInset);
+    const b = l.box();
     const g = groups.get(l.align);
     groups.set(
       l.align,

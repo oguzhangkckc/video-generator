@@ -310,9 +310,16 @@ const checkTimeline = (raw: RawSpec, spec: Spec, curve: (name: string) => CurveF
   }
 };
 
+/** The final card's text needs dark ground: the label panel, or a dim this dark by the time the card appears. */
+const CARD_DARKEN = 0.6;
+
 const check = (spec: Spec) => {
   const scenes = sceneFindings(spec);
   if (scenes.length) fail("scenes", scenes.join("\n  "));
+  const card = spec.concept;
+  if (card && !spec.layout.labelBackdrop && !(spec.darken && spec.darken.alpha >= CARD_DARKEN && spec.darken.range[1] <= card.at)) {
+    fail("concept", `with layout.labelBackdrop off, the card needs darken with alpha ≥ ${CARD_DARKEN} reached by its start (${card.at.toFixed(2)} s)`);
+  }
   const sfx = new Set(Object.keys(catalog));
   const needSfx = (id: string | undefined, where: string) => {
     if (id !== undefined && !sfx.has(id)) fail(where, `unknown sound "${id}" — add it to src/kit/audio/sfx-catalog.json`);

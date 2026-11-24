@@ -189,3 +189,12 @@ test("context: a section whose subject is never wholly in frame for a second is 
   assert.equal(run([...Array(4).fill(whole), ...Array(8).fill(cropped)]).length, 0, "1 s whole is enough");
   assert.equal(run([whole, cropped, whole, cropped, ...Array(8).fill(cropped)]).length, 1, "it must be one stretch");
 });
+
+test("card: the concept card and the lines shown with it sit on one dark panel; a title beside it does not", () => {
+  const concept = { kind: "concept", id: "concept", text: "ELEKTROKARDİYOGRAM", x1: 200, y1: 180, x2: 880, y2: 360 };
+  const line = { kind: "label", id: "labels[13]", text: "ELEKTRO · KARDİYO · GRAM", x1: 300, y1: 380, x2: 780, y2: 420 };
+  const title = { kind: "title", id: "titles[3]", text: "SON", x1: 300, y1: 700, x2: 780, y2: 800 };
+  const run = (boxes) => composition({ samples: [sample(0, [scene()], { boxes })], step: 0.25, labelAlign: () => "center", phrases: [] }).errors.filter((e) => e.startsWith("kart"));
+  assert.deepEqual(run([concept, line]), []);
+  assert.equal(run([concept, line, title]).length, 1);
+});

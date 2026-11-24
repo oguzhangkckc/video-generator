@@ -103,6 +103,10 @@ Sıra her zaman aynıdır:
 3. **Kavramın adı en son** (`concept`). İsim videonun içinde önceden söylenmez; izleyici önce ne olduğunu anlar,
    sonra adını öğrenir. **Kavramın adı izleyicinin muhtemelen zaten bildiği bir şeyse** (EKG, GPS…) finale bir
    şaşırtma eklenir (kelimenin kökeni, beklenmedik bir bağlantı) ya da başka bir kavram seçilir.
+   **Kartın bütün yazıları koyu zemindedir:** kart ve onunla birlikte gösterilen ortalı veri satırları tek bir koyu
+   panelin üstünde durur (etiket paneli kartı da içine alır). Panel kapalıysa (`layout.labelBackdrop: false`) sahne kart
+   belirene kadar en az 0,6 karartılır (`darken`), değilse `npm run check` hatası. qa: kartla birlikte gösterilip
+   panelin dışında kalan yazı hata ("Kavram kartı").
 
 ## Ritim
 

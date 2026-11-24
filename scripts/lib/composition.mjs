@@ -109,8 +109,8 @@ const crosses = ([x1, y1], [x2, y2], b) => {
 const coverOf = (sample, labelAlign, boxes = sample.boxes) => {
   const cover = boxes.map((b) => ({ ...b }));
   const panels = new Map();
-  for (const b of boxes.filter((x) => x.kind === "label")) {
-    const align = labelAlign(b.id);
+  for (const b of boxes.filter((x) => x.kind === "label" || x.kind === "concept")) {
+    const align = b.kind === "concept" ? "center" : labelAlign(b.id);
     const g = panels.get(align);
     panels.set(align, g ? { x1: Math.min(g.x1, b.x1), y1: Math.min(g.y1, b.y1), x2: Math.max(g.x2, b.x2), y2: Math.max(g.y2, b.y2) } : { ...b });
   }
@@ -225,6 +225,7 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
   const crossing = spans();
   const pointing = spans();
   const texting = spans();
+  const card = spans();
   const captionWide = spans();
   const captionSizes = new Map();
   const outside = new Map();
@@ -284,6 +285,13 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
       }
     }
     for (const [key, message] of textFindings(s, s.boxes)) texting.add(key, s.t, message);
+    if (s.boxes.some((b) => b.kind === "concept")) {
+      const panels = cover.filter((c) => c.kind === "panel");
+      for (const b of s.boxes.filter((x) => x.kind === "label" || x.kind === "concept" || x.kind === "title")) {
+        const onPanel = panels.some((p) => b.x1 >= p.x1 && b.x2 <= p.x2 && b.y1 >= p.y1 && b.y2 <= p.y2);
+        if (!onPanel) card.add(b.id, s.t, `${b.id} "${b.text}" kavram kartıyla birlikte ama koyu panelin dışında`);
+      }
+    }
     for (const c of s.boxes.filter((b) => b.kind === "caption")) {
       if (c.size !== undefined && !captionSizes.has(c.size)) captionSizes.set(c.size, s.t);
       if (s.band && c.x2 - c.x1 > s.band.x2 - s.band.x1 + 1) captionWide.add(c.text, s.t, `"${c.text}" altyazı satırına sığmıyor`);
@@ -320,6 +328,7 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
   errors.push(...touching.list().map((m) => `veri etiketi: ${m}`), ...crossing.list().map((m) => `veri etiketi: ${m}`));
   errors.push(...pointing.list().map((m) => `kılavuz: ${m}`));
   errors.push(...texting.list().map((m) => `yerleşim: ${m}`));
+  errors.push(...card.list().map((m) => `kart: ${m}`));
   errors.push(...captionWide.list().map((m) => `altyazı: ${m}`));
   if (captionSizes.size > 1) {
     errors.push(`altyazı: yazı boyutu değişiyor (${[...captionSizes].map(([size, t]) => `${fmt(t)}'de ${size} px`).join(", ")}); altyazı hiç küçülmez`);

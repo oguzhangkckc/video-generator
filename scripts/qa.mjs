@@ -312,6 +312,7 @@ const rows = [
     ["Kapak (ilk 3 sn, kare kare)", "kapak"],
     ["Altyazı (sabit boyut)", "altyazı"],
     ["Bağlam planı (özne bütün ≥ 1 sn)", "siluet"],
+    ["Kavram kartı (koyu zemin)", "kart"],
     ["Geçişler", "geçiş"],
     ["Kamera (geniş → yakın)", "kamera"],
   ].map(([name, prefix]) => [
