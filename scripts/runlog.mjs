@@ -1,7 +1,7 @@
 // Skill auto-mode run log → out/<slug>/run-log.jsonl (events) and run-log.md (tables, rewritten on every call).
 //   node scripts/runlog.mjs <slug> start <adım> | end <adım> ["not"]
 //                                  | round <check|qa-layout|qa> [--errors N] [--warnings N] [--fixed] ["ne değişti"]
-//                                  | fix <check|qa-layout|qa|kontrol-listesi> "<hata>" --change "<ne değiştirildi>" --why "<neden>"
+//                                  | fix <check|qa-layout|qa|kontrol-listesi|editor> "<hata>" --change "<ne değiştirildi>" --why "<neden>"
 //                                  | stop "<sebep>" | user <adım> "<istek>" | note "<metin>" | show
 // qa rounds read their counts and said-element shares from out/<slug>/qa.json; a run limited with --from/--to is not a
 // round. After a round with errors, the gate's next round needs the fixes logged first.
@@ -14,7 +14,7 @@ import { ROOT, loadTiming, outDir, requireSlug } from "./lib/video.mjs";
 const USAGE = [
   "Usage: npm run log -- <slug> start|end <adım> [\"not\"]",
   "  | round <check|qa-layout|qa> [--errors N] [--warnings N] [--fixed] [\"ne değişti\"]",
-  '  | fix <check|qa-layout|qa|kontrol-listesi> "<hata>" --change "<ne değiştirildi>" --why "<neden>"',
+  '  | fix <check|qa-layout|qa|kontrol-listesi|editor> "<hata>" --change "<ne değiştirildi>" --why "<neden>"',
   '  | stop "<sebep>" | user <adım> "<istek>" | note "<metin>" | show',
 ].join("\n");
 const fail = (message) => {

@@ -264,8 +264,9 @@ demo-trace temiz.
   değiştirmeyenler: kelime seçimi, ek, tekrar, ses akışı) otomatik uygulanıp run-log'a yazılsın; anlam ya da doğruluk
   değişikliği gerekiyorsa dur. Örnek: temassız kart testindeki ikinci durma (c, 2026-11-27). "bastıkça → basınca" ve
   "fazladan → daha çok" ifade düzeyiydi, otomatik uygulanabilirdi; "durmadan → Mors gibi" (cevabın bilgi taşıdığı) ve
-  yön cümlesinin silinmesi ya da bağlanması anlam değişikliğiydi, orada durmak doğruydu. Skill'de Durak 1 bölümüne ve
-  zorunlu durma noktalarına işlenecek.
+  yön cümlesinin silinmesi ya da bağlanması anlam değişikliğiydi, orada durmak doğruydu. **Yapıldı (2026-11-28):**
+  SKILL Durak 1 ve zorunlu durma noktaları; editör her bulguyu "ifade" / "anlam" diye işaretler ve değişen cümleler
+  turunda yalnız onlara bakar; ifade düzeltmeleri `npm run log -- <slug> fix editor …` ile düzeltmeler listesine.
 
 ## Sıradaki videolar ve fikirler
 

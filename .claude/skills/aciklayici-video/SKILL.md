@@ -53,7 +53,7 @@ yeniden yazılır.
 | bir adıma başlarken / bitirince | `start <adım>` / `end <adım> ["not"]` |
 | bir durak mesajını gönderirken / yanıt gelince | `start durak-1` / `end durak-1`, sonra `user durak-1 "<ne istedi>"` |
 | her kapı turundan sonra | `round <check\|qa-layout\|qa> …` (aşağıda "Düzeltme döngüsü") |
-| her düzeltmeden sonra (döngüde ya da kontrol listesinde) | `fix <check\|qa-layout\|qa\|kontrol-listesi> "<hata>" --change "<ne değiştirildi>" --why "<neden>"` |
+| her düzeltmeden sonra (döngüde, kontrol listesinde ya da Durak 1 sonrası editörün ifade önerisinde) | `fix <check\|qa-layout\|qa\|kontrol-listesi\|editor> "<hata>" --change "<ne değiştirildi>" --why "<neden>"` |
 | zorunlu durma noktası | `end <adım> "durdu"`, `stop "<sebep>"`; yanıt gelince `user <adım> "<ne istedi>"`, `start <adım>` |
 | kullanıcı akış sırasında bir şey isterse | `user <adım> "<ne istedi>"` |
 | kontrol listesi sonucu, kısmi qa denemesi, ses kararı | `note "<metin>"` |
@@ -86,8 +86,19 @@ a, b ve c'yi arada durmadan yap, sonra tek mesajda göster:
 a–c sırasında çıkan zorunlu durma nedenleri (yeni sahne türü ya da varlık, doğrulanamayan iddia, kural istisnası)
 ayrı durak açmaz: bu mesajın başında "Karar gerekiyor" başlığıyla gelir.
 
-Kullanıcı kanca ve finali seçer ya da değişiklik ister. Değişiklikte ilgili adımı yeniden yap ve Durak 1'i yeniden
-göster. Onaydan sonra `videos/<slug>/metin.json`'u yaz (c sonu) ve d, e, f'yi durmadan yürüt.
+Kullanıcı kanca ve finali seçer ya da değişiklik ister:
+
+- Açı, kaynak ya da yapı değişikliğinde ilgili adımı yeniden yap ve Durak 1'i yeniden göster.
+- Kullanıcı cümleleri değiştirdiyse (kendi yazdığı ya da seçtiği ifadeyle) **değişen cümleleri** `npm run text`'ten
+  ve `metin-editoru`'ndan geçir. Ajana metin.json yolunu ve değişen cümlelerin listesini ver; yalnız onları
+  değerlendirir ve her bulguyu "ifade" ya da "anlam" diye işaretler.
+  - **İfade düzeyi** (anlam ve iddia aynı: kelime seçimi, ek, tekrar, ses akışı; örnek "bastıkça" → "basınca",
+    "fazladan" → "daha çok"): onay beklemeden uygula, her birini `npm run log -- <slug> fix editor "<bulgu>"
+    --change "<yeni ifade>" --why "<kural>"` ile düzeltmeler listesine yaz, `npm run text`'i yeniden çalıştır.
+  - **Anlam ya da doğruluk** (bir iddiayı, cümlenin zincirdeki işini ya da bir benzetmenin söylediğini değiştiren;
+    cümle silen ya da ekleyen; `claims` dışı bilgi isteyen; örnek "durmadan" → "Mors gibi"): uygulama, dur
+    (zorunlu durma noktası). Ayrım belirsizse anlam sayılır.
+- Ardından metin onaylıdır: `videos/<slug>/metin.json`'u yaz (c sonu) ve d, e, f'yi durmadan yürüt.
 
 ### Düzeltme döngüsü
 
@@ -147,6 +158,8 @@ Yalnız bunlarda dur ve sor:
 - Doğrulanamayan ya da kaynakları çelişen bir iddia metinde ya da ekranda kalacak (d–f'de ekrana giren yeni rakam
   dahil).
 - Bir kurala istisna gerekiyor (`styleExceptions`) ya da düzeltme onaylı metni değiştirmeyi gerektiriyor.
+- Durak 1'de değişen cümlelerde editör anlam ya da doğruluk değişikliği öneriyor (ifade düzeyindekiler otomatik
+  uygulanır, yukarıda "Durak 1").
 - Bir hata ancak seslendirmede o an adı geçen nesneyi ekrandan kaldırarak ya da kadraj dışına iterek çözülebiliyor.
 - TTS bütçesi aşılacak (`voiceover` çıkış 3, "bütçe aşılıyor").
 - Düzeltme döngüsü `DUR` dedi ya da hata başka bir videonun spec'inde.

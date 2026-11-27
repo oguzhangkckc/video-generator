@@ -2,7 +2,7 @@
 // user's interventions. Pure functions; scripts/runlog.mjs reads and writes the files.
 
 export const GATES = ["check", "qa-layout", "qa"];
-export const FIX_SOURCES = [...GATES, "kontrol-listesi"];
+export const FIX_SOURCES = [...GATES, "kontrol-listesi", "editor"];
 export const MAX_ROUNDS = 5;
 /** One lost 0.25 s sample in a sentence of ~2 s is 0.12; below this the share did not really move. */
 export const SAID_DROP = 0.05;
