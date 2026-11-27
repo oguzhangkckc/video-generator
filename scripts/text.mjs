@@ -1,12 +1,18 @@
 // The script audit (src/spec/script-audit.ts) with its warnings, for specs and for skill step c) drafts.
 //   node scripts/text.mjs                         → every videos/<slug>/spec.json (part of npm run check)
 //   node scripts/text.mjs <slug|metin.json>…      → those specs, or drafts with all their hook and final options
-// Exit 1 when an error is not waived by `styleExceptions: [{ rule, why }]`.
+// A draft is also held to the checks a spec meets later, so nothing in the words can stop the video after Durak 1:
+// caption fit (measured in the browser, as npm run check does), and its planned data lines (`labels`) against what
+// is said around them and the quantity it names. Exit 1 when an error is not waived by `styleExceptions`.
 import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
+import { captionsSchema, layoutSchema } from "../src/kit/overlays/schema.ts";
 import { auditScript, waivedRules } from "../src/spec/script-audit.ts";
+import { captionMisfits } from "./lib/caption-fit.mjs";
 import { readDraft, variantsOf } from "./lib/draft.mjs";
 import { ROOT, loadSpec, requireSlug, videoDir } from "./lib/video.mjs";
+
+const CAPTION = { size: captionsSchema.parse({}).size, width: layoutSchema.parse({}).contentWidth };
 
 const allSlugs = () =>
   readdirSync(path.join(ROOT, "videos"), { withFileTypes: true })
@@ -14,12 +20,21 @@ const allSlugs = () =>
     .map((d) => d.name)
     .sort();
 
-/** Findings of every variant, each once, with the variants it appears in. */
-const auditDraft = (file) => {
+/** Findings of every variant, each once, with the variants it appears in; planned labels belong to the full text. */
+const auditDraft = (draft, misfits) => {
   const seen = new Map();
-  const variants = variantsOf(readDraft(file));
+  const variants = variantsOf(draft);
   for (const v of variants) {
-    for (const f of auditScript(v.sections)) {
+    const caption = v.sections
+      .flatMap((s) => s.phrases)
+      .filter((p) => misfits.has(p))
+      .map((p) => ({
+        level: "error",
+        rule: "altyazi",
+        text: p,
+        message: `"${p}": does not fit the caption line at ${CAPTION.size} px (${CAPTION.width} px), not even as two pages of 2–6 words — shorten or reword it`,
+      }));
+    for (const f of [...auditScript(v.sections, { labels: v.name === "tam" ? (draft.labels ?? []) : [] }), ...caption]) {
       const key = `${f.rule}\n${f.message}`;
       if (!seen.has(key)) seen.set(key, { ...f, variants: [] });
       seen.get(key).variants.push(v.name);
@@ -36,9 +51,12 @@ const auditSpec = (slug) => {
 
 const LABEL = { error: "HATA ", warning: "uyarı" };
 const targets = process.argv.slice(2);
+const drafts = new Map(targets.filter((t) => t.endsWith(".json")).map((t) => [t, readDraft(path.resolve(t))]));
+const draftPhrases = [...drafts.values()].flatMap((d) => variantsOf(d).flatMap((v) => v.sections.flatMap((s) => s.phrases)));
+const misfits = new Set(await captionMisfits([...new Set(draftPhrases)]));
 let failed = false;
 for (const target of targets.length ? targets : allSlugs()) {
-  const findings = target.endsWith(".json") ? auditDraft(path.resolve(target)) : auditSpec(target);
+  const findings = drafts.has(target) ? auditDraft(drafts.get(target), misfits) : auditSpec(target);
   if (!findings.length) {
     console.log(`${target}: temiz`);
     continue;

@@ -63,7 +63,7 @@ de kareler incelenebilir.
 |---|---|
 | `npm run studio` | Remotion Studio |
 | `npm run check` | `tsc` + metin denetimi (`npm run text`) + etiket ↔ seslendirme kontrolü (`src/spec/label-speech.ts`) + her `spec.json`'un doğrulanması ve çözülmesi (hatalar alan yoluyla) |
-| `npm run text -- [slug\|metin.json]…` | metin denetimi (`src/spec/script-audit.ts`): "Peki" sınırı, açık final, okunuş, cümle sonu hataları; kaçınılacak ifade uyarıları (`src/spec/avoid.ts`). Argümansız bütün videolar; `out/<slug>/metin/metin.json` (skill c taslağı) her kanca ve final seçeneğiyle denetlenir. Bilinçli sapma: `styleExceptions: [{ "rule", "why" }]` → "muaf" |
+| `npm run text -- [slug\|metin.json]…` | metin denetimi (`src/spec/script-audit.ts`): "Peki" sınırı, açık final, okunuş, cümle sonu hataları; kaçınılacak ifade uyarıları (`src/spec/avoid.ts`). Argümansız bütün videolar; `out/<slug>/metin/metin.json` (skill c taslağı) her kanca ve final seçeneğiyle denetlenir ve spec'in sonra karşılaşacağı metin kontrollerini de geçer: altyazı sığması (tarayıcıda, `npm run check` ile aynı ölçü; gizli `metin-olcu` kompozisyonu), planlanan etiketlerin (`labels: [{ text, cue, offset? }]`) söyleneni göstermesi ve nicelik tutarlılığı (tahmini zamanlamayla). Bilinçli sapma: `styleExceptions: [{ "rule", "why" }]` → "muaf" |
 | `npm run new -- <slug> "<başlık>"` | `videos/sablon`'dan yeni tarif |
 | `npm run stills -- <slug> <kare\|12.5s>… [--every N] [--out dir] [--sheet] [--ground]` | still kareler (+ kare sayfası); `--ground`: zemin anahtar renkte, qa'nın boş alan ölçümünün gördüğü gibi |
 | `npm run align -- <slug> <ses> [--dry]` | whisper.cpp (yerel) ile kelime zamanları → `timing.json`, `vo.wav` |

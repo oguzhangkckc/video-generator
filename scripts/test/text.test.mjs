@@ -6,6 +6,7 @@ import { pauseAfter } from "../../src/spec/pauses.ts";
 import { labelQuantity, namedQuantities, quantityMismatches } from "../../src/spec/quantities.ts";
 import { auditScript, waivedRules } from "../../src/spec/script-audit.ts";
 import { endsOnQuestionWord, sentenceKind, sentencesOf } from "../../src/spec/sentences.ts";
+import { captionMisfits } from "../../src/spec/timing.ts";
 import { variantsOf } from "../lib/draft.mjs";
 
 test("the voice reads the spoken form, the captions keep one word per written word", () => {
@@ -91,6 +92,26 @@ test("the avoid list matches suffixed forms, not lookalike words", () => {
   assert.deepEqual(avoidedIn("İnsanlar için kolay."), []);
   assert.deepEqual(avoidedIn("Anahtar kapanınca kart enerji çekiyor.").map((a) => a.match), ["anahtar kapan"]);
   assert.deepEqual(avoidedIn("Kart anahtarı açıp kapatıyor."), []);
+});
+
+test("a phrase misfits the caption line only when it fits neither as one page nor as two of 2–6 words", () => {
+  const fits = (text) => text.length <= 24;
+  assert.deepEqual(captionMisfits(["Kısa bir cümle.", "Bunun yerine okuyucunun alanını kullanıyor."], fits), []);
+  // Three long words: the line is too wide and a 2 + 1 split leaves a one-word page.
+  assert.deepEqual(captionMisfits(["Okuyucunun alanını kullanıyor."], fits), ["Okuyucunun alanını kullanıyor."]);
+});
+
+test("a draft's planned labels are checked against what is said around them and the quantity it names", () => {
+  const sections = [
+    { id: "kanca", window: [0, 5], phrases: ["Kartında pil yok.", "Okuyucuya nasıl cevap veriyor?"] },
+    { id: "alan", window: [5, 12], phrases: ["Alanın yönü saniyede milyonlarca kez değişiyor.", "Gerilim kalem pilin binde biri."] },
+  ];
+  const rules = (labels) => auditScript(sections, { labels }).map((f) => `${f.level}:${f.rule}`);
+  assert.deepEqual(rules([{ text: "SANİYEDE 13,56 MİLYON KEZ", cue: "Alanın yönü" }]), []);
+  assert.deepEqual(rules([{ text: "BOBİN", cue: "Alanın yönü" }]), ["error:etiket-sozu"]);
+  assert.deepEqual(rules([{ text: "AKIM", cue: "Yok böyle bir cümle" }]), ["error:etiket-plani"]);
+  // The label shows a frequency while the phrase spoken as it appears names a voltage.
+  assert.deepEqual(rules([{ text: "GERİLİM 13,56 MHz", cue: "Gerilim kalem" }]), ["warning:nicelik"]);
 });
 
 test("at most two sections open with a Peki question", () => {

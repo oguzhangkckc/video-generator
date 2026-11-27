@@ -1,7 +1,8 @@
 import { Composition, Folder } from "remotion";
-import type { z } from "zod";
+import { z } from "zod";
 import { FPS, HEIGHT, WIDTH } from "./kit/format";
 import { validateModels } from "./kit/scenes/model3d/validate";
+import { captionFontReady, draftCaptionMisfits } from "./spec/caption-fit";
 import { resolveVideo } from "./spec/resolve";
 import { VideoProps } from "./spec/schema";
 import { VideoFromSpec } from "./VideoFromSpec";
@@ -20,7 +21,11 @@ const VIDEOS = specs.keys().map((key) => {
   };
 });
 
+const Nothing: React.FC = () => null;
+const DraftPhrases = z.object({ phrases: z.array(z.string()), misfits: z.array(z.string()) });
+
 export const RemotionRoot: React.FC = () => (
+  <>
   <Folder name="videolar">
     {VIDEOS.map(({ slug, props }) => (
         <Composition
@@ -30,6 +35,7 @@ export const RemotionRoot: React.FC = () => (
           schema={VideoProps}
           defaultProps={props}
           calculateMetadata={async ({ props: p }) => {
+            await captionFontReady();
             const { spec } = resolveVideo(p.spec, p.timing);
             await validateModels(spec);
             return { durationInFrames: Math.round(spec.durationSec * FPS) };
@@ -41,4 +47,19 @@ export const RemotionRoot: React.FC = () => (
         />
     ))}
   </Folder>
+  {/* npm run text measures a draft's phrases here (scripts/lib/caption-fit.mjs): same font, size and width as check. */}
+  <Folder name="araclar">
+    <Composition
+      id="metin-olcu"
+      component={Nothing}
+      schema={DraftPhrases}
+      defaultProps={{ phrases: [], misfits: [] }}
+      calculateMetadata={async ({ props }) => ({ props: { ...props, misfits: await draftCaptionMisfits(props.phrases) } })}
+      durationInFrames={1}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
+    />
+  </Folder>
+  </>
 );

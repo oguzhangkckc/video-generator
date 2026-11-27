@@ -163,6 +163,13 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
     - 93 kelimelik bir anlatım metninde qa ölçümüyle 1,92 → 2,74 kelime/sn. Yelda basamaklı: 270–275 → 2,74,
       280–290 → 2,89.
     - Önbellek anahtarı artık wpm'i içeriyor; eski `say` kayıtları (`out/tts-cache/say`, 150 dosya) kullanılmaz.
+- **Kabul testinden sistem düzeltmeleri (2026-11-28, temassız kart):**
+  - `avoid.ts`: "anlar için", "anahtar kapan" (`a232b9c`).
+  - Metne bağlı her denetim Durak 1'den önce: `npm run text` taslakta altyazı sığmasını tarayıcıda, `check` ile aynı
+    ölçüyle (gizli `metin-olcu` kompozisyonu, `src/spec/caption-fit.ts`) ve planlanan etiketleri (`labels`) söz ve
+    nicelik açısından denetler. Sebep: "Okuyucunun alanını kullanıyor." onaydan sonra `check`'te altyazıya sığmadı
+    ve video ikinci kez durdu. `check` de artık Inter'in yüklenmesini bekleyip ölçüyor (önceden yedek yazı tipiyle
+    ölçmüş olabilirdi; bütün videolar yine temiz).
 - Uçtan uca otomatik video henüz üretilmedi. Kabul testi: temassız kart videosu bu branch'te (PR açık, merge
   testten sonra). gps gerçek ses beklediği için f'de durur.
 
@@ -242,6 +249,13 @@ demo-trace temiz.
   nesnenin o cümle sırasında gizlenmesini (görünürlük `out`'u, kadraj dışı) hata saymalı. Örnek vaka: EKG finali
   (yukarıda). **Kısmen yapıldı (2026-11-27):** otomatik moddaki düzeltme döngüsü `say`'e bağlı öğeler için bunu
   denetliyor (`İHLAL`, yukarıda "Otomatik mod"). Görsele gönderen kelimelerin `say` kapsamına girmesi hâlâ açık.
+- **Durak 1 sonrası editör önerileri (kabul testi notu, kullanıcı 2026-11-28):** Durak 1 onayından sonra metinde
+  değişiklik yapılır ve editörden geçerse, editörün yalnız ifade düzeyindeki önerileri (anlamı ve iddiayı
+  değiştirmeyenler: kelime seçimi, ek, tekrar, ses akışı) otomatik uygulanıp run-log'a yazılsın; anlam ya da doğruluk
+  değişikliği gerekiyorsa dur. Örnek: temassız kart testindeki ikinci durma (c, 2026-11-27). "bastıkça → basınca" ve
+  "fazladan → daha çok" ifade düzeyiydi, otomatik uygulanabilirdi; "durmadan → Mors gibi" (cevabın bilgi taşıdığı) ve
+  yön cümlesinin silinmesi ya da bağlanması anlam değişikliğiydi, orada durmak doğruydu. Skill'de Durak 1 bölümüne ve
+  zorunlu durma noktalarına işlenecek.
 
 ## Sıradaki videolar ve fikirler
 

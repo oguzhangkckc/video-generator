@@ -72,7 +72,9 @@ a, b ve c'yi arada durmadan yap, sonra tek mesajda göster:
 4. 3 kanca ve 2 final; önerdiğin birleşim işaretli.
 5. Kancadaki soru → finaldeki cevap; anlatma cümlesi (seninki ve editörünki).
 6. `npm run voiceover -- listen` ile okunmuş metin: ses dosyalarının yolları (`open out/<slug>/metin/ses`), bölüm
-   tablosu (pencere, duraklama, bütçe, kelime, konuşulan süre), cümle cümle metin, `npm run text` sonucu.
+   tablosu (pencere, duraklama, bütçe, kelime, konuşulan süre), cümle cümle metin, `npm run text` sonucu (altyazı
+   sığması, okunuş, kaçınılacaklar, planlanan etiketlerin söz ve nicelik kontrolü dahil; metin bunlardan temiz
+   geçmeden onaya sunulmaz).
 7. Sahne türleri: hepsi kütüphanede mi? Yeni tür ya da varlık gerekiyorsa öneri, tahmini iş miktarı ve lisans.
 8. Ses planı. `videos/sablon/spec.json`'da `voiceover.tts` (sağlayıcı ve ses) varsa tahmini karakter (seçilen
    metnin okunuşlarıyla karakter sayısı) ve önerilen bütçe: tahmin × 1,5 (işaretli cümle alternatifleri ve yeniden
@@ -217,7 +219,8 @@ Otomatik: açıyı sen seç ve durma; seçim ve gerekçe Durak 1'e girer.
   reddeder.
 - **Nicelik tutarlılığı:** her rakamlı kaynağa `quantity` yaz (gerilim, akım, süre, hız, uzaklık, sıklık, diğer).
   Seslendirmede geçecek her büyüklük için tablo kur: seslendirmedeki büyüklük | etiket | nicelik | birim. Seslendirme
-  "akım" derken etiket mV (gerilim) gösteremez; ikisi aynı niceliği adlandırmalı. qa bunu da uyarır.
+  "akım" derken etiket mV (gerilim) gösteremez; ikisi aynı niceliği adlandırmalı. Etiket sütunu c'de metin.json
+  `labels`'ına girer ve `npm run text` onu metne karşı denetler; qa render sonrası yeniden uyarır.
 - Kullanıcıya kaynak listesini ve nicelik tablosunu kısaca göster ve c'ye geç.
 
 Otomatik: göstermeden c'ye geç; liste ve tablo Durak 1'e girer. Açının dayandığı bir iddia doğrulanamıyorsa ya da
@@ -265,12 +268,28 @@ kaynaklar çelişiyorsa Durak 1'de "Karar gerekiyor".
      "durationSec": 45,
      "sections": [{ "id": "kanca", "window": [0, 5], "phrases": ["…"] }],
      "options": { "kanca": [["…"], ["…"], ["…"]], "final": [["…"], ["…"]] },
-     "claims": [{ "claim": "…", "value": "…", "status": "verified" }]
+     "claims": [{ "claim": "…", "value": "…", "status": "verified" }],
+     "labels": [{ "text": "SANİYEDE 13,56 MİLYON KEZ", "cue": "alanın yönü", "offset": 0.8 }]
    }
    ```
+   `labels`: planladığın veri satırları ve veri çizgisi parçaları (b'deki nicelik tablosunun etiket sütunu, ritim
+   için 2–3 sn'de bir); `cue` göründüğü cümlenin başı, `offset` varsayılan 0,3 sn. e'de spec'e aynen geçer.
    Söz → karşılık ve anlatma cümlesi bu dosyaya **girmez** (editör kör okusun). `npm run text --
    out/<slug>/metin/metin.json` her seçenekle birlikte denetler: hata kalmaz; her uyarı düzeltilir ya da gerekçesi
    yazılır.
+
+   **Metne bağlı her denetim Durak 1'den önce çalışır; onaydan sonra metin yüzünden durma olmaz.** `npm run text`
+   taslakta spec'in sonra karşılaşacağı metin kontrollerinin hepsini yapar:
+   - altyazı sığması (`altyazi`): tarayıcıda, `npm run check` ile aynı yazı tipi, boyut ve genişlikle; her cümle
+     tek sayfaya ya da 2–6 kelimelik iki sayfaya sığmalı;
+   - telaffuz sözlüğü (`okunus`, `kisaltma-sonu`);
+   - kaçınılacak ifadeler (`kacinilacak`);
+   - planlanan etiketler: söyleneni göstermesi (`etiket-sozu`) ve nicelik tutarlılığı (`nicelik`), tahmini
+     zamanlamayla;
+   - "Peki" sınırı, açık final, soru kelimesiyle biten soru.
+
+   Onaydan sonra metin yüzünden bir durma olursa denetimde bir açık var demektir: önce sistemi düzelt (yukarıda
+   "Sorun bildirildiğinde önce sistemi düzelt").
 4. **Editör geçişi.** Agent aracıyla `metin-editoru` ajanını çalıştır (`.claude/agents/metin-editoru.md`; tür
    listede yoksa general-purpose ajana o dosyanın gövdesini ver). Ona **yalnız** metin.json'un yolunu ver: açı
    tablosunu, gerekçeni, taslak geçmişini, kendi anlatma cümleni verme. Dönen listede:
