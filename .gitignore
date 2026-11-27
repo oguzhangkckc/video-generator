@@ -3,3 +3,6 @@ out/
 .DS_Store
 *.log
 .env*
+.agents/
+.claude/skills/remotion-*
+skills-lock.json

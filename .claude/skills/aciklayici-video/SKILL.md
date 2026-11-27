@@ -13,7 +13,7 @@ Başlamadan önce oku:
 - `videos/gps-pilot/spec.json`: eksiksiz örnek (değerlerini değil kalıplarını örnek al)
 - `videos/sablon/spec.json`: yeni videonun başlangıcı
 
-Ortam: Node 22 (`nvm use 22`), her komut proje kökünden. ElevenLabs anahtarı `.env` içinde; içeriğini asla yazdırma,
+Ortam: `.nvmrc`'deki Node (`nvm use`), her komut proje kökünden. ElevenLabs anahtarı `.env` içinde; içeriğini asla yazdırma,
 komut satırına koyma.
 
 **★ = dur ve açık onay iste.** Onay gelmeden sonraki adıma geçme; kullanıcı değişiklik isterse aynı adımı tekrarla.

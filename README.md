@@ -7,7 +7,7 @@ Her video tek bir tarif dosyasından üretilir: `videos/<slug>/spec.json`. Görs
 ## Kurulum
 
 ```bash
-nvm use 22          # Node 22+ gerekir: script'ler şemayı doğrudan .ts olarak içe aktarır
+nvm use             # .nvmrc'deki sürüm; Node ≥ 22.18 gerekir: script'ler şemayı doğrudan .ts olarak içe aktarır
 npm install
 npm run studio      # önizleme; videos/ altındaki her tarif "videolar" klasöründe ayrı kompozisyon
 ```
