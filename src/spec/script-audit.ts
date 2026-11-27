@@ -5,8 +5,8 @@ import { avoidedIn } from "./avoid.ts";
 import { needsReading, splitToken, unreadable } from "./lexicon.ts";
 import { endsOnQuestionWord, sentencesOf } from "./sentences.ts";
 
-/** Rules a spec may knowingly break, named in `styleExceptions` as `{ rule, why }`. */
-export const WAIVABLE = ["peki-siniri", "acik-final"] as const;
+/** Rules a spec may knowingly break, named in `styleExceptions` as `{ rule, why }`; "etiket-sozu" is checked by resolve.ts. */
+export const WAIVABLE = ["peki-siniri", "acik-final", "etiket-sozu"] as const;
 export type WaivableRule = (typeof WAIVABLE)[number];
 
 export const PEKI_LIMIT = 2;

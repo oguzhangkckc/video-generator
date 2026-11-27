@@ -57,7 +57,7 @@ kullanılır.
   beklenmedik bir rakam ("Saniyenin onda biri.") ya da "ama" ile ters köşe ("Ama dalga burada duruyor."). **Art arda
   iki "Peki…?" cümlesi olmaz.** `npm run check` ikisini de hata sayar (`peki-siniri`, art arda "Peki").
 - **Kanca başlıkları seslendirmeyle aynı kelimeleri kullanır** (başlık ekrandayken söylenen kelimeler).
-- **Metin kalitesi.** Her metin bu beş testten geçer; denetleyen yanında yazılıdır. Skill c) adımında metni yazarın
+- **Metin kalitesi.** Her metin bu altı testten geçer; denetleyen yanında yazılıdır. Skill c) adımında metni yazarın
   bağlamını görmeyen bir editör ajanı (`.claude/agents/metin-editoru.md`) bu kurallara göre satır satır eleştirir.
   1. **Söz ve karşılık:** kancadaki soru finalde tam olarak, o soruya verilen bir cevapla karşılanır. Video açık bir
      soruyla (fragman gibi) bitmez; finalde yeni bir merak açılmaz. Son cümle soru olamaz
@@ -69,7 +69,10 @@ kullanılır.
   4. **Doğal Türkçe:** çeviri kokan ifadeler ("ateşleniyor") ve günlük anlamı farklı olan teknik terimler ("uyarılıyor")
      kullanılmaz. Liste `src/spec/avoid.ts`'te, telaffuz sözlüğünün yanında; `npm run check` listedekiler için uyarı
      verir (`kacinilacak`). Editör listede olmayanları da yakalar; tekrar edenler listeye eklenir.
-  5. **Anlatma testi:** izleyicinin videodan sonra bir arkadaşına tek cümleyle anlatabileceği şaşırtıcı bilgi metinle
+  5. **Özet doğru, özne doğru:** "Yani her…", "hepsi…" gibi bir özet ya da genelleme önceki her cümleyle uyuşur,
+     istisnası olmaz; bir parça anlatılırken özne o parçadır, bütün değil ("alt odalar kasılıyor", "kalp kasılıyor"
+     değil). Editör denetler.
+  6. **Anlatma testi:** izleyicinin videodan sonra bir arkadaşına tek cümleyle anlatabileceği şaşırtıcı bilgi metinle
      birlikte yazılır. Böyle bir cümle yoksa metin hazır değildir. Editör bu cümleyi metinden kendisi çıkarır; ikisi
      farklıysa metin söylediğini sandığı şeyi söylemiyordur.
 - **Konuşma hızı** yalnızca konuşulan sürede ölçülür: **2,6–3,0 kelime/sn** (hedef 2,8). Duraklamalar bunun üstüne
@@ -135,6 +138,11 @@ Sıra her zaman aynıdır:
 
 - **2–3 saniyede bir** yeni rakam ya da etiket (`labels`) görünür. Etiket, söylendiği kelimeye bağlanır
   (`{ "cue": "…" }`) ve sesi (`sound`) onunla birlikte çalar.
+- **Etiket söyleneni gösterir.** Etiketin (ve vurgulanan veri çizgisi etiketinin) kelimelerinin en az yarısı
+  göründüğü andan 1 sn önce ile 1,5 sn sonrası arasında söylenir (ek alabilir: "BEKLEME" ~ "bekliyor"); etikette rakam
+  varsa o arada bir sayı da söylenir. Metin değişince geride kalan etiket ya da metnin sade kelimeyle anlattığı
+  şeyin teknik adı ("SA DÜĞÜMÜ" ↔ "hücre kümesi") `npm run check` hatasıdır (`src/spec/label-speech.ts`). Ya söyle,
+  ya etiketi söylenen kelimeyle yaz, ya da kaldır.
 - Ekranda aynı anda en fazla 4 veri satırı bulunur.
 
 ## Kamera ve geçişler
@@ -273,7 +281,7 @@ Still kareler incelenirken (skill adım e) her madde tek tek kontrol edilir:
 - [ ] Kelime sayısı bütçenin içinde ((pencere − duraklamalar) × 2,8); hiçbir altyazı satırı taşmıyor.
 - [ ] Cümle harf/kısaltma/sembolle bitmiyor; soru, soru kelimesiyle bitmiyor; her kısaltma sözlükte.
 - [ ] Seslendirmedeki her büyüklük, o an ekrandaki etiketle aynı nicelik (gerilim/akım/süre/hız).
-- [ ] 2–3 sn'de bir yeni rakam/etiket var; aynı anda en fazla 4 veri satırı.
+- [ ] 2–3 sn'de bir yeni rakam/etiket var; aynı anda en fazla 4 veri satırı; her etiket o an söyleneni gösteriyor.
 - [ ] Renkler anlamına uygun: turuncu = senin verin, kırmızı = tehlike, camgöbeği = ikincil.
 - [ ] Hiçbir yazı güvenli alanlara (alt %15, sağ 120 px) ya da altyazının üstüne binmiyor; işaretçiyi örtmüyor.
 - [ ] Hiçbir karede kamera donmuyor; her sahne değişimi `transitions`'ta (içinden geçme > şekil eşleştirme >

@@ -130,7 +130,9 @@ Birini gerekçesiyle öner. **Dur.**
    - `npm run text` sonucu, ses dosyaları
    - her rakamın hangi kaynağa dayandığı
 
-**Dur.** Kullanıcı kanca ve finali seçer; seçim e) adımında `voiceover.sections`'a girer.
+**Dur.** Kullanıcı kanca ve finali seçer. Onaylanan metni commit edilen yere kaydet: `videos/<slug>/metin.json`
+(seçilen kanca ve final `sections`'ta; `out/` gitignore'da). e) adımında `voiceover.sections` buradan gelir;
+`npm run new` bu klasörde yalnız `spec.json` yoksa çalışır.
 
 ## d) Sahne planı ★
 
@@ -176,11 +178,13 @@ Birini gerekçesiyle öner. **Dur.**
 
 1. `npm run new -- <slug> "<başlık>"` (slug: küçük harf, rakam ve tire).
 2. `videos/<slug>/spec.json`'u yaz:
-   - `voiceover.sections`: c'de kullanıcının seçtiği kanca ve finalle metin, birebir
+   - `voiceover.sections`: `videos/<slug>/metin.json`'daki onaylı metin, birebir
    - `marks`, `curves`, `layers`, üst yazılar, `sound`
    - `sources` (b'den), `credits` (aşağıdaki kurallara göre)
    - varsa `styleExceptions`
-3. Konuşmaya bağlı her zamanı cümleye bağla (`{ "cue": "…", "offset": 0.1 }`); sabit saniye yalnızca sesten bağımsız
+3. Her etiket o an söylenen kelimeyi gösterir (STYLE "Ritim"; `npm run check` hatası): metin değiştiyse silinen
+   cümlelerin etiketlerini kaldır, teknik adı metindeki kelimeyle değiştir (veri çizgisi etiketleri dahil).
+   Konuşmaya bağlı her zamanı cümleye bağla (`{ "cue": "…", "offset": 0.1 }`); sabit saniye yalnızca sesten bağımsız
    kamera hareketleri için. Ses henüz yok; altyazı tahmini zamanlamayla (2,8 kelime/sn + duraklamalar) çalışır.
 4. `npm run check` temiz olmalı (metin denetimi dahil: hata yok, uyarılar c'de çözüldü ya da gerekçeli).
 5. Kilit anları render et: her bölümün ilk saniyesi, her etiketin göründüğü an +0,3 sn, her geçişin ortası, geri

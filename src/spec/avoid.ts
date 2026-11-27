@@ -14,6 +14,7 @@ export const AVOID: Avoid[] = [
   { match: "deneyimle", why: "çeviri (İng. experience)", instead: "yaşa-, gör-, hisset-" },
   { match: "anlamına gel", why: "çeviri (İng. it means)", instead: "'yani', 'demek ki'" },
   { match: "söz konusu", why: "resmî yazı dili", instead: "'bu', ya da adını söyle" },
+  { match: "sıkış", why: "kalp için günlükte 'kalp sıkışması' (kriz) demek", instead: "kasılıyor, kanı itiyor" },
   { match: "bir şekilde", why: "belirsiz dolgu (İng. somehow)", instead: "nasıl olduğunu söyle ya da sil" },
 ];
 

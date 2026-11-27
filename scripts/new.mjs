@@ -10,8 +10,9 @@ if (!title) {
   console.error('Usage: node scripts/new.mjs <slug> "<başlık>"');
   process.exit(1);
 }
-if (existsSync(videoDir(slug))) {
-  console.error(`${path.relative(ROOT, videoDir(slug))} already exists`);
+// The folder may already hold the approved script (videos/<slug>/metin.json, skill step c).
+if (existsSync(path.join(videoDir(slug), "spec.json"))) {
+  console.error(`${path.relative(ROOT, videoDir(slug))}/spec.json already exists`);
   process.exit(1);
 }
 

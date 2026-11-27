@@ -10,6 +10,7 @@ import { SANS } from "../kit/theme";
 import { KEY_REF, MARK_REF } from "./primitives";
 import { ResolvedSpec, Timing, VideoSpec, type LayerOf, type Spec } from "./schema";
 import { sceneFindings } from "./scenes";
+import { AFTER, BEFORE, unspokenLabels } from "./label-speech.ts";
 import { auditScript, waivedRules } from "./script-audit.ts";
 import {
   captionPages,
@@ -193,9 +194,18 @@ const words = (text: string) =>
  * titles reuse the words being spoken, and with a `peak` mark the strongest moment sits in the last third with no long section after it.
  */
 const checkScript = (raw: RawSpec, spec: Spec, phrases: Phrase[]) => {
-  const findings = auditScript(raw.voiceover.sections, { template: raw.template, waived: waivedRules(raw.styleExceptions) });
+  const waived = waivedRules(raw.styleExceptions);
+  const findings = auditScript(raw.voiceover.sections, { template: raw.template, waived });
   const broken = findings.find((f) => f.level === "error" && !f.waived);
   if (broken) fail("voiceover", broken.message);
+  if (!raw.template && !waived.includes("etiket-sozu")) {
+    const traceLabels = spec.layers.flatMap((l) => (l.type === "trace" ? l.parts.flatMap((t) => t.lit.map(([at]) => ({ text: t.text, at }))) : []));
+    const unsaid = unspokenLabels([...spec.labels, ...traceLabels], phrases);
+    if (unsaid.length) {
+      const lines = unsaid.map((u) => `"${u.text}" at ${u.at.toFixed(1)} s: ${[u.missing.length ? `not said: ${u.missing.join(", ")}` : "", u.number ? "shows a number while none is said" : ""].filter(Boolean).join("; ")}`);
+      fail("labels", `${unsaid.length} label(s) show what the voice-over does not say around them (−${BEFORE}…+${AFTER} s) — say it, reword the label, or drop it (styleExceptions rule "etiket-sozu"):\n  ${lines.join("\n  ")}`);
+    }
+  }
   if (!raw.template) {
     spec.titles.forEach((title, i) => {
       const spoken = new Set(phrases.filter((p) => p.end > title.from && p.start < title.to).flatMap((p) => words(p.text)));

@@ -21,7 +21,7 @@
         { "at": 3, "azimuth": 55, "elevation": 12, "distance": 2.4, "target": "Lenses_low" },
         { "at": 6.2, "azimuth": 95, "elevation": 16, "distance": 2.5 },
         { "at": 8.4, "azimuth": 120, "elevation": 15, "distance": 2.5 },
-        { "at": 10, "azimuth": 140, "elevation": 14, "distance": 3.0, "target": [0, 0.3, 0] }
+        { "at": 10, "azimuth": 140, "elevation": 14, "distance": 3, "target": [0, 0.3, 0] }
       ],
       "highlight": [
         { "part": "Lenses_low", "color": "you", "range": [1.8, 4.4] },
@@ -116,5 +116,11 @@
       "url": "https://www.remotion.dev/license"
     }
   ],
-  "styleExceptions": ["Tür demosu: STYLE'ın kanca, bölüm ve final akışı uygulanmaz."]
+  "styleExceptions": [
+    "Tür demosu: STYLE'ın kanca, bölüm ve final akışı uygulanmaz.",
+    {
+      "rule": "etiket-sozu",
+      "why": "Tür demosu: seslendirme yer tutucu, etiketler sahne türünün adımlarını adlandırır."
+    }
+  ]
 }

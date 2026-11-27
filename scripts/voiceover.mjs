@@ -5,7 +5,7 @@
 //   node scripts/voiceover.mjs build <slug> [voice] [--provider p] [--model id] [--speed 1.0] [--widen] [--offline]
 //                                          [--estimate] [--over-budget]   → public/videos/<slug>/vo.wav + videos/<slug>/timing.json
 //   node scripts/voiceover.mjs pick <slug> <sentence#> <take>              → spec voiceover.picks, then build --offline
-//   node scripts/voiceover.mjs listen <metin.json> [--provider say]       → out/<slug>/metin/ses/: a script draft
+//   node scripts/voiceover.mjs listen <metin.json> [--provider say] [--sections a,b] → out/<slug>/metin/ses/: a script draft
 //                                          (skill step c) read by the free placeholder voice; no spec, timing or credit
 // Every sentence is read on its own, with its neighbours as context, and cached by what its sound depends on (not the
 // context), in out/tts-cache: only changed sentences are paid for again. Before anything is sent, the takes to make
@@ -402,7 +402,12 @@ const listen = async (file, flags) => {
   const voice = provider.defaults.voice;
   const dir = path.join(outDir(slug), "metin", "ses");
   mkdirSync(dir, { recursive: true });
-  for (const variant of variantsOf(draft)) {
+  const only = flags.sections?.split(",");
+  const variants = only
+    ? [{ name: `tam-${only.join("-")}`, sections: draft.sections.filter((s) => only.includes(s.id)) }]
+    : variantsOf(draft);
+  if (only && variants[0].sections.length !== only.length) throw new Error(`--sections: no such section among ${draft.sections.map((s) => s.id).join(", ")}`);
+  for (const variant of variants) {
     const clips = [];
     const rows = [];
     for (const [k, section] of variant.sections.entries()) {
@@ -428,6 +433,7 @@ const { positional, flags } = parseArgs(process.argv.slice(2), {
   provider: "string",
   estimate: "boolean",
   "over-budget": "boolean",
+  sections: "string",
 });
 const [cmd, ...args] = positional;
 const speed = flags.speed ?? 1;
@@ -506,7 +512,7 @@ if (cmd === "voices") {
       "                                | sample <slug> <voice>... [--provider p] [--model id] [--speed 1.0] [--estimate]\n" +
       "                                | build <slug> [voice] [--provider p] [--model id] [--speed 1.0] [--widen] [--offline] [--estimate] [--over-budget]\n" +
       "                                | pick <slug> <sentence#> <take>\n" +
-      "                                | listen <metin.json> [--provider say]",
+      "                                | listen <metin.json> [--provider say] [--sections id,id]",
   );
   process.exit(1);
 }

@@ -1,6 +1,7 @@
 // Where a trace's part labels go (STYLE.md "Veri çizgisi etiketleri"): a stretch (PR, a duration) is bracketed under
 // the line, a point or wave (P, QRS, T) is labelled above its peak with a short leader. No label touches another or
-// crosses the line; labels that would collide slide sideways, then step up (or, for brackets, down) a row.
+// crosses the line, and no leader runs through another label (qa's rule); labels that would collide slide sideways,
+// then step up (or, for brackets, down) a row.
 import type { Box } from "../../overlays/geometry";
 import type { Vec } from "../camera2d/camera";
 
@@ -29,6 +30,16 @@ const ROWS = 4;
 
 const overlaps = (a: Box, b: Box) => a.x1 < b.x2 + GAP && a.x2 > b.x1 - GAP && a.y1 < b.y2 + GAP && a.y2 > b.y1 - GAP;
 
+/** Whether a leader passes through a label box (sampled; leaders are a few dozen px long). */
+const crosses = ([[ax, ay], [bx, by]]: [Vec, Vec], b: Box) => {
+  for (let i = 0; i <= 24; i++) {
+    const x = ax + ((bx - ax) * i) / 24;
+    const y = ay + ((by - ay) * i) / 24;
+    if (x > b.x1 - GAP / 2 && x < b.x2 + GAP / 2 && y > b.y1 - GAP / 2 && y < b.y2 + GAP / 2) return true;
+  }
+  return false;
+};
+
 /** The line's highest (smallest y) and lowest point between two screen x. */
 const extent = (line: Vec[], x1: number, x2: number) => {
   let top = Infinity;
@@ -55,7 +66,7 @@ export const placeLabels = (parts: PartPlace[], line: Vec[], area?: Box): Placed
   const placed: PlacedLabel[] = [];
   let within = Boolean(area);
   const inside = (b: Box) => !within || !area || (b.x1 >= area.x1 && b.x2 <= area.x2 && b.y1 >= area.y1 && b.y2 <= area.y2);
-  const clear = (b: Box) => inside(b) && !placed.some((p) => overlaps(b, p)) && (() => {
+  const clear = (b: Box) => inside(b) && !placed.some((p) => overlaps(b, p) || (p.leader && crosses(p.leader, b))) && (() => {
     const { top, bottom } = extent(line, b.x1 - GAP, b.x2 + GAP);
     return !(b.y2 + GAP > top && b.y1 - GAP < bottom);
   })();
@@ -80,7 +91,8 @@ export const placeLabels = (parts: PartPlace[], line: Vec[], area?: Box): Placed
           const { top } = extent(line, x1 - GAP, x1 + p.width + GAP);
           const y2 = Math.min(top, peak[1]) - ABOVE - row * (p.height + GAP);
           const box = { x1, y1: y2 - p.height, x2: x1 + p.width, y2 };
-          if (clear(box)) return { ...box, text: p.text, marker: "leader", leader: [[peak[0], peak[1] - 6], [cx, y2 + 4]] };
+          const leader: [Vec, Vec] = [[peak[0], peak[1] - 6], [cx, y2 + 4]];
+          if (clear(box) && !placed.some((q) => crosses(leader, q))) return { ...box, text: p.text, marker: "leader", leader };
         }
       }
       return null;

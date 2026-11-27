@@ -1,0 +1,147 @@
+{
+  "slug": "gps",
+  "durationSec": 60,
+  "sections": [
+    {
+      "id": "kanca",
+      "window": [
+        0,
+        5.58
+      ],
+      "phrases": [
+        "Cebinde uydu alıcısı var,",
+        "ama uydular seni görmüyor.",
+        "Yerini nasıl biliyor?"
+      ]
+    },
+    {
+      "id": "uydular",
+      "window": [
+        5.58,
+        15.94
+      ],
+      "phrases": [
+        "Yirmi bin kilometre yukarıda",
+        "otuzdan fazla uydu dönüyor.",
+        "Her birinde bir atom saati var.",
+        "Hepsi durmadan fısıldıyor:",
+        "“Saat şu an bu, ben buradayım.”"
+      ]
+    },
+    {
+      "id": "uzaklik",
+      "window": [
+        15.94,
+        27.68
+      ],
+      "phrases": [
+        "Fısıltı ışık hızıyla geliyor;",
+        "sana yetmiş milisaniyede ulaşıyor.",
+        "Telefonun, fısıltıdaki saati",
+        "kendi saatiyle karşılaştırıyor.",
+        "Şimşekle gök gürültüsü gibi:",
+        "fark ne kadar büyükse",
+        "uydu o kadar uzakta."
+      ]
+    },
+    {
+      "id": "kesisme",
+      "window": [
+        27.68,
+        45.87
+      ],
+      "phrases": [
+        "Tek bir uzaklık yetmez:",
+        "seni dev bir kürenin",
+        "yüzeyinde bir yere koyar.",
+        "İkinci uydu küreyi çembere,",
+        "üçüncüsü iki noktaya indirir.",
+        "Ama telefonundaki saat",
+        "atom saati değil.",
+        "Saniyenin milyonda biri şaşsa,",
+        "haritada üç yüz metre kayarsın.",
+        "Dördüncü uydu telefonunun",
+        "saatini de düzeltiyor."
+      ]
+    },
+    {
+      "id": "final",
+      "window": [
+        45.87,
+        56.55
+      ],
+      "phrases": [
+        "Dört küre tek noktada buluşuyor:",
+        "sen tam oradasın.",
+        "Yani telefonun yerini,",
+        "saatleri karşılaştırarak biliyor.",
+        "Adındaki konum seni yanıltmasın:",
+        "GPS aslında dev bir saat."
+      ]
+    }
+  ],
+  "options": {
+    "kanca": [
+      [
+        "Cebinde uydu alıcısı var,",
+        "ama uydular seni görmüyor.",
+        "Yerini nasıl biliyor?"
+      ]
+    ],
+    "final": [
+      [
+        "Dört küre tek noktada buluşuyor:",
+        "sen tam oradasın.",
+        "Yani telefonun yerini,",
+        "saatleri karşılaştırarak biliyor.",
+        "Adındaki konum seni yanıltmasın:",
+        "GPS aslında dev bir saat."
+      ]
+    ]
+  },
+  "claims": [
+    {
+      "claim": "GPS uyduları yaklaşık 20.200 km yükseklikte",
+      "value": "20.200 km",
+      "status": "verified"
+    },
+    {
+      "claim": "Takımyıldızda otuzdan fazla çalışan uydu var",
+      "value": "30+",
+      "status": "verified"
+    },
+    {
+      "claim": "Uydular konumlarını ve atom saatlerinden kesin zamanı yayınlar (gps.gov)",
+      "value": "atom saati",
+      "status": "verified"
+    },
+    {
+      "claim": "Sinyal yaklaşık 70 milisaniyede ulaşıyor",
+      "value": "≈0,070 sn",
+      "status": "simplified"
+    },
+    {
+      "claim": "Bir uzaklık alıcıyı bir kürenin üstüne koyar; ikincisi çembere, üçüncüsü iki noktaya indirir (USQ GPS ders kitabı, SEOS)",
+      "value": "küre → çember → 2 nokta",
+      "status": "simplified"
+    },
+    {
+      "claim": "Dördüncü uydunun ölçümü alıcının atom saati ihtiyacını kaldırır; alıcı enlem, boylam, yükseklik ve zamanı birlikte çözer (gps.gov)",
+      "value": "en az 4 uydu",
+      "status": "verified"
+    },
+    {
+      "claim": "Saatte 1 µs hata ≈ 300 m uzaklık hatası",
+      "value": "≈300 m",
+      "status": "simplified"
+    },
+    {
+      "claim": "GPS alıcıları uyduların atom saatlerine eşlenir; zamanı 100 nanosaniye içinde verir (gps.gov Timing)",
+      "value": "100 ns",
+      "status": "verified"
+    }
+  ],
+  "notes": [
+    "Kanca söylenirken ekranda haritadaki konum işareti (mavi nokta) görünür (kullanıcı, 2026-11-27)."
+  ]
+}

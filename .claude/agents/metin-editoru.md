@@ -46,6 +46,12 @@ Her cümleyi şu kurallarla sına; bir cümlede birden fazla sorun varsa ayrı s
   "ama" ile ters köşe. Tekdüze açılışları işaretle.
 - **Kavram adı:** ad izleyicinin bildiği bir şeyse (EKG, GPS…) final adı yalnızca söylüyor mu, yoksa ad üzerinden
   (kökeni ya da anlamı) bir şaşırtma veriyor mu?
+- **Özet ve genelleme:** "Yani her…", "hepsi…", "her zaman…" gibi bir özet ya da genelleme cümlesini önceki
+  cümlelerle tek tek karşılaştır. Söylediği her şey için önceki bir cümleyi göster; bir istisna varsa (ör. "her
+  tepe bir oda" denirken son tepe bir hazırlık anlatıyorsa) işaretle.
+- **Parça ve bütün:** bir parçayı anlatırken bütünü söyleyen ifadeyi yakala ("kalp kasılıyor" mu, yoksa "alt odalar
+  kasılıyor" mu?). Özne, o an anlatılan parçadan büyükse ve bütün için doğru değilse işaretle; önceki cümlelerle
+  çelişiyorsa (üst odalar zaten kasıldıysa) belirt.
 - Ayrıca STYLE "Anlatım"ın diğer kuralları: "sen" hitabı, tek somut yolculuk, cümle kısaltmayla bitmez, soru soru
   kelimesiyle bitmez.
 

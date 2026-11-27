@@ -113,5 +113,11 @@
       "url": "https://www.remotion.dev/license"
     }
   ],
-  "styleExceptions": ["Tür demosu: STYLE'ın kanca, bölüm ve final akışı uygulanmaz."]
+  "styleExceptions": [
+    "Tür demosu: STYLE'ın kanca, bölüm ve final akışı uygulanmaz.",
+    {
+      "rule": "etiket-sozu",
+      "why": "Tür demosu: seslendirme yer tutucu, etiketler sahne öğelerini paket oraya vardığında adlandırır."
+    }
+  ]
 }

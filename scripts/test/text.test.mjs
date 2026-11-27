@@ -123,3 +123,29 @@ test("a draft's hook and final options each replace one end of the text", () => 
   assert.deepEqual(v[2].sections.map((s) => s.phrases[0]), ["K2?", "G.", "F0."]);
   assert.deepEqual(v[3].sections.map((s) => s.phrases[0]), ["K0?", "G.", "F1."]);
 });
+
+test("a label must show what the voice-over says around it", async () => {
+  const { unspokenLabels, sameWord } = await import("../../src/spec/label-speech.ts");
+  assert.equal(sameWord("bekleme", "bekliyor"), true);
+  assert.equal(sameWord("sağın", "sağ"), true);
+  assert.equal(sameWord("karıncıklar", "odalar"), false);
+  assert.equal(sameWord("sa", "sağ"), false);
+  const phrases = [
+    { text: "Kalbinin kendi saati var:", start: 10, end: 11.2 },
+    { text: "sağ üst köşede bir hücre kümesi.", start: 11.4, end: 13 },
+    { text: "Emir alt odaların", start: 20, end: 21 },
+    { text: "kapısında bekliyor:", start: 21.2, end: 22 },
+    { text: "saniyenin onda biri kadar.", start: 22.2, end: 23.3 },
+  ];
+  const texts = (labels) => unspokenLabels(labels, phrases).map((u) => u.text);
+  // Lines left over after their sentence was cut, and a technical name the script replaced.
+  assert.deepEqual(texts([{ text: "DAKİKADA 60–100", at: 12 }, { text: "SA DÜĞÜMÜ", at: 12 }, { text: "KARINCIKLAR", at: 21 }]), [
+    "DAKİKADA 60–100",
+    "SA DÜĞÜMÜ",
+    "KARINCIKLAR",
+  ]);
+  // Said with a suffix or narrowed vowel, half the words said, a number said in words, a unit not counted as a term.
+  assert.deepEqual(texts([{ text: "◀ SENİN SAĞIN", at: 11.7 }, { text: "KALBİN SAATİ", at: 12 }, { text: "KAPI", at: 20.4 }, { text: "≈ 0,1 SN BEKLEME", at: 22.4 }]), []);
+  // A number shown while none is said is reported even when the word is said.
+  assert.deepEqual(unspokenLabels([{ text: "KAPI 3", at: 20.1 }], phrases.slice(2, 4)).map((u) => u.number), [true]);
+});
