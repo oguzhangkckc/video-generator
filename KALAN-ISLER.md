@@ -149,6 +149,9 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
     kanı…" cümlesinde tam kalp planı; bekleme etiketleri QRS'ten 0,9 sn önce kalkar.
   - qa `--layout`: 0 hata, 2 uyarı (kenar; final bölümünde tam siluet yok). gps-pilot regresyonu birebir, demo-trace
     temiz.
+- **EKG final yerleşimi, seslendirmeden sonra yeniden kurulacak:** finalde "kalbin elektrikle yazdığı yazı" denirken
+  veri şeridi kayboluyor ve kalbin tamamı görünmüyor (qa'yı temizlemek için yapılan değişiklik). Seslendirmeden sonra
+  final, söylenen nesneler (şerit ve kalp) görünür kalacak şekilde yeniden kurulur.
 - **Veri çizgisi etiket yerleşimi** (`src/kit/scenes/trace/labels.ts`): kılavuzu başka bir etiketten geçen yer
   seçilmez (qa'nın kuralı artık yerleştirmede de).
 - **Etiket ↔ seslendirme kontrolü** (`src/spec/label-speech.ts`, `npm run check` hatası, muafiyet `etiket-sozu`):
@@ -172,6 +175,15 @@ Kaynak: render + `npm run qa -- <slug> --layout` (2026-11-24, sistem kuralları 
 demo-trace temiz.
 
 **Planda olup yapılmayanlar:** yok.
+
+## Sistem notları (henüz uygulanmadı)
+
+- **Bağlam kuralı görsele gönderme yapan kelimeleri de kapsamalı:** "Seslendirmede adı geçen nesne o anda karede
+  görünür" kuralı (STYLE "Kompozisyon → Bağlam", `say` takma adları) "yazı", "çizgi" gibi doğrudan ekrandaki bir
+  görsele gönderme yapan kelimeleri de kapsamalı (ör. veri şeridinin `say`'i: "çizgi", "yazı", "tepe"). Ayrıca qa'yı
+  temizlemek için yapılan bir yerleşim değişikliği söylenen nesneyi ekrandan kaldırmamalı: kontrol, söylenen bir
+  nesnenin o cümle sırasında gizlenmesini (görünürlük `out`'u, kadraj dışı) hata saymalı. Örnek vaka: EKG finali
+  (yukarıda).
 
 ## Sıradaki videolar ve fikirler
 
