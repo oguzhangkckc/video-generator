@@ -5,6 +5,8 @@
 //   node scripts/voiceover.mjs build <slug> [voice] [--provider p] [--model id] [--speed 1.0] [--widen] [--offline]
 //                                          [--estimate] [--over-budget]   → public/videos/<slug>/vo.wav + videos/<slug>/timing.json
 //   node scripts/voiceover.mjs pick <slug> <sentence#> <take>              → spec voiceover.picks, then build --offline
+//   node scripts/voiceover.mjs listen <metin.json> [--provider say] [--sections a,b] → out/<slug>/metin/ses/: a script draft
+//                                          (skill step c) read by the free placeholder voice; no spec, timing or credit
 // Every sentence is read on its own, with its neighbours as context, and cached by what its sound depends on (not the
 // context), in out/tts-cache: only changed sentences are paid for again. Before anything is sent, the takes to make
 // and their characters are listed with what is left on the account; past the video's budget (voiceover.tts.budget)
@@ -20,6 +22,7 @@ import { spoken, spokenWords } from "../src/spec/lexicon.ts";
 import { PAUSE, pauseAfter } from "../src/spec/pauses.ts";
 import { sentencesOf } from "../src/spec/sentences.ts";
 import { parseArgs } from "./lib/args.mjs";
+import { readDraft, variantsOf } from "./lib/draft.mjs";
 import { flagText, writeReview } from "./lib/review.mjs";
 import { PROSODY, analyse, measureProsody, openPauses, phraseBounds, phraseRanges, trimToSound } from "./lib/speech.mjs";
 import { api } from "./lib/tts/elevenlabs.mjs";
@@ -369,6 +372,59 @@ const build = async (slug, voiceArg, flags) => {
   if (specChanged) console.log(`${path.relative(ROOT, specFile)}${flags.widen ? " (windows and durationSec moved — check marks tied to sections)" : ""}`);
 };
 
+/** A section read sentence by sentence and joined with its STYLE pauses, as build does. */
+const readSection = async (ctx, section, voice) => {
+  const pieces = [];
+  const sentences = sentencesOf([section]);
+  for (const [j, sentence] of sentences.entries()) {
+    const phrases = section.phrases.slice(sentence.first, sentence.last + 1);
+    const request = {
+      text: spoken(phrases.join(" ")),
+      phrases: phrases.map(spoken),
+      pauses: phrases.map((p) => pauseAfter(p)),
+      seed: seedOf(sentence.text),
+      speed: 1,
+      voice,
+      stress: [],
+    };
+    pieces.push(await take(ctx, request, phrases));
+    if (j < sentences.length - 1) pieces.push(silence(pauseAfter(phrases.at(-1))));
+  }
+  return withPauses(concat(pieces), section.phrases);
+};
+
+const listen = async (file, flags) => {
+  const provider = providerOf(flags.provider ?? "say");
+  if (!provider.placeholder) throw new Error("listen only reads drafts with the free placeholder voice (--provider say); it never spends credits");
+  const draft = readDraft(path.resolve(file));
+  const slug = requireSlug(draft.slug);
+  const ctx = { slug, provider };
+  const voice = provider.defaults.voice;
+  const dir = path.join(outDir(slug), "metin", "ses");
+  mkdirSync(dir, { recursive: true });
+  const only = flags.sections?.split(",");
+  const variants = only
+    ? [{ name: `tam-${only.join("-")}`, sections: draft.sections.filter((s) => only.includes(s.id)) }]
+    : variantsOf(draft);
+  if (only && variants[0].sections.length !== only.length) throw new Error(`--sections: no such section among ${draft.sections.map((s) => s.id).join(", ")}`);
+  for (const variant of variants) {
+    const clips = [];
+    const rows = [];
+    for (const [k, section] of variant.sections.entries()) {
+      const clip = await readSection(ctx, section, voice);
+      const window = section.window ? section.window[1] - section.window[0] : undefined;
+      rows.push(`${section.id} ${(clip.pcm.length / SAMPLE_RATE).toFixed(1)} sn${window ? ` / pencere ${window.toFixed(1)}` : ""}`);
+      clips.push(clip);
+      if (k < variant.sections.length - 1) clips.push(silence(PAUSE.section));
+    }
+    const out = path.join(dir, `${variant.name}.wav`);
+    const all = concat([silence(0.3), ...clips, silence(0.5)]);
+    writeVoice(out, all.pcm);
+    console.log(`${path.relative(ROOT, out)}  ${(all.pcm.length / SAMPLE_RATE).toFixed(1)} sn  (${rows.join(", ")})`);
+  }
+  console.log(`\nGeçici ses (${voice}): yalnız metni dinlemek için; tonlama ve hız gerçek sesi temsil etmez. Spec, timing.json ve vo.wav değişmedi.`);
+};
+
 const { positional, flags } = parseArgs(process.argv.slice(2), {
   model: "string",
   speed: "number",
@@ -377,6 +433,7 @@ const { positional, flags } = parseArgs(process.argv.slice(2), {
   provider: "string",
   estimate: "boolean",
   "over-budget": "boolean",
+  sections: "string",
 });
 const [cmd, ...args] = positional;
 const speed = flags.speed ?? 1;
@@ -430,6 +487,9 @@ if (cmd === "voices") {
   }
 } else if (cmd === "build") {
   await build(requireSlug(args[0]), args[1], flags);
+} else if (cmd === "listen") {
+  if (!args[0]) throw new Error("Usage: listen <out/<slug>/metin/metin.json> [--provider say]");
+  await listen(args[0], flags);
 } else if (cmd === "pick") {
   const slug = requireSlug(args[0]);
   const [n, seed] = [Number(args[1]), Number(args[2])];
@@ -451,7 +511,8 @@ if (cmd === "voices") {
     `Usage: node scripts/voiceover.mjs voices [--provider ${Object.keys(PROVIDERS).join("|")}]\n` +
       "                                | sample <slug> <voice>... [--provider p] [--model id] [--speed 1.0] [--estimate]\n" +
       "                                | build <slug> [voice] [--provider p] [--model id] [--speed 1.0] [--widen] [--offline] [--estimate] [--over-budget]\n" +
-      "                                | pick <slug> <sentence#> <take>",
+      "                                | pick <slug> <sentence#> <take>\n" +
+      "                                | listen <metin.json> [--provider say] [--sections id,id]",
   );
   process.exit(1);
 }

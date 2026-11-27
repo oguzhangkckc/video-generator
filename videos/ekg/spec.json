@@ -1,84 +1,84 @@
 {
   "title": "Bu çizgi ne anlatıyor?",
   "lang": "tr",
-  "durationSec": 58.8,
+  "durationSec": 64.4,
   "voiceover": {
     "voice": "ElevenLabs Alice (Xb7hH8MSUJpSbSDYk0k2), eleven_multilingual_v2",
     "sections": [
       {
         "id": "kanca",
-        "window": [0, 5.66],
-        "phrases": ["Bu çizgiyi mutlaka görmüşsündür.", "Ama okumayı kimse öğretmedi.", "Bu çizgi ne anlatıyor?"]
+        "window": [0, 6.85],
+        "phrases": [
+          "Bu çizgiyi dizilerde mutlaka görmüşsündür.",
+          "Ama sana okumayı kimse öğretmedi.",
+          "Bu çizgi ne anlatıyor?"
+        ]
       },
       {
         "id": "cihaz",
-        "window": [5.66, 16.12],
+        "window": [6.85, 16.86],
         "phrases": [
-          "Peki cihaz bunu nasıl duyuyor?",
-          "Göğsündeki elektrotlarla.",
-          "Kalbinin elektriği cildine ulaşıyor:",
-          "gerilimi, kalem pilin binde birinden az.",
-          "Cihazın kendi akımı ise",
-          "o kadar küçük ki hissedemezsin."
+          "Onu kalbin kendisi çiziyor.",
+          "Her vuruştan önce kendine",
+          "elektrikle bir emir yolluyor.",
+          "Göğsündeki elektrotlar emri yakalıyor;",
+          "gerilimi, kalem pilin binde birinden az."
         ]
       },
       {
         "id": "kaynak",
-        "window": [16.12, 27.24],
+        "window": [16.86, 27.32],
         "phrases": [
-          "Peki bu elektrik nereden geliyor?",
-          "Kalbinin sağ üst köşesinden.",
-          "Bir hücre kümesi ateşleniyor:",
-          "dakikada altmış ila yüz kez.",
-          "Dalga kulakçıklar boyunca yayılırken",
-          "ilk küçük tepe çiziliyor: P dalgası."
+          "Kalbinin kendi saati var:",
+          "sağ üst köşede bir hücre kümesi.",
+          "Her vuruşun emri orada doğuyor.",
+          "Önce üst odalara yayılıyor;",
+          "çizgide ilk küçük tepe."
         ]
       },
       {
         "id": "bekleme",
-        "window": [27.24, 37.11],
+        "window": [27.32, 36.61],
         "phrases": [
-          "Peki ardından neden düz gidiyor?",
-          "Dalga tek bir kapıda bekliyor:",
+          "Ama sonra çizgi düzleşiyor.",
+          "Emir alt odaların",
+          "kapısında bekliyor:",
           "saniyenin onda biri kadar.",
-          "Kan aşağı dolsun diye.",
-          "Bu düzlük, PR bölümü."
+          "Üst odalar kanı alt odalara itsin diye."
         ]
       },
       {
         "id": "qrs",
-        "window": [37.11, 49.2],
+        "window": [36.61, 56.74],
         "phrases": [
           "Peki ya o büyük sivri tepe?",
-          "Kapı açılıyor, dalga hızlanıyor;",
-          "karıncıklar birden uyarılıyor.",
-          "İşte QRS: asıl vuruşun işareti.",
-          "Kas bir an sonra kasılıyor.",
-          "Sonra T dalgası geliyor: toparlanma."
+          "Kapı açılıyor,",
+          "emir alt odalara yayılıyor.",
+          "Alt odalar ancak bundan sonra kasılıyor:",
+          "önce emir, sonra vuruş.",
+          "Son tepe:",
+          "alt odalar yeni emre hazırlanıyor.",
+          "Yani küçük tepe üst odalar,",
+          "ilk düzlük kapıdaki bekleme,",
+          "sivri tepe alt odalar,",
+          "son tepe hazırlık."
         ]
       },
       {
         "id": "final",
-        "window": [49.2, 57.15],
-        "phrases": [
-          "Küçük tepe: kulakçıklar,",
-          "düzlük: bekleme,",
-          "sivri tepe: karıncıklar,",
-          "son dalga: toparlanma.",
-          "Bunun adı:",
-          "elektrokardiyogram."
-        ]
+        "window": [56.74, 62.69],
+        "phrases": ["Artık okumaya başladın.", "EKG, yani elektro, kardiyo, gram:", "kalbin elektrikle yazdığı yazı."]
       }
     ]
   },
   "marks": {
     "toBody": [{ "cue": "Bu çizgi ne anlatıyor", "offset": 1.2 }, { "cue": "Bu çizgi ne anlatıyor", "offset": 2.2 }],
-    "dive": [{ "cue": "Peki bu elektrik", "offset": 0.2 }, { "cue": "Kalbinin sağ", "offset": 0.3 }],
-    "fire": { "cue": "Bir hücre", "offset": 0.85 },
+    "dive": [{ "cue": "Kalbinin kendi", "offset": 0.2 }, { "cue": "sağ üst köşede", "offset": 0.3 }],
+    "fire": { "cue": "Her vuruşun", "offset": 0.9 },
     "qrsGo": { "cue": "Kapı açılıyor" },
-    "peak": { "cue": "İşte QRS" },
-    "summary": { "cue": "Küçük tepe" },
-    "reveal": { "cue": "elektrokardiyogram" }
+    "peak": { "cue": "önce emir" },
+    "summary": { "cue": "Yani küçük" },
+    "reveal": { "cue": "kalbin elektrikle" }
   },
   "timeline": {
     "unit": "ms",
@@ -99,9 +99,9 @@
       "segments": [
         { "from": 0, "to": "@toBody.start", "values": [-5130, -330] },
         { "from": "@toBody.start", "to": "@fire", "values": [-330, 0], "easing": "outQuad" },
-        { "from": "@fire", "to": { "cue": "Peki ardından" }, "values": ["#saFire", "#atriaDone"] },
+        { "from": "@fire", "to": { "cue": "Ama sonra çizgi" }, "values": ["#saFire", "#atriaDone"] },
         {
-          "from": { "cue": "Peki ardından" },
+          "from": { "cue": "Ama sonra çizgi" },
           "to": { "cue": "Peki ya o büyük" },
           "values": ["#atriaDone", "#avLeave"]
         },
@@ -207,7 +207,7 @@
           ],
           "fill": "surface",
           "edge": "surface",
-          "visible": { "in": [{ "cue": "Göğsündeki", "offset": 0.4 }, { "cue": "Göğsündeki", "offset": 1 }] },
+          "visible": { "in": [{ "cue": "Onu kalbin", "offset": 0.4 }, { "cue": "Onu kalbin", "offset": 1 }] },
           "say": ["kalp"]
         },
         {
@@ -232,7 +232,7 @@
             "reach": 560,
             "progress": { "curve": "beat", "range": ["#saFire", "#atriaDone"] }
           },
-          "say": ["kulakçık"]
+          "say": ["kulakçık", "üst oda"]
         },
         {
           "id": "ventricles",
@@ -256,7 +256,7 @@
             "reach": 380,
             "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] }
           },
-          "say": ["karıncık", "aşağı"]
+          "say": ["karıncık", "alt oda"]
         }
       ],
       "paths": [
@@ -410,7 +410,7 @@
           "shape": "glow",
           "color": "secondary",
           "r": 7,
-          "lit": [[{ "cue": "Dalga tek" }, "@qrsGo"]],
+          "lit": [[{ "cue": "Emir alt odaların" }, "@qrsGo"]],
           "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] },
           "say": ["kapı"]
         },
@@ -480,9 +480,9 @@
         {
           "origin": [20, 150],
           "emits": [
-            { "cue": "Kalbinin elektriği", "offset": 0.2 },
-            { "cue": "Kalbinin elektriği", "offset": 1 },
-            { "cue": "Kalbinin elektriği", "offset": 1.8 }
+            { "cue": "elektrikle bir", "offset": 0.2 },
+            { "cue": "elektrikle bir", "offset": 1 },
+            { "cue": "elektrikle bir", "offset": 1.8 }
           ],
           "duration": 1.6,
           "maxRadius": 900,
@@ -490,37 +490,43 @@
         }
       ],
       "highlight": [
-        { "target": "sa", "range": [{ "cue": "Kalbinin sağ", "offset": 0.4 }, "@fire"] },
-        { "target": "av", "range": [{ "cue": "Dalga tek" }, { "cue": "Peki ya o büyük" }] }
+        { "target": "sa", "range": [{ "cue": "sağ üst köşede", "offset": 0.4 }, "@fire"] },
+        { "target": "av", "range": [{ "cue": "Emir alt odaların" }, { "cue": "Peki ya o büyük" }] }
       ],
       "camera": [
         { "at": "@toBody.end-0.3", "focus": "e2", "zoom": 4, "subject": ["skin"] },
         { "at": "@toBody.end+0.1", "focus": "e2", "zoom": 4, "subject": ["skin"] },
         {
-          "at": { "cue": "Göğsündeki", "offset": 0.4 },
+          "at": { "cue": "Onu kalbin", "offset": 0.4 },
           "focus": [-120, 0],
           "zoom": 0.53,
           "easing": "outCubic",
           "subject": ["skin", "head"]
         },
-        { "at": { "cue": "Kalbinin elektriği" }, "focus": [-120, 0], "zoom": 0.55, "subject": ["skin", "head"] },
-        { "at": { "cue": "Cihazın kendi" }, "focus": [80, 120], "zoom": 0.72, "subject": ["skin"] },
+        { "at": { "cue": "elektrikle bir" }, "focus": [-120, 0], "zoom": 0.55, "subject": ["skin", "head"] },
+        { "at": { "cue": "gerilimi, kalem" }, "focus": [80, 120], "zoom": 0.72, "subject": ["skin"] },
         { "at": "@dive.start", "focus": [40, 80], "zoom": 0.75, "subject": ["heart"] },
         { "at": "@dive.end", "focus": [-8, -62], "zoom": 2, "easing": "inOutCubic" },
-        { "at": { "cue": "Bir hücre" }, "focus": [-8, -62], "zoom": 2 },
+        { "at": { "cue": "Her vuruşun" }, "focus": [-8, -62], "zoom": 2 },
         { "at": "@fire+0.5", "focus": [-12, -66], "zoom": 2.05, "easing": "outQuad" },
-        { "at": { "cue": "Dalga kulakçıklar" }, "focus": [15, -62], "zoom": 2 },
-        { "at": { "cue": "Peki ardından", "offset": -0.3 }, "focus": [15, -62], "zoom": 2.03 },
+        { "at": { "cue": "Önce üst odalara" }, "focus": [15, -62], "zoom": 2 },
+        { "at": { "cue": "Ama sonra çizgi", "offset": -0.3 }, "focus": [15, -62], "zoom": 2.03 },
         {
-          "at": { "cue": "Peki ardından", "offset": 0.6 },
+          "at": { "cue": "Ama sonra çizgi", "offset": 0.6 },
           "focus": [45, 205],
           "zoom": 1.65,
           "easing": "inOutCubic",
           "subject": ["heart"]
         },
-        { "at": { "cue": "Dalga tek", "offset": -0.8 }, "focus": [45, 205], "zoom": 1.66, "subject": ["heart"] },
-        { "at": { "cue": "Dalga tek" }, "focus": [-40, 179], "zoom": 1.85, "easing": "inOutCubic" },
-        { "at": { "cue": "Peki ya o büyük", "offset": -0.3 }, "focus": [-40, 170], "zoom": 1.9 },
+        {
+          "at": { "cue": "Emir alt odaların", "offset": -0.8 },
+          "focus": [45, 205],
+          "zoom": 1.66,
+          "subject": ["heart"]
+        },
+        { "at": { "cue": "Emir alt odaların" }, "focus": [-40, 179], "zoom": 1.85, "easing": "inOutCubic" },
+        { "at": { "cue": "Üst odalar kanı" }, "focus": [5, 220], "zoom": 1.64 },
+        { "at": { "cue": "Peki ya o büyük", "offset": -0.3 }, "focus": [20, 212], "zoom": 1.65 },
         {
           "at": { "cue": "Peki ya o büyük", "offset": 0.6 },
           "focus": [45, 205],
@@ -532,15 +538,16 @@
         { "at": { "cue": "Kapı açılıyor" }, "focus": [15, 268], "zoom": 1.6, "easing": "inOutCubic" },
         { "at": "@summary", "focus": [45, 205], "zoom": 1.65, "easing": "inOutCubic", "subject": ["heart"] },
         { "at": "@summary+1.5", "focus": [45, 205], "zoom": 1.66, "subject": ["heart"] },
-        { "at": "@reveal", "focus": [45, 222], "zoom": 1.68 },
-        { "at": "@end", "focus": [45, 232], "zoom": 1.72 }
+        { "at": "@reveal-0.8", "focus": [45, 205], "zoom": 1.68 },
+        { "at": "@reveal", "focus": [70, 0], "zoom": 2.1 },
+        { "at": "@end", "focus": [70, 8], "zoom": 2.14 }
       ],
       "drift": { "degPerSec": 0.15, "px": 8, "periodSec": 8 }
     },
     {
       "type": "trace",
       "id": "strip",
-      "visible": [{ "in": ["@fire-0.6", "@fire"] }],
+      "visible": [{ "in": ["@fire-0.6", "@fire"], "out": ["@reveal-0.2", "@reveal+0.4"] }],
       "clock": "beat",
       "waveform": {
         "preset": "ecg",
@@ -560,26 +567,41 @@
       ],
       "drift": { "degPerSec": 0, "px": 0 },
       "parts": [
-        { "text": "P", "range": ["#saFire", "#atriaDone"], "lit": [[{ "cue": "Küçük tepe" }, "@end+1"]] },
         {
-          "text": "PR",
+          "text": "ÜST",
+          "range": ["#saFire", "#atriaDone"],
+          "lit": [[{ "cue": "Önce üst odalara" }, { "cue": "Ama sonra çizgi" }], [{ "cue": "Yani küçük" }, "@end+1"]]
+        },
+        {
+          "text": "BEKLEME",
           "range": ["#atriaDone", "#hisDone"],
-          "lit": [[{ "cue": "düzlük" }, "@end+1"]],
+          "lit": [[{ "cue": "kapısında" }, { "cue": "Peki ya o büyük" }], [{ "cue": "ilk düzlük" }, "@end+1"]],
           "marker": "bracket"
         },
-        { "text": "QRS", "range": ["#hisDone", "#ventDone"], "lit": [[{ "cue": "sivri tepe" }, "@end+1"]] },
-        { "text": "T", "range": ["#tStart", "#tEnd"], "lit": [[{ "cue": "son dalga" }, "@end+1"]] }
+        {
+          "text": "ALT",
+          "range": ["#hisDone", "#ventDone"],
+          "lit": [
+            [{ "cue": "emir alt odalara" }, { "cue": "alt odalar yeni" }],
+            [{ "cue": "sivri tepe alt" }, "@end+1"]
+          ]
+        },
+        {
+          "text": "HAZIRLIK",
+          "range": ["#tStart", "#tEnd"],
+          "lit": [[{ "cue": "alt odalar yeni" }, { "cue": "Yani küçük" }], [{ "cue": "son tepe hazırlık" }, "@end+1"]]
+        }
       ],
-      "beep": { "id": "monitor-beep", "ranges": [[{ "cue": "karıncıklar birden" }, "@summary"]] },
+      "beep": { "id": "monitor-beep", "ranges": [[{ "cue": "emir alt odalara" }, "@summary"]] },
       "panel": { "top": 1036, "height": 334 }
     }
   ],
   "titles": [
-    { "top": "BU ÇİZGİYİ", "bottom": "MUTLAKA GÖRMÜŞSÜNDÜR", "from": 0, "to": { "cue": "Ama okumayı" }, "y": 300 },
+    { "top": "BU ÇİZGİYİ", "bottom": "MUTLAKA GÖRMÜŞSÜNDÜR", "from": 0, "to": { "cue": "Ama sana" }, "y": 300 },
     {
       "top": "AMA OKUMAYI",
       "bottom": "KİMSE ÖĞRETMEDİ",
-      "from": { "cue": "Ama okumayı" },
+      "from": { "cue": "Ama sana" },
       "to": { "cue": "Bu çizgi ne anlatıyor" },
       "y": 300
     },
@@ -587,14 +609,14 @@
       "top": "BU ÇİZGİ",
       "bottom": "NE ANLATIYOR?",
       "from": { "cue": "Bu çizgi ne anlatıyor" },
-      "to": { "cue": "Peki cihaz", "offset": -0.1 },
+      "to": "@toBody.start",
       "y": 300
     }
   ],
   "labels": [
     {
-      "text": "SİNYAL ≈ 1 mV",
-      "at": { "cue": "Kalbinin elektriği", "offset": 0.6 },
+      "text": "GERİLİM ≈ 1 mV",
+      "at": { "cue": "gerilimi, kalem", "offset": 0.3 },
       "until": "@dive.start",
       "top": 400,
       "size": 48,
@@ -611,36 +633,18 @@
       "sound": "tick"
     },
     {
-      "text": "CİHAZ AKIMI ≤ 10 µA",
-      "at": { "cue": "Cihazın kendi", "offset": 0.2 },
-      "until": "@dive.start",
-      "top": 540,
-      "size": 48,
-      "bar": true,
-      "sound": "tick"
-    },
-    {
-      "text": "HİSSETME EŞİĞİ ≈ 1 mA",
-      "at": { "cue": "o kadar küçük", "offset": 0.1 },
-      "until": "@dive.start",
-      "top": 610,
-      "size": 48,
-      "bar": true,
-      "sound": "tick"
-    },
-    {
       "text": "◀ SENİN SAĞIN",
-      "at": { "cue": "Kalbinin sağ", "offset": 0.3 },
-      "until": { "cue": "Peki ardından", "offset": -0.15 },
+      "at": { "cue": "sağ üst köşede", "offset": 0.3 },
+      "until": { "cue": "Ama sonra çizgi", "offset": -0.15 },
       "top": 150,
       "size": 44,
       "color": "secondary",
       "sound": "tick"
     },
     {
-      "text": "SA DÜĞÜMÜ",
-      "at": { "cue": "Bir hücre", "offset": 0.2 },
-      "until": { "cue": "Peki ardından", "offset": -0.15 },
+      "text": "KALBİN SAATİ",
+      "at": { "cue": "sağ üst köşede", "offset": 0.8 },
+      "until": { "cue": "Ama sonra çizgi", "offset": -0.15 },
       "top": 220,
       "size": 48,
       "bar": true,
@@ -648,18 +652,9 @@
       "pointTo": "body.sa"
     },
     {
-      "text": "DAKİKADA 60–100",
-      "at": { "cue": "dakikada", "offset": 0.1 },
-      "until": { "cue": "Peki ardından", "offset": -0.15 },
-      "top": 290,
-      "size": 48,
-      "bar": true,
-      "sound": "tick"
-    },
-    {
-      "text": "AV DÜĞÜMÜ",
-      "at": { "cue": "Dalga tek", "offset": 0.4 },
-      "until": { "cue": "Peki ya o büyük", "offset": -0.15 },
+      "text": "KAPI",
+      "at": { "cue": "Emir alt odaların", "offset": 0.4 },
+      "until": { "cue": "Üst odalar kanı", "offset": -0.15 },
       "top": 150,
       "size": 48,
       "bar": true,
@@ -669,17 +664,17 @@
     {
       "text": "≈ 0,1 SN BEKLEME",
       "at": { "cue": "saniyenin onda", "offset": 0.2 },
-      "until": { "cue": "Peki ya o büyük", "offset": -0.15 },
+      "until": { "cue": "Peki ya o büyük", "offset": -0.9 },
       "top": 220,
       "size": 48,
       "bar": true,
       "sound": "tick"
     },
     {
-      "text": "KARINCIKLAR DOLUYOR",
-      "at": { "cue": "Kan aşağı", "offset": 0.1 },
-      "until": { "cue": "Peki ya o büyük", "offset": -0.15 },
-      "top": 290,
+      "text": "ALT ODALAR DOLUYOR",
+      "at": { "cue": "Üst odalar kanı", "offset": 0.1 },
+      "until": { "cue": "Peki ya o büyük", "offset": -0.9 },
+      "top": 150,
       "size": 40,
       "color": "secondary",
       "typeSpeed": 24,
@@ -687,7 +682,7 @@
       "sound": "typing"
     },
     {
-      "text": "HIS → PURKİNJE",
+      "text": "EMİR YAYILIYOR",
       "at": { "cue": "Kapı açılıyor", "offset": 0.2 },
       "until": "@summary-0.15",
       "top": 150,
@@ -697,8 +692,8 @@
       "pointTo": "body.his"
     },
     {
-      "text": "KARINCIKLAR",
-      "at": { "cue": "karıncıklar birden", "offset": 0.2 },
+      "text": "ALT ODALAR",
+      "at": { "cue": "emir alt odalara", "offset": 0.2 },
       "until": "@summary-0.15",
       "top": 220,
       "size": 48,
@@ -706,8 +701,8 @@
       "sound": "tick"
     },
     {
-      "text": "KASILMA SONRA GELİR",
-      "at": { "cue": "Kas bir an", "offset": 0.2 },
+      "text": "ÖNCE EMİR, SONRA VURUŞ",
+      "at": { "cue": "önce emir", "offset": 0.1 },
       "until": "@summary-0.15",
       "top": 290,
       "size": 40,
@@ -767,8 +762,8 @@
     },
     "hits": [
       { "id": "rise", "at": "@toBody.start-0.2" },
-      { "id": "pulse", "at": { "cue": "Kalbinin elektriği", "offset": 0.2 }, "gain": 0.5 },
-      { "id": "pulse", "at": { "cue": "Kalbinin elektriği", "offset": 1 }, "gain": 0.35 },
+      { "id": "pulse", "at": { "cue": "elektrikle bir", "offset": 0.2 }, "gain": 0.5 },
+      { "id": "pulse", "at": { "cue": "elektrikle bir", "offset": 1 }, "gain": 0.35 },
       { "id": "dive", "at": "@dive.start" },
       { "id": "pulse", "at": "@fire" },
       { "id": "dive", "at": { "cue": "Kapı açılıyor", "offset": -0.1 }, "gain": 0.7 },

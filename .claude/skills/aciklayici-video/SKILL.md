@@ -40,7 +40,7 @@ Konu için 2–3 farklı açı öner, tek tablo halinde:
 | Duygusal eğri | en güçlü an son üçte birde (`marks.peak`); ondan sonra 8 sn'den uzun yeni bölüm yok | | |
 | Kancadaki soru → finaldeki cevap | kancanın sorusu ve finalde tek cümlelik cevabı | | |
 | Kavram adı | en son verilecek terim | | |
-| İzleyici kavram adını biliyor mu? | biliyorsa finaldeki şaşırtma (köken, beklenmedik bağlantı) ya da başka bir kavram | | |
+| İzleyici kavram adını biliyor mu? | biliyorsa adı söylemek yerine ad üzerinden şaşırtma (kökeni ya da anlamı) ya da başka bir kavram | | |
 | Sahne türleri | kütüphaneden hangileri; yeni tür gerekir mi | | |
 
 Birini gerekçesiyle öner. **Dur.**
@@ -64,33 +64,75 @@ Birini gerekçesiyle öner. **Dur.**
 
 ## c) Metin ★
 
-- Süreyi kullanıcıdan al (varsayılan 30 sn). Bölümler:
-  - kanca: 0–5 sn
-  - 2–3 gövde bölümü
-  - doruk ve final: son ~8 sn
-- Kelime bütçesi: (bölüm penceresi − duraklamalar) × 2,8. Duraklamalar ≈ 0,7 (bölüm geçişi) + 0,6 × soru
-  + 0,4 × cümle sonu + 0,2 × virgül/iki nokta (`src/spec/pauses.ts`).
-- Yazım kuralları (STYLE "Anlatım"; `npm run check` hata verir):
-  - cümle tek harf, kısaltma ya da sembolle bitmez ("…dalgası: T." → "Sonra T dalgası geliyor: toparlanma.")
-  - soru, soru kelimesiyle bitmez; vurgu oraya düşer ("Peki o sivri tepe ne?" → "Peki ya o sivri tepe?")
-  - her kısaltma, birim ve sembolün okunuşu telaffuz sözlüğünde (`src/spec/lexicon.ts`) olmalı; yoksa ekle ya da
-    yazıyla yaz. Seslendirmeye okunuş, altyazıya yazılış gider
-  - seslendirmedeki her büyüklük, o an ekrandaki etiketle aynı nicelik (b'deki tablo)
-- STYLE kuralları:
-  - izleyiciye "sen" diye hitap
-  - her gövde bölümü "Peki…?" ile açılır; **art arda iki "Peki…?" cümlesi olmaz** (kancanın sorusu "Peki"siz)
-  - kanca başlıkları seslendirmeyle aynı kelimeleri kullanır
-  - qa konuşulan sürede 2,6–3,0 kelime/sn bekler; cümle aralarının ortalaması 0,35 sn'nin altındaysa hata verir
-  - tek somut yolculuk
-  - final sırası: doruk → tek cümlelik özet (kancadaki sorunun cevabı) → kavramın adı en son (ad daha önce
-    söylenmez); geri sayım yalnızca gerçek bir süre/eşik için
-  - sağ/sol söylenen her yerde ekranda yön ipucu planla
-- Çıktı:
-  - bölüm tablosu: pencere, duraklama, bütçe, gerçek kelime sayısı
-  - cümle cümle metin: her cümle bir altyazı sayfası, en fazla ~32 karakter
-  - her rakamın hangi kaynağa dayandığı
+1. **Süre ve bütçe.** Süreyi kullanıcıdan al (varsayılan 30 sn). Bölümler:
+   - kanca: 0–5 sn
+   - 2–3 gövde bölümü
+   - doruk ve final: son ~8 sn
 
-**Dur.**
+   Kelime bütçesi: (bölüm penceresi − duraklamalar) × 2,8. Duraklamalar ≈ 0,7 (bölüm geçişi) + 0,6 × soru
+   + 0,4 × cümle sonu + 0,2 × virgül/iki nokta (`src/spec/pauses.ts`).
+2. **Yaz.** Metnin yanında:
+   - **3 kanca** ve **2 final** seçeneği (ilk ve son bölümün yerine geçen cümle listeleri); önerdiğin birleşim
+     `sections`'ta durur
+   - **söz → karşılık:** kancadaki soru (aynen) → finalde onu cevaplayan cümle (aynen)
+   - **anlatma cümlesi:** izleyicinin videodan sonra bir arkadaşına tek cümleyle anlatabileceği şaşırtıcı bilgi.
+     Yazamıyorsan metin hazır değil; açıyı ya da gövdeyi değiştir.
+
+   Kurallar (STYLE "Anlatım", "Metin kalitesi", "Final"):
+   - söz ve karşılık: kancadaki soru finalde tam olarak cevaplanır; video açık bir soruyla bitmez (`acik-final` hatası)
+   - her cümle yerini hak eder: çıkarıldığında kancadan cevaba giden zincir bozulmuyorsa sil
+   - somutluk: her soyut kavrama somut bir görüntü ya da benzetme
+   - doğal Türkçe: çeviri kokan ifade ve günlük anlamı farklı teknik terim yok (`src/spec/avoid.ts`, uyarı); listede
+     olmayan ama tekrar eden bir ifade bulursan listeye ekle
+   - geçişler: en fazla 2 bölüm "Peki…?" ile açılır (`peki-siniri` hatası); diğerleri doğrudan iddia, beklenmedik
+     rakam ya da "ama" ile ters köşe; art arda iki "Peki…?" olmaz
+   - kavram adı biliniyorsa (EKG, GPS…) adı söylemek yerine ad üzerinden şaşırt (kökeni ya da anlamı)
+   - izleyiciye "sen" diye hitap; tek somut yolculuk; kanca başlıkları seslendirmeyle aynı kelimeler
+   - cümle tek harf, kısaltma ya da sembolle bitmez ("…dalgası: T." → "Sonra T dalgası geliyor: toparlanma.")
+   - soru, soru kelimesiyle bitmez; vurgu oraya düşer ("Peki o sivri tepe ne?" → "Peki ya o sivri tepe?")
+   - her kısaltma, birim ve sembolün okunuşu telaffuz sözlüğünde (`src/spec/lexicon.ts`); yoksa ekle ya da yazıyla
+     yaz. Seslendirmeye okunuş, altyazıya yazılış gider
+   - seslendirmedeki her büyüklük, o an ekrandaki etiketle aynı nicelik (b'deki tablo)
+   - qa konuşulan sürede 2,6–3,0 kelime/sn bekler; cümle aralarının ortalaması 0,35 sn'nin altındaysa hata verir
+   - final sırası: doruk → tek cümlelik özet (kancadaki sorunun cevabı) → kavramın adı en son (ad daha önce
+     söylenmez); geri sayım yalnızca gerçek bir süre/eşik için
+   - sağ/sol söylenen her yerde ekranda yön ipucu planla
+3. **Taslak dosyası ve denetim.** Metni `out/<slug>/metin/metin.json`'a yaz:
+   ```json
+   {
+     "slug": "<slug>",
+     "durationSec": 45,
+     "sections": [{ "id": "kanca", "window": [0, 5], "phrases": ["…"] }],
+     "options": { "kanca": [["…"], ["…"], ["…"]], "final": [["…"], ["…"]] },
+     "claims": [{ "claim": "…", "value": "…", "status": "verified" }]
+   }
+   ```
+   Söz → karşılık ve anlatma cümlesi bu dosyaya **girmez** (editör kör okusun). `npm run text --
+   out/<slug>/metin/metin.json` her seçenekle birlikte denetler: hata kalmaz; her uyarı düzeltilir ya da gerekçesi
+   yazılır.
+4. **Editör geçişi.** Agent aracıyla `metin-editoru` ajanını çalıştır (`.claude/agents/metin-editoru.md`; tür
+   listede yoksa general-purpose ajana o dosyanın gövdesini ver). Ona **yalnız** metin.json'un yolunu ver: açı
+   tablosunu, gerekçeni, taslak geçmişini, kendi anlatma cümleni verme. Dönen listede:
+   - her bulgu için ya düzelt ya da gerekçeni yaz; "önemsiz" diye kapatma
+   - editörün anlatma cümlesi ve söz → karşılık okuması seninkiyle aynı mı? Değilse metin, söylediğini sandığı şeyi
+     söylemiyor; düzelt
+   - metin değiştiyse 3. adımı tekrarla; büyük değişiklikte editörü yeniden çalıştır
+5. **Dinletme.** `npm run voiceover -- listen out/<slug>/metin/metin.json --provider say`: ücretsiz geçici sesle
+   (Yelda) `out/<slug>/metin/ses/` altına `tam`, `kanca-1..3`, `final-1..2` dosyaları ve bölüm başına konuşulan süre.
+   `open out/<slug>/metin/ses` ile aç, yolları kullanıcıya ver. Bu yalnız metni duymak için bir taslak: spec,
+   timing.json ve vo.wav değişmez, render alınmaz, tonlama ölçülmez.
+6. **Çıktı:**
+   - bölüm tablosu: pencere, duraklama, bütçe, gerçek kelime sayısı, geçici seste konuşulan süre
+   - cümle cümle metin: her cümle bir altyazı sayfası, en fazla ~32 karakter
+   - kanca ve final seçenekleri, önerdiğin (★ seçim kullanıcının)
+   - söz → karşılık ve anlatma cümlesi (seninki ve editörünki)
+   - editör bulguları: cümle | kural | sorun | öneri | **çözüm** (düzeltildi / gerekçe)
+   - `npm run text` sonucu, ses dosyaları
+   - her rakamın hangi kaynağa dayandığı
+
+**Dur.** Kullanıcı kanca ve finali seçer. Onaylanan metni commit edilen yere kaydet: `videos/<slug>/metin.json`
+(seçilen kanca ve final `sections`'ta; `out/` gitignore'da). e) adımında `voiceover.sections` buradan gelir;
+`npm run new` bu klasörde yalnız `spec.json` yoksa çalışır.
 
 ## d) Sahne planı ★
 
@@ -136,13 +178,15 @@ Birini gerekçesiyle öner. **Dur.**
 
 1. `npm run new -- <slug> "<başlık>"` (slug: küçük harf, rakam ve tire).
 2. `videos/<slug>/spec.json`'u yaz:
-   - `voiceover.sections`: c'deki metin, birebir
+   - `voiceover.sections`: `videos/<slug>/metin.json`'daki onaylı metin, birebir
    - `marks`, `curves`, `layers`, üst yazılar, `sound`
    - `sources` (b'den), `credits` (aşağıdaki kurallara göre)
    - varsa `styleExceptions`
-3. Konuşmaya bağlı her zamanı cümleye bağla (`{ "cue": "…", "offset": 0.1 }`); sabit saniye yalnızca sesten bağımsız
+3. Her etiket o an söylenen kelimeyi gösterir (STYLE "Ritim"; `npm run check` hatası): metin değiştiyse silinen
+   cümlelerin etiketlerini kaldır, teknik adı metindeki kelimeyle değiştir (veri çizgisi etiketleri dahil).
+   Konuşmaya bağlı her zamanı cümleye bağla (`{ "cue": "…", "offset": 0.1 }`); sabit saniye yalnızca sesten bağımsız
    kamera hareketleri için. Ses henüz yok; altyazı tahmini zamanlamayla (2,8 kelime/sn + duraklamalar) çalışır.
-4. `npm run check` temiz olmalı.
+4. `npm run check` temiz olmalı (metin denetimi dahil: hata yok, uyarılar c'de çözüldü ya da gerekçeli).
 5. Kilit anları render et: her bölümün ilk saniyesi, her etiketin göründüğü an +0,3 sn, her geçişin ortası, geri
    sayım, kavram kartı, son kare. Komut: `npm run stills -- <slug> 0.5s 4s … --sheet`. Her bölümün geniş planında
    öznenin silueti tanınıyor mu (gövdede omuz ve boyun çizgisi)? Kare 0 kapaktır: `out/<slug>/cover.png`'e ayrıca bak.

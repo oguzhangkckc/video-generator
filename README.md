@@ -39,7 +39,8 @@ de kareler incelenebilir.
 | Komut | Ne yapar |
 |---|---|
 | `npm run studio` | Remotion Studio |
-| `npm run check` | `tsc` + her `spec.json`'un doğrulanması ve çözülmesi (hatalar alan yoluyla) |
+| `npm run check` | `tsc` + metin denetimi (`npm run text`) + etiket ↔ seslendirme kontrolü (`src/spec/label-speech.ts`) + her `spec.json`'un doğrulanması ve çözülmesi (hatalar alan yoluyla) |
+| `npm run text -- [slug\|metin.json]…` | metin denetimi (`src/spec/script-audit.ts`): "Peki" sınırı, açık final, okunuş, cümle sonu hataları; kaçınılacak ifade uyarıları (`src/spec/avoid.ts`). Argümansız bütün videolar; `out/<slug>/metin/metin.json` (skill c taslağı) her kanca ve final seçeneğiyle denetlenir. Bilinçli sapma: `styleExceptions: [{ "rule", "why" }]` → "muaf" |
 | `npm run new -- <slug> "<başlık>"` | `videos/sablon`'dan yeni tarif |
 | `npm run stills -- <slug> <kare\|12.5s>… [--every N] [--out dir] [--sheet] [--ground]` | still kareler (+ kare sayfası); `--ground`: zemin anahtar renkte, qa'nın boş alan ölçümünün gördüğü gibi |
 | `npm run align -- <slug> <ses> [--dry]` | whisper.cpp (yerel) ile kelime zamanları → `timing.json`, `vo.wav` |
@@ -49,7 +50,8 @@ de kareler incelenebilir.
 | `npm run render -- <slug> [--draft]` | `out/<slug>.mp4`; geçici sesle yalnız `--draft` → `out/<slug>.draft.mp4` |
 | `npm run review -- <slug>` | `review.html`'i yerelde (127.0.0.1) açar: alternatifleri dinle, seç; seçim `voiceover.picks`'e yazılır, ses kredisiz yeniden kurulur |
 | `npm run voiceover -- pick <slug> <cümle#> <çekim>` | aynı seçim komut satırından |
-| `npm test` | ses ölçümü, kesim kuralları, telaffuz sözlüğü, cümle türleri ve nicelik birim testleri |
+| `npm run voiceover -- listen <metin.json> [--provider say] [--sections id,id]` | skill c) taslağını ücretsiz geçici sesle okur → `out/<slug>/metin/ses/` (`tam`, `kanca-1..3`, `final-1..2`, bölüm başına süre; `--sections` yalnız o bölümler → `tam-<id>-<id>`). Yalnız `say`; spec, `timing.json`, `vo.wav` değişmez |
+| `npm test` | ses ölçümü, kesim kuralları, telaffuz sözlüğü, cümle türleri, metin denetimi ve nicelik birim testleri |
 | `npm run render -- <slug>` | render + mastering (−14 LUFS, ≈ −1,5 dBTP) → `out/<slug>.mp4` |
 | `npm run sfx [id…]` | ElevenLabs efektlerini katalogdan üretir → `public/kit/sfx/` |
 | `npm run music -- list` | lisanslı müzik kütüphanesini listeler ve doğrular |

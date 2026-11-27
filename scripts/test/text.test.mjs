@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { avoidedIn } from "../../src/spec/avoid.ts";
 import { needsReading, spoken, spokenWords, splitToken, unreadable } from "../../src/spec/lexicon.ts";
 import { pauseAfter } from "../../src/spec/pauses.ts";
 import { labelQuantity, namedQuantities, quantityMismatches } from "../../src/spec/quantities.ts";
+import { auditScript, waivedRules } from "../../src/spec/script-audit.ts";
 import { endsOnQuestionWord, sentenceKind, sentencesOf } from "../../src/spec/sentences.ts";
+import { variantsOf } from "../lib/draft.mjs";
 
 test("the voice reads the spoken form, the captions keep one word per written word", () => {
   assert.equal(spoken("İşte QRS: asıl vuruşun işareti."), "İşte kü re se: asıl vuruşun işareti.");
@@ -74,4 +77,75 @@ test("a label's unit and the quantity the voice names must agree", () => {
     found.map((m) => m.label),
     ["SİNYAL ≈ 1 mV"],
   );
+});
+
+const rules = (sections, options) => auditScript(sections, options).map((f) => `${f.level}:${f.rule}${f.waived ? ":waived" : ""}`);
+
+test("the avoid list matches suffixed forms, not lookalike words", () => {
+  assert.deepEqual(avoidedIn("Bir hücre kümesi ateşleniyor:").map((a) => a.match), ["ateşlen"]);
+  assert.deepEqual(avoidedIn("karıncıklar birden uyarılıyor.").map((a) => a.match), ["uyarıl"]);
+  assert.deepEqual(avoidedIn("Bu bir uyarı işareti."), []);
+  assert.deepEqual(avoidedIn("Ateş gibi yanıyor."), []);
+  assert.deepEqual(avoidedIn("Kalp dört odaya sahip oluyor.").map((a) => a.match), ["sahip ol"]);
+});
+
+test("at most two sections open with a Peki question", () => {
+  const body = (opener) => ({ id: opener, phrases: [opener, "Bir cümle."] });
+  const three = [{ id: "kanca", phrases: ["Bu ne anlatıyor?"] }, body("Peki bu nasıl oluyor?"), body("Ama o değil."), body("Peki şu neden var?"), body("Peki ya o?"), { id: "final", phrases: ["Cevap bu."] }];
+  assert.deepEqual(rules(three), ["error:peki-siniri"]);
+  assert.deepEqual(rules(three.filter((s) => s.id !== "Peki ya o?")), []);
+  // "Peki" inside a section, or as a statement, does not open it with a question.
+  assert.deepEqual(rules([body("Peki bu nasıl oluyor?"), body("Peki, böyle."), { id: "x", phrases: ["Bir cümle.", "Peki şu neden var?", "Bir cümle."] }, body("Peki ya o?")]), []);
+});
+
+test("a video does not end on a question, unless the spec waives it", () => {
+  const sections = [{ id: "kanca", phrases: ["Nasıl biliyor?"] }, { id: "son", phrases: ["Ama saat şaşarsa,", "Peki ya uydudaki saatler yanlışsa?"] }];
+  assert.deepEqual(rules(sections), ["error:acik-final"]);
+  assert.deepEqual(rules(sections, { waived: waivedRules(["metin", { rule: "acik-final", why: "pilot" }]) }), ["error:acik-final:waived"]);
+  assert.deepEqual(rules([sections[0], { id: "son", phrases: ["Bunun adı:", "elektrokardiyogram."] }]), []);
+});
+
+test("the moved script rules keep their behaviour", () => {
+  assert.deepEqual(rules([{ id: "a", phrases: ["Peki bu nasıl oluyor?", "Peki ya şu?"] }, { id: "b", phrases: ["Son."] }]), ["error:peki-art-arda"]);
+  assert.deepEqual(rules([{ id: "a", phrases: ["Sinyal geliyor: XYZ."] }, { id: "b", phrases: ["Son."] }]), ["error:okunus", "error:kisaltma-sonu"]);
+  assert.deepEqual(rules([{ id: "a", phrases: ["Peki o sivri tepe ne?"] }, { id: "b", phrases: ["Son."] }]), ["error:soru-kelimesi-sonu"]);
+  assert.deepEqual(rules([{ id: "a", phrases: ["[Kanca] XYZ"] }, { id: "b", phrases: ["Peki ne?"] }], { template: true }), []);
+});
+
+test("a draft's hook and final options each replace one end of the text", () => {
+  const draft = {
+    slug: "x",
+    sections: [{ id: "kanca", phrases: ["K0?"] }, { id: "govde", phrases: ["G."] }, { id: "final", phrases: ["F0."] }],
+    options: { kanca: [["K1?"], ["K2?"]], final: [["F1."]] },
+  };
+  const v = variantsOf(draft);
+  assert.deepEqual(v.map((x) => x.name), ["tam", "kanca-1", "kanca-2", "final-1"]);
+  assert.deepEqual(v[2].sections.map((s) => s.phrases[0]), ["K2?", "G.", "F0."]);
+  assert.deepEqual(v[3].sections.map((s) => s.phrases[0]), ["K0?", "G.", "F1."]);
+});
+
+test("a label must show what the voice-over says around it", async () => {
+  const { unspokenLabels, sameWord } = await import("../../src/spec/label-speech.ts");
+  assert.equal(sameWord("bekleme", "bekliyor"), true);
+  assert.equal(sameWord("sağın", "sağ"), true);
+  assert.equal(sameWord("karıncıklar", "odalar"), false);
+  assert.equal(sameWord("sa", "sağ"), false);
+  const phrases = [
+    { text: "Kalbinin kendi saati var:", start: 10, end: 11.2 },
+    { text: "sağ üst köşede bir hücre kümesi.", start: 11.4, end: 13 },
+    { text: "Emir alt odaların", start: 20, end: 21 },
+    { text: "kapısında bekliyor:", start: 21.2, end: 22 },
+    { text: "saniyenin onda biri kadar.", start: 22.2, end: 23.3 },
+  ];
+  const texts = (labels) => unspokenLabels(labels, phrases).map((u) => u.text);
+  // Lines left over after their sentence was cut, and a technical name the script replaced.
+  assert.deepEqual(texts([{ text: "DAKİKADA 60–100", at: 12 }, { text: "SA DÜĞÜMÜ", at: 12 }, { text: "KARINCIKLAR", at: 21 }]), [
+    "DAKİKADA 60–100",
+    "SA DÜĞÜMÜ",
+    "KARINCIKLAR",
+  ]);
+  // Said with a suffix or narrowed vowel, half the words said, a number said in words, a unit not counted as a term.
+  assert.deepEqual(texts([{ text: "◀ SENİN SAĞIN", at: 11.7 }, { text: "KALBİN SAATİ", at: 12 }, { text: "KAPI", at: 20.4 }, { text: "≈ 0,1 SN BEKLEME", at: 22.4 }]), []);
+  // A number shown while none is said is reported even when the word is said.
+  assert.deepEqual(unspokenLabels([{ text: "KAPI 3", at: 20.1 }], phrases.slice(2, 4)).map((u) => u.number), [true]);
 });

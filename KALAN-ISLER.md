@@ -1,6 +1,6 @@
 # Kalan işler
 
-Son güncelleme: 2026-11-27 (yalnız geliştirme ortamı: Claude Code araçları ve Node sürümü; proje kodu değişmedi).
+Son güncelleme: 2026-11-27 (metin kalitesi; EKG metni yazıldı, GPS metni onaylı; `feat/metin-kalitesi` merge).
 `feat/genel-sahne-turleri` PR #1 (`55d38de`), `feat/sistem-kurallari` PR #2 (`40fe4f8`) ve `chore/nvmrc-ve-gitignore`
 PR #3 (`fab72e3`, `.nvmrc` + gitignore) main'e birleştirildi; yeni iş yeni branch'te.
 
@@ -22,6 +22,7 @@ PR #3 (`fab72e3`, `.nvmrc` + gitignore) main'e birleştirildi; yeni iş yeni bra
 | `3d0e9a5` | Trace şemasından kullanılmayan `labelAt` ve ona bağlı ölü hesap kaldırıldı. |
 | `13dd7cc` | model3d kadraj kaydırması: önemli parçalar panel/altyazıdan mercek kaydırmasıyla uzak tutulur. Ayrıntı: aşağıda. |
 | `311aa68`…`57c31e0` | Son EKG render'ından sistem kuralları (branch `feat/sistem-kurallari`). Ayrıntı: aşağıda "Sistem kuralları". |
+| `04120e7` | Metin kalitesi (branch `feat/metin-kalitesi`). Ayrıntı: aşağıda "Metin kalitesi". |
 
 **Seslendirme v2 (`27cdfa3`):**
 - bölüm bölüm üretim, duraklamalar sessizlikten açılır;
@@ -122,6 +123,40 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
 
 - Seslendirme sağlayıcısı: aşağıda "Seslendirme v2 Aşama B".
 
+## Metin kalitesi (2026-11-27, `feat/metin-kalitesi`)
+
+- `src/spec/script-audit.ts`: metin kuralları tek yerde (resolver, `npm run text`, `npm run check`). Yeni:
+  `peki-siniri` (en fazla 2 bölüm "Peki…?" ile açılır), `acik-final` (son cümle soru olamaz) hata;
+  `kacinilacak` uyarı (`src/spec/avoid.ts`). `styleExceptions: [{ rule, why }]` muaf tutar (gps-pilot `acik-final`).
+- Skill c): 3 kanca + 2 final, söz→karşılık, anlatma cümlesi, `out/<slug>/metin/metin.json`, editör ajanı
+  (`.claude/agents/metin-editoru.md`), `npm run voiceover -- listen` (yalnız `say`; bu turda çalıştırılmadı).
+- gps-pilot regresyonu birebir aynı (90 kare, SSIM 1,0; `out/regress-metin/frames`).
+- **EKG spec'e yazılırken değişen `cue`'lar (yapıldı):** marks `dive` ("Peki bu elektrik", "Kalbinin sağ"), `fire`
+  ("Bir hücre"), `peak` ("İşte QRS"), `summary` ("Küçük tepe"), `reveal` ("elektrokardiyogram"); titles ("Ama
+  okumayı", "Peki cihaz"; yeni cue "Bu çizgi bir", çünkü "Bu çizgi" kancadakini bulur); labels "o kadar küçük"
+  (cihaz akımı cümlesi silindi: HİSSETME EŞİĞİ ve CİHAZ AKIMI etiketleri kalkar ya da yeni cümleye bağlanır),
+  "Kalbinin sağ", "Bir hücre", "dakikada", "Dalga tek", "Kan aşağı", "karıncıklar birden", "Kas bir an". Kanca
+  başlıkları yeni kanca kelimeleriyle yeniden yazılır.
+- **EKG metni spec'e yazıldı (2026-11-27, kullanıcı onaylı):** sinyal baştan sona "emir"; parça/bütün düzeltmeleri
+  ("alt odalar kasılıyor", "alt odalar yeni emre hazırlanıyor", "Üst odalar kanı alt odalara itsin diye"); QRS
+  sonunda kronolojik özet ("küçük tepe üst odalar, ilk düzlük kapıdaki bekleme, sivri tepe alt odalar, son tepe
+  hazırlık"), şeritteki ÜST · BEKLEME · ALT · HAZIRLIK her parça söylenirken yanar; final "Artık okumaya başladın. EKG,
+  yani elektro, kardiyo, gram: kalbin elektrikle yazdığı yazı." Editörden dört tur. Süre 58,8 → 64,4 sn (pencereler
+  tahmini; seslendirmede `--widen`). Doruk (`marks.peak`) "önce emir, sonra vuruş"ta.
+  - Etiketler: CİHAZ AKIMI, HİSSETME EŞİĞİ, DAKİKADA 60–100 silindi; GERİLİM ≈ 1 mV, KALBİN SAATİ, KAPI, ALT ODALAR
+    (DOLUYOR), EMİR YAYILIYOR, ÖNCE EMİR, SONRA VURUŞ. Kaynaklardan aha, iec-leakage, osha artık ekranda değil.
+  - Yerleşim: şerit kavram kartıyla birlikte söner, final kamerası kalbi kartın altına indirir (2,1×); "Üst odalar
+    kanı…" cümlesinde tam kalp planı; bekleme etiketleri QRS'ten 0,9 sn önce kalkar.
+  - qa `--layout`: 0 hata, 2 uyarı (kenar; final bölümünde tam siluet yok). gps-pilot regresyonu birebir, demo-trace
+    temiz.
+- **Veri çizgisi etiket yerleşimi** (`src/kit/scenes/trace/labels.ts`): kılavuzu başka bir etiketten geçen yer
+  seçilmez (qa'nın kuralı artık yerleştirmede de).
+- **Etiket ↔ seslendirme kontrolü** (`src/spec/label-speech.ts`, `npm run check` hatası, muafiyet `etiket-sozu`):
+  demo-flow, demo-model3d ve gps-pilot muaf (yer tutucu metin / donmuş pilot). Veri çizgisi etiketleri yalnız `lit`
+  aralığı varsa denetlenir.
+- Editörün önerip uygulanmayan: "telefon uydulara hiçbir şey göndermiyor" (resmî GPS kaynağıyla doğrulanamadı);
+  "ila"yı avoid listesine ekleme (önek eşleşmesi "ilaç"ı da yakalar; metinde "ile" kullanıldı).
+
 ## Görsel sistem v2: qa durumu
 
 Kaynak: render + `npm run qa -- <slug> --layout` (2026-11-24, sistem kuralları sonrası). Loglar `out/qa-<slug>.log`,
@@ -137,6 +172,17 @@ Kaynak: render + `npm run qa -- <slug> --layout` (2026-11-24, sistem kuralları 
 demo-trace temiz.
 
 **Planda olup yapılmayanlar:** yok.
+
+## Sıradaki videolar ve fikirler
+
+- **`videos/gps` (tamamlanmış GPS, 60 sn):** metin onaylı (`videos/gps/metin.json`: kanca 1, Final 1). Kanca söylenirken ekranda haritadaki konum
+  işareti (mavi nokta) görünür.
+  Sahne planı (skill d) ve render **şimdi değil**: otomatik akış ve temassız kart testinden sonra. `npm run new --
+  gps "…"` klasörde yalnız `spec.json` yoksa çalışır. Saat etiketi gibi söylenmeyen ekran yazıları etiket
+  kontrolüne takılır; metinle eşle.
+- **Fikir: görelilik Short'u**, ayrı ve kendi içinde tamamlanmış: "Uydudaki saatler neden her gün ileri gidiyor?"
+  (net ≈ 38 µs/gün: hız −7, kütleçekim +45; düzeltme fırlatmadan önce saat frekansına işlenir. Kaynaklar: Penn State
+  GEOG 862 "The Satellite Clock", arXiv gr-qc/0507121).
 
 ## Seslendirme v2 Aşama B (ElevenLabs kredisi ya da Azure anahtarı bekliyor)
 
