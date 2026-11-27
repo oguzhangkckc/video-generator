@@ -170,8 +170,11 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
     nicelik açısından denetler. Sebep: "Okuyucunun alanını kullanıyor." onaydan sonra `check`'te altyazıya sığmadı
     ve video ikinci kez durdu. `check` de artık Inter'in yüklenmesini bekleyip ölçüyor (önceden yedek yazı tipiyle
     ölçmüş olabilirdi; bütün videolar yine temiz).
-- Uçtan uca otomatik video henüz üretilmedi. Kabul testi: temassız kart videosu bu branch'te (PR açık, merge
-  testten sonra). gps gerçek ses beklediği için f'de durur.
+- **Kabul testi videosu üretildi (2026-11-28, Durak 2 onayı bekliyor):** `videos/temassiz-kart` (72,1 sn, taslak ses
+  `out/temassiz-kart.draft.mp4`). Kayıt `out/temassiz-kart/run-log.md`. Üç durma: c'de editör (kullanıcı "sorun
+  çıkarsa dur" dedi), e'de altyazı sığması (onaylı metin değişti; sistem açığı `a325788` ile kapandı). Kapılar:
+  `check` 2 tur, `qa-layout` 3 + 1 tur, `qa` 1 tur; son qa 0 hata, 1 uyarı (Yelda hızı 3,06 kelime/sn). Spec
+  `out/`'taki değil, oturumdaki bir üreteçle değerlerden yazıldı. gps gerçek ses beklediği için f'de durur.
 
 ## Taslak sesli videolar
 
@@ -186,6 +189,7 @@ Bitince satır silinir.
 
 | Slug | Tarih | Taslak dosyası | Tahmini karakter |
 |---|---|---|---|
+| temassiz-kart | 2026-11-28 | `out/temassiz-kart.draft.mp4` | ≈ 1.160 (önerilen bütçe 1.700) |
 
 ## Metin kalitesi (2026-11-27, `feat/metin-kalitesi`)
 
