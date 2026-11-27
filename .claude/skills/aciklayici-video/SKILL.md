@@ -178,8 +178,8 @@ modda f'den başla; kayıt aynı `run-log`'da `gercek-ses` adımıyla sürer.
 1. Spec'teki `voiceover.tts`'in sağlayıcı, ses ve modelini `videos/sablon/spec.json`'dakiyle değiştir (taslakta
    `say` / Yelda yazılıdır; `budget` kalır). Şablonda `tts` yoksa dur: sağlayıcı seçilmemiş.
 2. `npm run voiceover -- build <slug> --estimate`. Bütçe kuralı f'deki gibi.
-3. `npm run voiceover -- build <slug>` (sığmazsa `--widen`): `timing.json` ve `vo.wav` değişir, cümleye bağlı her şey
-   kendiliğinden kayar. Sabit saniyeli `marks`'ı yeni bölüm başlangıçlarına göre güncelle; konuşma süreyi aşıyorsa
+3. `npm run voiceover -- build <slug>` (sığmazsa `--widen`): gerçek `timing.json` ve `vo.wav` yazılır, taslağın
+   `timing.draft.json` ve `vo.draft.wav`'ı silinir; cümleye bağlı her şey kendiliğinden kayar. Bunları commit'le. Sabit saniyeli `marks`'ı yeni bölüm başlangıçlarına göre güncelle; konuşma süreyi aşıyorsa
    `durationSec`'i artır.
 4. `qa-layout` kapısı, f.3 senkron kontrolü, `npm run render -- <slug>` (`out/<slug>.mp4`), `qa` kapısı.
 5. Durak 2. Bitince slug'ı KALAN-ISLER'deki listeden çıkar.
@@ -401,7 +401,10 @@ gerekiyorsa zorunlu durma noktasıdır.
    - bütçe içinde → sormadan `npm run voiceover -- build <slug>` (sığmazsa `--widen`). İşaretli cümlelerin
      alternatiflerinden en iyisini betik seçer; `review.html` Durak 2'de verilir.
 2. Gerçek TTS yoksa (spec'te `tts` yok ya da 1'de üretilemedi): `npm run voiceover -- build <slug> --provider say`
-   (sığmazsa `--widen`), render `npm run render -- <slug> --draft` → `out/<slug>.draft.mp4`, yayına uygun değil.
+   (sığmazsa `--widen`) → `videos/<slug>/timing.draft.json` ve `public/videos/<slug>/vo.draft.wav` (gitignore'da,
+   commit'lenmez), render `npm run render -- <slug> --draft` → `out/<slug>.draft.mp4`, yayına uygun değil. Spec'e
+   mutlak saniye yazma: sesle ilgili her an (`emits`, `flashes`, efektler dahil) bir cümleye bağlı olsun, gerçek ses
+   gelince kendiliğinden kaysın.
    `note "ses: taslak (say), sebep: …"` yaz ve slug'ı KALAN-ISLER'deki "Taslak sesli videolar" listesine ekle (slug,
    tarih, taslak dosyası, tahmini karakter). **`ekg` ve `gps` hiçbir zaman taslak ses almaz:** onlarda gerçek TTS
    yoksa zorunlu durma noktası; kareler ve `qa-layout` tablosuyla dur, render alma.

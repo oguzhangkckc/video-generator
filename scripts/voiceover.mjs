@@ -4,6 +4,7 @@
 //   node scripts/voiceover.mjs sample <slug> <voice>... [--provider p]     → out/<slug>/voice-samples/ (first section)
 //   node scripts/voiceover.mjs build <slug> [voice] [--provider p] [--model id] [--speed 1.0] [--widen] [--offline]
 //                                          [--estimate] [--over-budget]   → public/videos/<slug>/vo.wav + videos/<slug>/timing.json
+//                                          (the placeholder: vo.draft.wav + timing.draft.json, git-ignored; a real build removes them)
 //   node scripts/voiceover.mjs pick <slug> <sentence#> <take>              → spec voiceover.picks, then build --offline
 //   node scripts/voiceover.mjs listen <metin.json> [--provider say] [--sections a,b] → out/<slug>/metin/ses/: a script draft
 //                                          (skill step c) read by the free placeholder voice; no spec, timing or credit
@@ -28,7 +29,21 @@ import { PROSODY, analyse, measureProsody, openPauses, phraseBounds, phraseRange
 import { api } from "./lib/tts/elevenlabs.mjs";
 import { PROVIDERS, providerOf } from "./lib/tts/index.mjs";
 import { cacheDir, cacheKey, estimate, overspend, readLedger, record } from "./lib/tts/spend.mjs";
-import { ROOT, SAMPLE_RATE, formatSpec, loadSpec, outDir, publicDir, readPcm, requireSlug, videoDir, writeVoice, writeWav } from "./lib/video.mjs";
+import {
+  ROOT,
+  SAMPLE_RATE,
+  formatSpec,
+  loadSpec,
+  outDir,
+  publicDir,
+  readPcm,
+  removeDraftVoice,
+  requireSlug,
+  videoDir,
+  voiceFiles,
+  writeVoice,
+  writeWav,
+} from "./lib/video.mjs";
 
 /** Window start → first sound, and last sound → window end. */
 const LEAD = 0.2;
@@ -328,7 +343,11 @@ const build = async (slug, voiceArg, flags) => {
   const pcm = new Float32Array(Math.max(audioEnd, videoEnd));
   for (const { frame, samples } of placed) for (let j = 0; j < samples.length; j++) pcm[frame + j] += samples[j];
   mkdirSync(publicDir(slug), { recursive: true });
-  const voOut = path.join(publicDir(slug), "vo.wav");
+  const files = voiceFiles(slug, { draft: placeholder });
+  if (placeholder && existsSync(voiceFiles(slug).timing)) {
+    console.warn(`${slug}: a real voice-over exists (videos/${slug}/timing.json) and stays in use; this draft is written beside it`);
+  }
+  const voOut = path.join(ROOT, "public", files.audio);
   writeVoice(voOut, pcm);
 
   // Phrase bounds in timing.json are where the sound starts and stops, so captions and qa follow what is heard.
@@ -337,7 +356,7 @@ const build = async (slug, voiceArg, flags) => {
   ranges.forEach(([first], i) => (words[first].start = Math.max(words[first].start, final[i].onset)));
   const timing = {
     source: placeholder ? `placeholder:${provider.id}/${voice}` : `${provider.id}:${voice}${model ? `/${model}` : ""}`,
-    audio: `videos/${slug}/vo.wav`,
+    audio: files.audio,
     phrases: phrases.map((text, i) => ({ text, start: round2(final[i].onset), end: round2(final[i].offset) })),
     words: words.map((w) => ({
       text: w.text,
@@ -347,8 +366,9 @@ const build = async (slug, voiceArg, flags) => {
       confidence: null,
     })),
   };
-  const timingFile = path.join(videoDir(slug), "timing.json");
+  const timingFile = files.timing;
   writeFileSync(timingFile, `${JSON.stringify(timing, null, 2)}\n`);
+  if (!placeholder) for (const f of removeDraftVoice(slug)) console.log(`draft removed: ${path.relative(ROOT, f)}`);
   if (specChanged) writeFileSync(specFile, `${formatSpec(json)}\n`);
   console.log(`Bu videonun seslendirme harcaması: ${readLedger(slug).spent} karakter (out/${slug}/tts-ledger.json)`);
 

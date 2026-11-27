@@ -26,12 +26,15 @@ import {
   duration,
   ffmpeg,
   loadSpec,
+  isPlaceholderVoice,
   loadTiming,
   outDir,
   publicDir,
   readPcm,
+  removeDraftVoice,
   requireSlug,
   videoDir,
+  voiceFiles,
   writeVoice,
   writeWav,
 } from "./lib/video.mjs";
@@ -47,10 +50,12 @@ const { positional, flags } = parseArgs(process.argv.slice(2), { model: "string"
 const slug = requireSlug(positional[0]);
 const known = flags.timing ? loadTiming(slug) : null;
 if (flags.timing && !known) {
-  console.error(`--timing needs videos/${slug}/timing.json`);
+  console.error(`--timing needs videos/${slug}/timing.json (or the draft's timing.draft.json)`);
   process.exit(1);
 }
-const input = positional[1] ? path.resolve(positional[1]) : known && path.join(publicDir(slug), "vo.wav");
+const input = positional[1] ? path.resolve(positional[1]) : known && path.join(ROOT, "public", known.audio);
+// Opening the pauses of a placeholder voice keeps it a draft; a recording is the real voice-over and replaces any draft.
+const files = voiceFiles(slug, { draft: isPlaceholderVoice(known) });
 if (!input) {
   console.error("Usage: node scripts/align.mjs <slug> <audio-file> [--model large-v3-turbo] [--dry]\n       node scripts/align.mjs <slug> --timing [--dry]");
   process.exit(1);
@@ -202,7 +207,7 @@ const pcm = readPcm(input, { channels: CHANNELS });
 const opened = openPauses(pcm, CHANNELS, words, ranges, (i) => pauseAfter(phrases[i], { sectionEnd: sectionEnds[i] }));
 const result = flags.dry ? { pcm, words } : opened;
 
-const voFile = path.join(publicDir(slug), "vo.wav");
+const voFile = path.join(ROOT, "public", files.audio);
 const measured = flags.dry ? path.join(workDir, "input-48k.wav") : voFile;
 if (flags.dry) writeWav(measured, pcm, { channels: CHANNELS });
 else {
@@ -215,7 +220,7 @@ ranges.forEach(([first], i) => (result.words[first].start = Math.max(result.word
 const round2 = (x) => Math.round(x * 100) / 100;
 const timing = {
   source: known ? known.source : `whisper.cpp ${WHISPER_VERSION} ${model}`,
-  audio: `videos/${slug}/vo.wav`,
+  audio: files.audio,
   phrases: phrases.map((text, i) => ({ text, start: round2(report.bounds[i].onset), end: round2(report.bounds[i].offset) })),
   words: result.words.map((w) => ({
     text: w.text,
@@ -225,8 +230,9 @@ const timing = {
     confidence: w.confidence,
   })),
 };
-const timingFile = flags.dry ? path.join(workDir, "timing.json") : path.join(videoDir(slug), "timing.json");
+const timingFile = flags.dry ? path.join(workDir, "timing.json") : files.timing;
 writeFileSync(timingFile, `${JSON.stringify(timing, null, 2)}\n`);
+if (!flags.dry && !isPlaceholderVoice(timing)) for (const f of removeDraftVoice(slug)) console.log(`draft removed: ${path.relative(ROOT, f)}`);
 
 if (!known) console.log(`${matched}/${script.length} script words matched Whisper's (${heard} heard); the rest interpolated`);
 const added = opened.cuts.reduce((n, c) => n + c.seconds, 0);

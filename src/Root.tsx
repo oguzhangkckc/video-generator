@@ -7,17 +7,18 @@ import { resolveVideo } from "./spec/resolve";
 import { VideoProps } from "./spec/schema";
 import { VideoFromSpec } from "./VideoFromSpec";
 
-// Every videos/<slug>/spec.json becomes a composition with id <slug>; timing.json is optional (draft captions).
+// Every videos/<slug>/spec.json becomes a composition with id <slug>. The timing is optional (estimated captions
+// without it): the real voice-over's timing.json, else a placeholder voice's git-ignored timing.draft.json.
 const specs = require.context("../videos", true, /^\.\/[a-z0-9-]+\/spec\.json$/);
-const timings = require.context("../videos", true, /^\.\/[a-z0-9-]+\/timing\.json$/);
+const timings = require.context("../videos", true, /^\.\/[a-z0-9-]+\/timing(\.draft)?\.json$/);
 const timingKeys = new Set(timings.keys());
 
 const VIDEOS = specs.keys().map((key) => {
   const slug = key.split("/")[1];
-  const timingKey = `./${slug}/timing.json`;
+  const timingKey = [`./${slug}/timing.json`, `./${slug}/timing.draft.json`].find((k) => timingKeys.has(k));
   return {
     slug,
-    props: { spec: specs(key), timing: timingKeys.has(timingKey) ? timings(timingKey) : null } as z.input<typeof VideoProps>,
+    props: { spec: specs(key), timing: timingKey ? timings(timingKey) : null } as z.input<typeof VideoProps>,
   };
 });
 
