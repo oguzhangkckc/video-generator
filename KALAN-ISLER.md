@@ -1,8 +1,8 @@
 # Kalan işler
 
 Son güncelleme: 2026-11-27 (yalnız geliştirme ortamı: Claude Code araçları ve Node sürümü; proje kodu değişmedi).
-`feat/genel-sahne-turleri` PR #1 (`55d38de`) ve `feat/sistem-kurallari` PR #2 (`40fe4f8`) main'e birleştirildi; yeni iş
-yeni branch'te.
+`feat/genel-sahne-turleri` PR #1 (`55d38de`), `feat/sistem-kurallari` PR #2 (`40fe4f8`) ve `chore/nvmrc-ve-gitignore`
+PR #3 (`fab72e3`, `.nvmrc` + gitignore) main'e birleştirildi; yeni iş yeni branch'te.
 
 ## Yapılanlar (commit sırasıyla)
 
@@ -120,7 +120,7 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
 
 ## Bekleyen kararlar (kullanıcıya sor)
 
-Şu an bekleyen karar yok.
+- Seslendirme sağlayıcısı: aşağıda "Seslendirme v2 Aşama B".
 
 ## Görsel sistem v2: qa durumu
 
@@ -142,6 +142,10 @@ demo-trace temiz.
 
 Hesapta kredi bitti (2026-11-19'da 4 kredi kalmıştı). Gereken ≈ 2.500–3.000 kredi. Ücretsiz plandaki ses ticari
 kullanılamaz; kullanıcıya hatırlat.
+
+- Seslendirme sağlayıcısı kararı bekliyor: ElevenLabs Starter (1 ay, ticari lisans) ya da Azure Speech F0 (gmail
+  hesabıyla pay-as-you-go aboneliği).
+- gps-pilot'taki 'yukarı' bağlam uyarısını, yeniden seslendirmeden önce senaryodan düzelt.
 
 0. Sağlayıcı seçimi: ElevenLabs (kredi) ya da Azure Speech (SSML; `.env`'e `AZURE_SPEECH_KEY`,
    `AZURE_SPEECH_REGION` — hesabı kullanıcı açar, ücretsiz kotayı birlikte kontrol ederiz). Önce geçici sesle
