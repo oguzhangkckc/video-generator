@@ -114,11 +114,22 @@ const table = (head, rows) =>
 const isWaiting = (step) => step.startsWith("durak");
 const ms = (from, to) => new Date(to) - new Date(from);
 
-/** Each `end` closes the latest open `start` of the same step, so a step can run again (after a stop). */
+/**
+ * Each `end` closes the latest open `start` of the same step, so a step can run again (after a stop). A step started
+ * again while its last run is still open (it went on after a stop without an `end`, as c after Durak 1) closes that
+ * run first: where the first wait after it began, so the wait is not counted as work, else at the new start.
+ */
 export const stepSpans = (events) => {
   const spans = [];
   for (const e of events) {
-    if (e.type === "start") spans.push({ step: e.step, from: e.at, to: null, text: undefined });
+    if (e.type === "start") {
+      const stale = spans.findLast((s) => s.step === e.step && s.to === null);
+      if (stale) {
+        const pause = spans.find((s) => s !== stale && isWaiting(s.step) && ms(stale.from, s.from) >= 0 && ms(s.from, e.at) >= 0);
+        Object.assign(stale, pause ? { to: pause.from, text: `${pause.step} ile ara` } : { to: e.at, text: "yeniden başladı" });
+      }
+      spans.push({ step: e.step, from: e.at, to: null, text: undefined });
+    }
     if (e.type === "end") {
       const open = spans.findLast((s) => s.step === e.step && s.to === null);
       if (open) Object.assign(open, { to: e.at, text: e.text });

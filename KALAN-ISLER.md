@@ -174,6 +174,8 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
     `public/videos/<slug>/vo.draft.wav` (gitignore'da). `loadTiming` ve Remotion kökü önce gerçek sese, yoksa taslağa
     bakar; gerçek ses (voiceover ya da insan kaydı ile align) taslağı siler. `out/` altına taşımak Remotion'ın paket
     bağlamını ve ses sunumunu (`public/`) bozacağı için seçilmedi.
+  - run-log: aynı adım yeniden başlayınca açık kalan eski kayıt kapanır; arada bir durak başladıysa durağın başında
+    ("durak-1 ile ara", bekleme çalışma sayılmaz), yoksa yeniden başlarken ("yeniden başladı").
 - **Kabul testi videosu üretildi (2026-11-28, Durak 2 onayı bekliyor):** `videos/temassiz-kart` (72,1 sn, taslak ses
   `out/temassiz-kart.draft.mp4`). Kayıt `out/temassiz-kart/run-log.md`. Üç durma: c'de editör (kullanıcı "sorun
   çıkarsa dur" dedi), e'de altyazı sığması (onaylı metin değişti; sistem açığı `a325788` ile kapandı). Kapılar:

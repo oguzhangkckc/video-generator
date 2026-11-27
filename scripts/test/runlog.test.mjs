@@ -66,6 +66,26 @@ test("the log splits work from waiting at stops and forced stops", () => {
   assert.match(md, /## Düzeltme turları\n\nYok\./);
 });
 
+test("a step started again closes its open run: at the stop it waited on, else at the restart", () => {
+  const events = [
+    { at: at(0), type: "start", step: "c" },
+    { at: at(20), type: "start", step: "durak-1" },
+    { at: at(28), type: "end", step: "durak-1" },
+    { at: at(28), type: "start", step: "c" },
+    { at: at(30), type: "end", step: "c" },
+    { at: at(30), type: "start", step: "e" },
+    { at: at(35), type: "start", step: "e" },
+    { at: at(50), type: "end", step: "e" },
+  ];
+  const s = summary(events);
+  assert.equal(formatDuration(s.work), "42 dk");
+  assert.equal(formatDuration(s.wait), "8 dk");
+  const md = renderLog("deneme", events);
+  assert.doesNotMatch(md, /sürüyor/);
+  assert.match(md, /\| c \| .* \| 20 dk \| durak-1 ile ara \|/);
+  assert.match(md, /\| e \| .* \| 5 dk \| yeniden başladı \|/);
+});
+
 test("the log renders rounds with their verdicts and escapes table pipes", () => {
   const events = [];
   for (const [min, errors] of [[0, 3], [5, 3], [9, 4]]) events.push({ at: at(min), ...nextRound(events, { gate: "qa", errors, warnings: 1, text: "a | b" }) });
