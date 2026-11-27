@@ -10,6 +10,66 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 export const flagText = (flags) =>
   flags.map((f) => (f === "rise" ? "sonda yükseliyor" : f === "decay" ? "sonu kesik" : f)).join(", ") || "temiz";
 
+const CSS = `:root { --bg: #f6f7f9; --card: #fff; --text: #16181d; --muted: #5d6470; --line: #e2e5ea; --accent: #2457d6; --ok: #1d7a46; --warn: #b4531a; }
+@media (prefers-color-scheme: dark) { :root { --bg: #101318; --card: #181c23; --text: #e8ebf0; --muted: #9aa3b1; --line: #2a303a; --accent: #7aa2ff; --ok: #5fd08f; --warn: #ffa264; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+.intro, .limits { color: var(--muted); margin: 0 0 16px; }
+code { font: 13px ui-monospace, Menlo, monospace; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin: 0 0 16px; }
+h2 { font-size: 17px; margin: 0 0 12px; }
+.n { display: inline-block; min-width: 26px; color: var(--muted); }
+.redo { color: var(--warn); font-weight: 600; margin: 0 0 8px; }
+.take { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); }
+.take.chosen .label { font-weight: 600; }
+audio { width: 100%; }
+.metrics { color: var(--muted); font-size: 13px; }
+.badge { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; margin-left: 6px; border: 1px solid currentColor; }
+.badge.ok { color: var(--ok); } .badge.flag { color: var(--warn); } .badge.auto, .badge.you { color: var(--accent); }
+button { justify-self: start; font: inherit; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+#status { position: sticky; bottom: 0; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: none; white-space: pre-wrap; }`;
+
+/**
+ * out/<slug>/voices.html: every candidate voice reading the same passages, to choose the channel's voice by ear.
+ * voices: [{ id, name, files: [path per section, relative to out/<slug>] }]; sections: [{ id, text }].
+ */
+export const writeVoiceSamples = (slug, { provider, model, sections, voices }) => {
+  const cards = voices
+    .map(
+      (v, i) => `<section class="card"><h2><span class="n">${i + 1}</span> ${esc(v.name)} <code>${esc(v.id)}</code></h2>
+${sections.map((s, k) => `<div class="take"><div class="label">${esc(s.id)}</div><audio controls preload="none" src="${esc(v.files[k])}"></audio></div>`).join("\n")}
+</section>`,
+    )
+    .join("\n");
+  const html = `<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ses seçimi · ${esc(slug)}</title>
+<style>
+${CSS}
+</style>
+</head>
+<body>
+<main>
+<h1>Ses seçimi · ${esc(slug)}</h1>
+<p class="intro">Her ses aynı bölümleri okuyor (${esc(provider)}, ${esc(model)}). Seçilen ses kanalın sesi olur:
+<code>videos/sablon/spec.json</code> <code>voiceover.tts</code>.</p>
+${sections.map((s) => `<p class="limits"><strong>${esc(s.id)}:</strong> ${esc(s.text)}</p>`).join("\n")}
+${cards}
+</main>
+</body>
+</html>
+`;
+  const file = path.join(outDir(slug), "voices.html");
+  writeFileSync(file, html);
+  return file;
+};
+
 const metrics = (c) =>
   `yükselme ${c.rise == null ? "—" : `${c.rise > 0 ? "+" : ""}${c.rise.toFixed(1)} yt`} · sönüm ${c.decay == null ? "—" : `${Math.round(c.decay * 1000)} ms`}`;
 
@@ -58,27 +118,7 @@ export const writeReview = (slug, { mode, items, limits }) => {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Seslendirme seçimi · ${esc(slug)}</title>
 <style>
-:root { --bg: #f6f7f9; --card: #fff; --text: #16181d; --muted: #5d6470; --line: #e2e5ea; --accent: #2457d6; --ok: #1d7a46; --warn: #b4531a; }
-@media (prefers-color-scheme: dark) { :root { --bg: #101318; --card: #181c23; --text: #e8ebf0; --muted: #9aa3b1; --line: #2a303a; --accent: #7aa2ff; --ok: #5fd08f; --warn: #ffa264; } }
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
-h1 { font-size: 22px; margin: 0 0 4px; }
-.intro, .limits { color: var(--muted); margin: 0 0 16px; }
-code { font: 13px ui-monospace, Menlo, monospace; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin: 0 0 16px; }
-h2 { font-size: 17px; margin: 0 0 12px; }
-.n { display: inline-block; min-width: 26px; color: var(--muted); }
-.redo { color: var(--warn); font-weight: 600; margin: 0 0 8px; }
-.take { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); }
-.take.chosen .label { font-weight: 600; }
-audio { width: 100%; }
-.metrics { color: var(--muted); font-size: 13px; }
-.badge { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; margin-left: 6px; border: 1px solid currentColor; }
-.badge.ok { color: var(--ok); } .badge.flag { color: var(--warn); } .badge.auto, .badge.you { color: var(--accent); }
-button { justify-self: start; font: inherit; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; }
-button:disabled { opacity: .5; cursor: default; }
-#status { position: sticky; bottom: 0; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: none; white-space: pre-wrap; }
+${CSS}
 </style>
 </head>
 <body>
