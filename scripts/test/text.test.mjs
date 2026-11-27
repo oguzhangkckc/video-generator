@@ -87,6 +87,10 @@ test("the avoid list matches suffixed forms, not lookalike words", () => {
   assert.deepEqual(avoidedIn("Bu bir uyarı işareti."), []);
   assert.deepEqual(avoidedIn("Ateş gibi yanıyor."), []);
   assert.deepEqual(avoidedIn("Kalp dört odaya sahip oluyor.").map((a) => a.match), ["sahip ol"]);
+  assert.deepEqual(avoidedIn("alanını çok kısa anlar için kısıyor.").map((a) => a.match), ["anlar için"]);
+  assert.deepEqual(avoidedIn("İnsanlar için kolay."), []);
+  assert.deepEqual(avoidedIn("Anahtar kapanınca kart enerji çekiyor.").map((a) => a.match), ["anahtar kapan"]);
+  assert.deepEqual(avoidedIn("Kart anahtarı açıp kapatıyor."), []);
 });
 
 test("at most two sections open with a Peki question", () => {

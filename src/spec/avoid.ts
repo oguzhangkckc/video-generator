@@ -16,6 +16,12 @@ export const AVOID: Avoid[] = [
   { match: "söz konusu", why: "resmî yazı dili", instead: "'bu', ya da adını söyle" },
   { match: "sıkış", why: "kalp için günlükte 'kalp sıkışması' (kriz) demek", instead: "kasılıyor, kanı itiyor" },
   { match: "bir şekilde", why: "belirsiz dolgu (İng. somehow)", instead: "nasıl olduğunu söyle ya da sil" },
+  { match: "anlar için", why: "çeviri kalıbı (İng. for … moments)", instead: "'bir anlığına', 'kısa süreliğine'" },
+  {
+    match: "anahtar kapan",
+    why: "elektrikte kapanan anahtar akımı geçirir; günlük dilde kapatmak söndürmek demek, izleyici ters anlar",
+    instead: "'düğmeye basınca', 'açılınca' (günlük anlamıyla)",
+  },
 ];
 
 /** Entries of the avoid list a phrase uses. */
