@@ -1,7 +1,8 @@
 # Kalan işler
 
-Son güncelleme: 2026-11-24. `feat/genel-sahne-turleri` PR #1 (`55d38de`) ve `feat/sistem-kurallari` PR #2 (`40fe4f8`)
-main'e birleştirildi; yeni iş yeni branch'te.
+Son güncelleme: 2026-11-27 (yalnız geliştirme ortamı: Claude Code araçları ve Node sürümü; proje kodu değişmedi).
+`feat/genel-sahne-turleri` PR #1 (`55d38de`) ve `feat/sistem-kurallari` PR #2 (`40fe4f8`) main'e birleştirildi; yeni iş
+yeni branch'te.
 
 ## Yapılanlar (commit sırasıyla)
 
@@ -159,12 +160,26 @@ kullanılamaz; kullanıcıya hatırlat.
 5. EKG'nin sesli render'ını `~/Desktop/ekg.mp4`'e kopyala. Şu anki kopya sessiz render (2026-11-24, kılavuzlu
    son hâl).
 
+## Geliştirme ortamı (2026-11-27)
+
+- Claude Code'a eklendi: Context7 (MCP), claude-hud 0.15.5. RTK zaten kuruluydu; `rtk init` çalıştırılmadı (Read
+  devri kapalı). Remotion skills: aşağıda "Notlar".
+- claude-hud, Vibe Island'ın status line betiğine eklendi (`~/.vibe-island/bin/vibe-island-statusline`, "Add your
+  status line output below" bölümü); `statusLine` ayarı değişmedi. `/hud` `install --replace` önerirse reddet, yoksa
+  Vibe Island status line'dan çıkar.
+- **Açık (kullanıcı):** VS Code'u yeniden başlatıp HUD'un panelde görünüp görünmediğine bak. Status line 2 Ekim'den
+  beri hiç çağrılmamış (`~/.vibe-island/cache/rl.json` güncellenmiyordu); oturum sırasında bu dosya güncelleniyorsa
+  status line çalışıyor demektir.
+
 ## Notlar
 
 - **Proje yeri:** `/Volumes/KINGSTON/Projects/video-generator`. `~/Desktop/video-generator` buna sembolik bağlantı.
-- **Node sürümü:** script'ler `.ts` import ettiği için Node ≥ 22.18 gerekir. Kabukta PATH'in başında nvm'in v20.10'u
-  olabiliyor (`.ts` hatası verir); `nvm use 22` ya da
-  `PATH=/Volumes/KINGSTON/DevTools/NodeJS/nvm/versions/node/v22.23.1/bin:$PATH`.
+- **Remotion agent skills:** 2026-11-27'de `npx remotion skills add` ile eklendi (`.agents/skills/`, 14 skill;
+  `.claude/skills/remotion-*` sembolik bağlantılar; `skills-lock.json`). Karar: gitignore'a eklendi, repoda yok. Yeni
+  makinede aynı komutla kurulur.
+- **Node sürümü:** script'ler `.ts` import ettiği için Node ≥ 22.18 gerekir. 2026-11-27'den beri nvm varsayılanı
+  22.23.1 ve kabuk dizine girince `.nvmrc`'yi okuyor (`~/.zshrc`'deki `load-nvmrc` kancası). Projenin `.nvmrc`'si
+  22.23.1 (2026-11-27). `.ts` hatası görülürse önce `node -v`; gerekirse `nvm use`.
 - **EKG'nin eski sesi:** `out/ekg/v3.1-backup/`. Metin değiştiği için kullanılamaz.
 - **whisper.cpp** 2026-11-24'te statik olarak yeniden derlendi (eski yola bağlıydı); `align` proje taşınırsa kendini yeniden
   derler. İnsan kaydı yolu (`npm run align`) çalışıyor (geçici sesle denendi, 8/8 kelime eşleşti).
