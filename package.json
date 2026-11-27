@@ -6,7 +6,8 @@
   "description": "Spec-driven explainer videos (9:16) built with Remotion",
   "scripts": {
     "studio": "remotion studio",
-    "check": "tsc --noEmit && remotion compositions",
+    "check": "tsc --noEmit && node scripts/text.mjs && remotion compositions",
+    "text": "node scripts/text.mjs",
     "new": "node scripts/new.mjs",
     "stills": "node scripts/stills.mjs",
     "render": "node scripts/render.mjs",

@@ -410,8 +410,10 @@
   ],
   "styleExceptions": [
     "Pilot, STYLE.md yazılmadan önce yapıldı ve referans olarak olduğu gibi korunuyor.",
-    "Bölümler her zaman \"Peki…?\" ile açılmıyor; soru kancanın sonunda ve videonun bitişinde.",
-    "Geri sayımlı doruk, tek cümlelik özet ve kavram adı yok; video bir soruyla (uçurumla) bitiyor.",
+    {
+      "rule": "acik-final",
+      "why": "Geri sayımlı doruk, tek cümlelik özet ve kavram adı yok; video bir soruyla (uçurumla) bitiyor. Tamamlanmış hâli videos/gps olacak."
+    },
     "Üçüncü kanca başlığı 6. saniyeye kadar sürüyor (STYLE: ilk 5 saniyede 3 başlık).",
     "Yerleşim, güvenli alan kuralından önceki hâliyle sabitlendi (layout: rightInset 72, contentWidth 960); sayaç, notlar, başlıklar ve altyazı sağdaki 120 px'e taşabiliyor."
   ],

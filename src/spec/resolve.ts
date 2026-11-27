@@ -7,11 +7,10 @@ import { FPS, formatCounter } from "../kit/format";
 import { speedLabel } from "../kit/overlays/Counter";
 import { textWidth } from "../kit/overlays/geometry";
 import { SANS } from "../kit/theme";
-import { needsReading, splitToken, unreadable } from "./lexicon.ts";
 import { KEY_REF, MARK_REF } from "./primitives";
 import { ResolvedSpec, Timing, VideoSpec, type LayerOf, type Spec } from "./schema";
 import { sceneFindings } from "./scenes";
-import { endsOnQuestionWord, sentencesOf } from "./sentences.ts";
+import { auditScript, waivedRules } from "./script-audit.ts";
 import {
   captionPages,
   estimatePhrases,
@@ -190,30 +189,13 @@ const words = (text: string) =>
     .filter(Boolean);
 
 /**
- * STYLE rules about the script itself: no two "Peki…?" questions in a row, hook titles reuse the words being
- * spoken, and with a `peak` mark the strongest moment sits in the last third with no long section after it.
+ * STYLE rules about the script itself (src/spec/script-audit.ts; its warnings are printed by npm run text), hook
+ * titles reuse the words being spoken, and with a `peak` mark the strongest moment sits in the last third with no long section after it.
  */
 const checkScript = (raw: RawSpec, spec: Spec, phrases: Phrase[]) => {
-  phrases.forEach((p, i) => {
-    if (i > 0 && /^peki\b/i.test(phrases[i - 1].text) && /^peki\b/i.test(p.text)) {
-      fail("voiceover", `"${phrases[i - 1].text}" / "${p.text}": two "Peki…?" questions in a row`);
-    }
-    const missing = raw.template ? [] : unreadable(p.text);
-    if (missing.length) {
-      fail("voiceover", `"${p.text}": no reading for ${missing.map((m) => `"${m}"`).join(", ")} — add it to src/spec/lexicon.ts or write it out`);
-    }
-  });
-  for (const s of raw.template ? [] : sentencesOf(raw.voiceover.sections)) {
-    if (s.kind === "fragment") continue;
-    const tokens = s.text.trim().split(/\s+/);
-    const last = splitToken(tokens[tokens.length - 1]).base;
-    if (needsReading(last)) {
-      fail("voiceover", `"${s.text}" ends on "${last}"; end a sentence on a word ("…dalgası: T." → "Sonra T dalgası geliyor: toparlanma.")`);
-    }
-    if (endsOnQuestionWord(s.text)) {
-      fail("voiceover", `"${s.text}" ends on its question word, which then takes the stress ("Peki o sivri tepe ne?" → "Peki ya o sivri tepe?")`);
-    }
-  }
+  const findings = auditScript(raw.voiceover.sections, { template: raw.template, waived: waivedRules(raw.styleExceptions) });
+  const broken = findings.find((f) => f.level === "error" && !f.waived);
+  if (broken) fail("voiceover", broken.message);
   if (!raw.template) {
     spec.titles.forEach((title, i) => {
       const spoken = new Set(phrases.filter((p) => p.end > title.from && p.start < title.to).flatMap((p) => words(p.text)));

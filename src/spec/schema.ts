@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { soundSchema } from "../kit/audio/schema.ts";
+import { WAIVABLE } from "./script-audit.ts";
 import {
   captionsSchema,
   conceptSchema,
@@ -169,8 +170,8 @@ const buildSpec = <T extends z.ZodType, R extends z.ZodType, N extends z.ZodType
             .strict(),
         )
         .default([]),
-      /** Where this video knowingly departs from STYLE.md, and why. */
-      styleExceptions: z.array(z.string()).default([]),
+      /** Where this video knowingly departs from STYLE.md, and why; `{ rule, why }` also lifts that check. */
+      styleExceptions: z.array(z.union([z.string(), z.object({ rule: z.enum(WAIVABLE), why: z.string() }).strict()])).default([]),
     })
     .strict();
 

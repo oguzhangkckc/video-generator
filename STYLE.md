@@ -1,7 +1,8 @@
 # Stil rehberi
 
 Bu projedeki her açıklayıcı video bu kurallara uyar. Bilinçli olarak uyulmayan kural, o videonun `spec.json`
-dosyasında `styleExceptions` alanına gerekçesiyle yazılır.
+dosyasında `styleExceptions` alanına gerekçesiyle yazılır. Metin denetiminin bir kuralı bilerek çiğneniyorsa madde
+`{ "rule": "acik-final", "why": "…" }` biçiminde yazılır; denetim o kuralı "muaf" diye listeler, hata saymaz.
 
 ## Format
 
@@ -43,16 +44,34 @@ kullanılır.
   qa bu aralığı her 2 karede bir payısız ölçer ("Kapak" satırı) ve kare 0'ı `out/<slug>/cover.png` olarak kaydeder.
   Kare 0'da kanca başlığı şartı yalnız başlığı olan videolara uygulanır (tür demolarında başlık yoktur).
 - Kanca, izleyicinin elindeki gündelik bir şeyle başlar ("Cebinde bir uydu alıcısı var.").
-- **Kancadaki soru finalde açıkça cevaplanır.** Tek cümlelik özet, kancanın sorusunun cevabıdır.
+- **Kancadaki soru finalde açıkça cevaplanır.** Tek cümlelik özet, kancanın sorusunun cevabıdır (aşağıda "Söz ve
+  karşılık").
 
 ## Anlatım
 
 - İzleyiciye **"sen"** diye hitap edilir.
 - Soyut sistem **tek bir somut yolculuk** üzerinden anlatılır: bir sinyalin, bir paketin, bir elektronun
   yolculuğu… Kamera o yolculuğu izler.
-- **Her gövde bölümü "Peki…?" sorusuyla açılır.** Soru bir önceki bölümün bıraktığı boşluğu adlandırır. **Art arda
-  iki "Peki…?" cümlesi olmaz;** kancanın sorusu bu yüzden "Peki" ile başlamaz.
+- **Geçişler çeşitlidir: bir videoda en fazla 2 bölüm "Peki…?" ile açılır.** "Peki…?" bir önceki bölümün bıraktığı
+  boşluğu adlandırır. Diğer bölümler başka bir geçişle açılır: doğrudan bir iddia ("Kalbin kendi pili var."),
+  beklenmedik bir rakam ("Saniyenin onda biri.") ya da "ama" ile ters köşe ("Ama dalga burada duruyor."). **Art arda
+  iki "Peki…?" cümlesi olmaz.** `npm run check` ikisini de hata sayar (`peki-siniri`, art arda "Peki").
 - **Kanca başlıkları seslendirmeyle aynı kelimeleri kullanır** (başlık ekrandayken söylenen kelimeler).
+- **Metin kalitesi.** Her metin bu beş testten geçer; denetleyen yanında yazılıdır. Skill c) adımında metni yazarın
+  bağlamını görmeyen bir editör ajanı (`.claude/agents/metin-editoru.md`) bu kurallara göre satır satır eleştirir.
+  1. **Söz ve karşılık:** kancadaki soru finalde tam olarak, o soruya verilen bir cevapla karşılanır. Video açık bir
+     soruyla (fragman gibi) bitmez; finalde yeni bir merak açılmaz. Son cümle soru olamaz
+     (`npm run check` hatası, `acik-final`); sorunun gerçekten cevaplandığını editör denetler.
+  2. **Her cümle yerini hak eder:** bir cümle çıkarıldığında kancadan cevaba giden zincir bozulmuyorsa o cümle silinir
+     (silme testi; editör).
+  3. **Somutluk:** her soyut kavrama somut bir görüntü ya da benzetme eşlik eder ("gerilim" tek başına değil: "kalem
+     pilin binde birinden az"). Görüntü ekranda da olabilir, sözde de (editör).
+  4. **Doğal Türkçe:** çeviri kokan ifadeler ("ateşleniyor") ve günlük anlamı farklı olan teknik terimler ("uyarılıyor")
+     kullanılmaz. Liste `src/spec/avoid.ts`'te, telaffuz sözlüğünün yanında; `npm run check` listedekiler için uyarı
+     verir (`kacinilacak`). Editör listede olmayanları da yakalar; tekrar edenler listeye eklenir.
+  5. **Anlatma testi:** izleyicinin videodan sonra bir arkadaşına tek cümleyle anlatabileceği şaşırtıcı bilgi metinle
+     birlikte yazılır. Böyle bir cümle yoksa metin hazır değildir. Editör bu cümleyi metinden kendisi çıkarır; ikisi
+     farklıysa metin söylediğini sandığı şeyi söylemiyordur.
 - **Konuşma hızı** yalnızca konuşulan sürede ölçülür: **2,6–3,0 kelime/sn** (hedef 2,8). Duraklamalar bunun üstüne
   eklenir. Pencereye sığdırmak için hızlandırma yok: zaman germe en fazla ×1,05; sığmıyorsa pencere genişler ya da
   metin kısalır.
@@ -103,8 +122,10 @@ Sıra her zaman aynıdır:
    an, karşılaştırma ya da "aha" anı.
 2. **Tek cümlelik özet:** kancadaki sorunun cevabı.
 3. **Kavramın adı en son** (`concept`). İsim videonun içinde önceden söylenmez; izleyici önce ne olduğunu anlar,
-   sonra adını öğrenir. **Kavramın adı izleyicinin muhtemelen zaten bildiği bir şeyse** (EKG, GPS…) finale bir
-   şaşırtma eklenir (kelimenin kökeni, beklenmedik bir bağlantı) ya da başka bir kavram seçilir.
+   sonra adını öğrenir. **Kavramın adı izleyicinin muhtemelen zaten bildiği bir şeyse** (EKG, GPS…) seslendirme adı
+   yalnızca söylemez ("Bunun adı: elektrokardiyogram." yetmez); ad üzerinden bir şaşırtma verir: kelimenin kökeni ya da
+   anlamı izleyicinin az önce gördüğü şeyi yeniden adlandırır ("elektro, kardiyo, gram: kalbin elektrikle yazdığı
+   yazı"). Bu mümkün değilse başka bir kavram seçilir.
    **Kartın bütün yazıları koyu zemindedir:** kart ve onunla birlikte gösterilen ortalı veri satırları tek bir koyu
    panelin üstünde durur (etiket paneli kartı da içine alır). Panel kapalıysa (`layout.labelBackdrop: false`) sahne kart
    belirene kadar en az 0,6 karartılır (`darken`), değilse `npm run check` hatası. qa: kartla birlikte gösterilip
@@ -245,8 +266,10 @@ Still kareler incelenirken (skill adım e) her madde tek tek kontrol edilir:
       etiketi değişmiyor.
 - [ ] Özne ≥ %35, kare ≤ %40 boş, donma yok; söylenen yer o anda ekranda.
 - [ ] Veri etiketleri değmiyor, çizgiyi kesmiyor; aralıklar köşeli parantezle altta, noktalar kılavuzla üstte.
-- [ ] Kancadaki soru finalde açıkça cevaplanıyor.
-- [ ] Her bölüm "Peki…?" ile açılıyor; izleyiciye "sen" deniyor.
+- [ ] Kancadaki soru finalde açıkça cevaplanıyor; video soruyla bitmiyor.
+- [ ] En fazla 2 bölüm "Peki…?" ile açılıyor, diğerleri iddia, rakam ya da "ama" ile; izleyiciye "sen" deniyor.
+- [ ] Anlatma cümlesi var ve editörün çıkardığıyla aynı; editör listesindeki her bulgu düzeltildi ya da gerekçeli.
+- [ ] `npm run text` uyarıları (kaçınılacak ifadeler) düzeltildi ya da gerekçeli.
 - [ ] Kelime sayısı bütçenin içinde ((pencere − duraklamalar) × 2,8); hiçbir altyazı satırı taşmıyor.
 - [ ] Cümle harf/kısaltma/sembolle bitmiyor; soru, soru kelimesiyle bitmiyor; her kısaltma sözlükte.
 - [ ] Seslendirmedeki her büyüklük, o an ekrandaki etiketle aynı nicelik (gerilim/akım/süre/hız).
@@ -259,6 +282,6 @@ Still kareler incelenirken (skill adım e) her madde tek tek kontrol edilir:
 - [ ] Sayaç kaynaklı çizelgeden besleniyor, 3 sn'den uzun donmuyor, yavaş/hızlı akışta etiket var.
 - [ ] Ölçeksiz ya da sadeleştirilmiş her görselde not var; her rakamın kaynağı `sources`'ta.
 - [ ] Final sırası: doruk → tek cümle özet → kavram adı en son. Geri sayım yalnızca gerçek bir süre/eşik için;
-      tanıdık kavramda şaşırtma var.
+      tanıdık kavramda ad üzerinden şaşırtma var (kökeni ya da anlamı), ad yalnızca söylenmiyor.
 - [ ] `npm run qa` temiz (e adımında yerleşim, f adımında ses); sonuç tablosu kullanıcıya gösterildi.
 - [ ] `credits` eksiksiz: ses, efekt, müzik, doku, yazı tipi, kod.
