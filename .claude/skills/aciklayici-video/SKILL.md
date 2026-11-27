@@ -1,7 +1,7 @@
 ---
 name: aciklayici-video
-description: Bu projede verilen bir konu için STYLE.md tarzında 9:16 açıklayıcı video üretir — açı seçimi, kaynak doğrulama, metin, sahne planı, spec.json, still kontrolü, Whisper hizalama, müzik ve render. Kullanıcı "/aciklayici-video <konu>" yazdığında ya da bu projede yeni bir açıklayıcı video istediğinde kullan.
-argument-hint: <konu>
+description: Bu projede verilen bir konu için STYLE.md tarzında 9:16 açıklayıcı video üretir — açı seçimi, kaynak doğrulama, metin, sahne planı, spec.json, still kontrolü, seslendirme, müzik ve render. Varsayılan otomatik mod iki durakta durur (metin, bitmiş video); "adım adım" dört duraklı akış. Kullanıcı "/aciklayici-video <konu>" yazdığında ya da bu projede yeni bir açıklayıcı video istediğinde kullan.
+argument-hint: [adım adım | gerçek ses <slug>] <konu>
 ---
 
 # Açıklayıcı video: $ARGUMENTS
@@ -16,7 +16,16 @@ Başlamadan önce oku:
 Ortam: `.nvmrc`'deki Node (`nvm use`), her komut proje kökünden. ElevenLabs anahtarı `.env` içinde; içeriğini asla yazdırma,
 komut satırına koyma.
 
-**★ = dur ve açık onay iste.** Onay gelmeden sonraki adıma geçme; kullanıcı değişiklik isterse aynı adımı tekrarla.
+## Mod
+
+`$ARGUMENTS`'a bak:
+
+- **"adım adım" ile başlıyor** (ya da kullanıcı adım adım istedi): dört duraklı akış. **★ = dur ve açık onay iste.**
+  Onay gelmeden sonraki adıma geçme; kullanıcı değişiklik isterse aynı adımı tekrarla. Adımlardaki "Otomatik:"
+  notlarını atla.
+- **"gerçek ses <slug>" ile başlıyor:** taslak sesli bir videoya gerçek sesi koy (aşağıda "Gerçek ses").
+- **Diğer her durumda otomatik mod** (aşağıda). ★ işaretleri durak değildir; adımlardaki "Otomatik:" notları
+  geçerlidir.
 
 **Sorun bildirildiğinde önce sistemi düzelt.** Kullanıcı bir videoda sorun bildirdiğinde o videoyu elle düzeltmeden
 önce:
@@ -25,6 +34,138 @@ komut satırına koyma.
 2. Böyle bir kural ya da kontrol yoksa ekle; varsa neden yakalamadığını bul ve düzelt (eşik, ölçüm, kapsam).
 3. Kontrolün sorunu artık yakaladığını o videoda göster.
 4. Ancak bundan sonra videoyu yeniden üret.
+
+Bu kural iki modda da geçerli: kullanıcı bir sorun bildirdiğinde (Durak 2 dahil) sistem değişikliği yapılabilir.
+Otomatik moddaki yasaklar ("Düzeltme döngüsü") yalnız kendi başına yaptığın düzeltmeler için.
+
+## Otomatik mod
+
+Kullanıcı video başına iki kez devreye girer: Durak 1 (konu ve metin) ve Durak 2 (bitmiş video). Bunlar ve zorunlu
+durma noktaları dışında sorma.
+
+### Kayıt
+
+Her şeyi `npm run log` ile kaydet: `out/<slug>/run-log.jsonl` olayları tutar, `out/<slug>/run-log.md` her komutta
+yeniden yazılır.
+
+| Ne zaman | Komut (`npm run log -- <slug> …`) |
+|---|---|
+| bir adıma başlarken / bitirince | `start <adım>` / `end <adım> ["not"]` |
+| bir durak mesajını gönderirken / yanıt gelince | `start durak-1` / `end durak-1`, sonra `user durak-1 "<ne istedi>"` |
+| her kapı turundan sonra | `round <check\|qa-layout\|qa> …` (aşağıda "Düzeltme döngüsü") |
+| zorunlu durma noktası | `end <adım> "durdu"`, `stop "<sebep>"`; yanıt gelince `user <adım> "<ne istedi>"`, `start <adım>` |
+| kullanıcı akış sırasında bir şey isterse | `user <adım> "<ne istedi>"` |
+| kontrol listesi sonucu, kısmi qa denemesi, ses kararı | `note "<metin>"` |
+
+Adım adları: `a`, `b`, `c`, `durak-1`, `d`, `e`, `f`, `durak-2`, `gercek-ses`. Slug'ı a'nın başında seç (küçük harf,
+rakam ve tire); kayıt oradan başlar. Kullanıcının isteğini kendi kelimelerine yakın, kısa yaz. Durak süreleri
+"kullanıcı bekleme" olarak ayrı toplanır.
+
+### Durak 1 ★ konu ve metin
+
+a, b ve c'yi arada durmadan yap, sonra tek mesajda göster:
+
+1. Seçilen açı ve gerekçesi; diğer açılar birer satır (kullanıcı değiştirebilsin).
+2. Kaynak listesi, işaretli iddialar (`simplified` / `disputed` ve önerilen `notes`), nicelik tablosu.
+3. Editör bulguları: cümle | kural | sorun | öneri | **çözüm** (düzeltildi / gerekçe).
+4. 3 kanca ve 2 final; önerdiğin birleşim işaretli.
+5. Kancadaki soru → finaldeki cevap; anlatma cümlesi (seninki ve editörünki).
+6. `npm run voiceover -- listen` ile okunmuş metin: ses dosyalarının yolları (`open out/<slug>/metin/ses`), bölüm
+   tablosu (pencere, duraklama, bütçe, kelime, konuşulan süre), cümle cümle metin, `npm run text` sonucu.
+7. Sahne türleri: hepsi kütüphanede mi? Yeni tür ya da varlık gerekiyorsa öneri, tahmini iş miktarı ve lisans.
+8. Ses planı. `videos/sablon/spec.json`'da `voiceover.tts` (sağlayıcı ve ses) varsa tahmini karakter (seçilen
+   metnin okunuşlarıyla karakter sayısı) ve önerilen bütçe: tahmin × 1,5 (işaretli cümle alternatifleri ve yeniden
+   üretim payı). Onay bütçeyi de onaylar. `tts` yoksa: "taslak ses (say), çıktı `out/<slug>.draft.mp4`, yayına
+   uygun değil".
+9. Sözlüğe eklediğin okunuşlar; `src/spec/avoid.ts`'e eklenmesini önerdiğin ifadeler (yalnız öneri: otomatik modda
+   metin denetimi değişmez).
+
+a–c sırasında çıkan zorunlu durma nedenleri (yeni sahne türü ya da varlık, doğrulanamayan iddia, kural istisnası)
+ayrı durak açmaz: bu mesajın başında "Karar gerekiyor" başlığıyla gelir.
+
+Kullanıcı kanca ve finali seçer ya da değişiklik ister. Değişiklikte ilgili adımı yeniden yap ve Durak 1'i yeniden
+göster. Onaydan sonra `videos/<slug>/metin.json`'u yaz (c sonu) ve d, e, f'yi durmadan yürüt.
+
+### Düzeltme döngüsü
+
+Üç kapı var:
+
+- `check`: e.4, `npm run check`
+- `qa-layout`: e.6, `npm run qa -- <slug> --layout`
+- `qa`: f.6, render sonrası tam `npm run qa -- <slug>`
+
+Kapı hata verirse düzelt ve yeniden çalıştır. Her tam çalıştırma bir turdur, kaydedilir:
+
+```bash
+npm run log -- <slug> round check --errors 1 "ne değişti"           # check ilk spec hatasında durur
+npm run log -- <slug> round check --errors 1 --fixed "ne değişti"   # önceki turun hatası gitti, yenisi çıktı
+npm run log -- <slug> round qa-layout "ne değişti"                  # sayılar out/<slug>/qa.json'dan
+```
+
+- Çıktıdaki karara uy: `devam`, `temiz` ya da `DUR: …`. Döngü, hata sayısı iki tur üst üste azalmazsa (check'te
+  `--fixed` ilerleme sayılır) ya da 5. turda sıfıra inmezse durur; betik durma kaydını kendisi ekler. Durunca
+  kullanıcıya kalan hataları, denediklerini, önerini ve `run-log.md` özetini ver.
+- `--from/--to` ile kısmi qa denemeleri tur sayılmaz (`round` kısmi `qa.json`'u reddeder); `note` ile yaz.
+- Her kapının döngüsü ayrıdır. Temiz biten ya da duran bir döngüden sonra kapının sonraki turu 1'den başlar.
+- `npm run check` bütün videoları denetler. Hata başka bir videonun spec'indeyse kapsam dışıdır, dur.
+- **Düzeltme yalnız `videos/<slug>/spec.json`'da:** kamera, zoom, `subject`, `say`, `transitions`, etiket ve not
+  zamanı/yeri, `marks`, `curves`, katman parametreleri, `sound`; pencereler `--widen` ile.
+- **Kendi başına değiştirme:**
+  - STYLE.md;
+  - qa eşikleri (`scripts/qa.mjs`, `scripts/lib/composition.mjs`);
+  - metin denetimi (`src/spec/script-audit.ts`, `avoid.ts`, `label-speech.ts`);
+  - sahne kodu (`src/kit/**`);
+  - `styleExceptions`'a yeni istisna;
+  - onaylı metin (`voiceover.sections[].phrases`);
+  - başka videoların spec'leri;
+  - `--over-budget`.
+
+Kareleri STYLE.md kontrol listesine göre yine kendin incele (e.7). Bulduğun sorunu spec'te düzelt ve `qa-layout`
+kapısından yeniden geç.
+
+### Zorunlu durma noktaları
+
+Yalnız bunlarda dur ve sor:
+
+- Yeni bir sahne türü ya da yeni bir görsel/3D varlık gerekiyor (yeni efekt dahil, `npm run sfx` kredi harcar):
+  öneri, tahmini iş miktarı ve lisans bilgisiyle.
+- Doğrulanamayan ya da kaynakları çelişen bir iddia metinde ya da ekranda kalacak (d–f'de ekrana giren yeni rakam
+  dahil).
+- Bir kurala istisna gerekiyor (`styleExceptions`) ya da düzeltme onaylı metni değiştirmeyi gerektiriyor.
+- TTS bütçesi aşılacak (`voiceover` çıkış 3, "bütçe aşılıyor").
+- Düzeltme döngüsü `DUR` dedi ya da hata başka bir videonun spec'inde.
+- `ekg` ya da `gps` gerçek ses olmadan f'ye geldi (bu videolar taslak ses almaz).
+- Kullanıcının verdiği kayıt metinle uyuşmuyor (`align` eşleşmesi %80'in altında).
+
+Durma mesajı: neden, seçenekler ve önerin, `run-log.md`'nin o anki özeti. Yanıttan sonra otomatik modda devam et.
+
+### Durak 2 ★ bitmiş video
+
+f bitince tek mesajda:
+
+- Video: dosya yolu, süre, loudness. Taslak seste `out/<slug>.draft.mp4` ve açıkça "taslak ses, yayına uygun değil".
+- `npm run qa -- <slug>` sonuç tablosu (taslak seste tonlama satırı "taslak ses, ölçülmedi"), STYLE kontrol
+  listesinin sonucu, bilinen sapmalar.
+- `out/<slug>/stills/sheet.png`; gerçek seste `npm run review -- <slug>` (işaretli cümlelerin alternatifleri).
+- `credits` özeti; ElevenLabs ücretsiz planı kullanıldıysa ticari kullanım uyarısı.
+- `npm run log -- <slug> show`: müdahale kaydının özet tablosu.
+
+Kullanıcı değişiklik isterse kaydet (`user durak-2 …`), "önce sistemi düzelt" kuralına göre ilerle, ilgili
+kapılardan yeniden geç ve Durak 2'yi yeniden göster.
+
+### Gerçek ses
+
+`gerçek ses <slug>`: KALAN-ISLER'deki "Taslak sesli videolar" listesinden bir video gerçek sesini alır. Otomatik
+modda f'den başla; kayıt aynı `run-log`'da `gercek-ses` adımıyla sürer.
+
+1. Spec'teki `voiceover.tts`'in sağlayıcı, ses ve modelini `videos/sablon/spec.json`'dakiyle değiştir (taslakta
+   `say` / Yelda yazılıdır; `budget` kalır). Şablonda `tts` yoksa dur: sağlayıcı seçilmemiş.
+2. `npm run voiceover -- build <slug> --estimate`. Bütçe kuralı f'deki gibi.
+3. `npm run voiceover -- build <slug>` (sığmazsa `--widen`): `timing.json` ve `vo.wav` değişir, cümleye bağlı her şey
+   kendiliğinden kayar. Sabit saniyeli `marks`'ı yeni bölüm başlangıçlarına göre güncelle; konuşma süreyi aşıyorsa
+   `durationSec`'i artır.
+4. `qa-layout` kapısı, f.3 senkron kontrolü, `npm run render -- <slug>` (`out/<slug>.mp4`), `qa` kapısı.
+5. Durak 2. Bitince slug'ı KALAN-ISLER'deki listeden çıkar.
 
 ## a) Açılar ★
 
@@ -45,6 +186,8 @@ Konu için 2–3 farklı açı öner, tek tablo halinde:
 
 Birini gerekçesiyle öner. **Dur.**
 
+Otomatik: açıyı sen seç ve durma; seçim ve gerekçe Durak 1'e girer.
+
 ## b) Doğrulama
 
 - Seçilen açıdaki her rakam ve iddia için WebSearch yap. Birincil kaynağı tercih et (resmî kurum, standart, hakemli
@@ -62,9 +205,12 @@ Birini gerekçesiyle öner. **Dur.**
   "akım" derken etiket mV (gerilim) gösteremez; ikisi aynı niceliği adlandırmalı. qa bunu da uyarır.
 - Kullanıcıya kaynak listesini ve nicelik tablosunu kısaca göster ve c'ye geç.
 
+Otomatik: göstermeden c'ye geç; liste ve tablo Durak 1'e girer. Açının dayandığı bir iddia doğrulanamıyorsa ya da
+kaynaklar çelişiyorsa Durak 1'de "Karar gerekiyor".
+
 ## c) Metin ★
 
-1. **Süre ve bütçe.** Süreyi kullanıcıdan al (varsayılan 30 sn). Bölümler:
+1. **Süre ve bütçe.** Süreyi kullanıcıdan al (varsayılan 30 sn; otomatik: istekte yoksa 30 sn, sorma). Bölümler:
    - kanca: 0–5 sn
    - 2–3 gövde bölümü
    - doruk ve final: son ~8 sn
@@ -83,7 +229,7 @@ Birini gerekçesiyle öner. **Dur.**
    - her cümle yerini hak eder: çıkarıldığında kancadan cevaba giden zincir bozulmuyorsa sil
    - somutluk: her soyut kavrama somut bir görüntü ya da benzetme
    - doğal Türkçe: çeviri kokan ifade ve günlük anlamı farklı teknik terim yok (`src/spec/avoid.ts`, uyarı); listede
-     olmayan ama tekrar eden bir ifade bulursan listeye ekle
+     olmayan ama tekrar eden bir ifade bulursan listeye ekle (otomatik: Durak 1'de öner, ekleme)
    - geçişler: en fazla 2 bölüm "Peki…?" ile açılır (`peki-siniri` hatası); diğerleri doğrudan iddia, beklenmedik
      rakam ya da "ama" ile ters köşe; art arda iki "Peki…?" olmaz
    - kavram adı biliniyorsa (EKG, GPS…) adı söylemek yerine ad üzerinden şaşırt (kökeni ya da anlamı)
@@ -134,6 +280,8 @@ Birini gerekçesiyle öner. **Dur.**
 (seçilen kanca ve final `sections`'ta; `out/` gitignore'da). e) adımında `voiceover.sections` buradan gelir;
 `npm run new` bu klasörde yalnız `spec.json` yoksa çalışır.
 
+Otomatik: bu çıktı Durak 1 mesajına girer; dur, onaydan sonra metni aynı yere kaydet.
+
 ## d) Sahne planı ★
 
 - Planı yalnızca kütüphanedeki türlerle kur (README → Sahne türleri):
@@ -174,6 +322,9 @@ Birini gerekçesiyle öner. **Dur.**
 
 **Dur.**
 
+Otomatik: durma. Zaman çizelgesi tablosunu `out/<slug>/sahne-plani.md`'ye yaz ve e'ye geç. Yeni tür ya da yeni efekt
+gerekiyorsa zorunlu durma noktasıdır.
+
 ## e) spec.json ve kareler ★
 
 1. `npm run new -- <slug> "<başlık>"` (slug: küçük harf, rakam ve tire).
@@ -182,11 +333,13 @@ Birini gerekçesiyle öner. **Dur.**
    - `marks`, `curves`, `layers`, üst yazılar, `sound`
    - `sources` (b'den), `credits` (aşağıdaki kurallara göre)
    - varsa `styleExceptions`
+   - otomatik: Durak 1'de onaylanan TTS bütçesi `voiceover.tts.budget`'a (şablondan `tts` geldiyse)
 3. Her etiket o an söylenen kelimeyi gösterir (STYLE "Ritim"; `npm run check` hatası): metin değiştiyse silinen
    cümlelerin etiketlerini kaldır, teknik adı metindeki kelimeyle değiştir (veri çizgisi etiketleri dahil).
    Konuşmaya bağlı her zamanı cümleye bağla (`{ "cue": "…", "offset": 0.1 }`); sabit saniye yalnızca sesten bağımsız
    kamera hareketleri için. Ses henüz yok; altyazı tahmini zamanlamayla (2,8 kelime/sn + duraklamalar) çalışır.
 4. `npm run check` temiz olmalı (metin denetimi dahil: hata yok, uyarılar c'de çözüldü ya da gerekçeli).
+   Otomatik: `check` kapısı.
 5. Kilit anları render et: her bölümün ilk saniyesi, her etiketin göründüğü an +0,3 sn, her geçişin ortası, geri
    sayım, kavram kartı, son kare. Komut: `npm run stills -- <slug> 0.5s 4s … --sheet`. Her bölümün geniş planında
    öznenin silueti tanınıyor mu (gövdede omuz ve boyun çizgisi)? Kare 0 kapaktır: `out/<slug>/cover.png`'e ayrıca bak.
@@ -194,12 +347,31 @@ Birini gerekçesiyle öner. **Dur.**
    kenar kırpması, bağlam, veri etiketleri, kılavuz, kapak (ilk 3 sn, kare kare), altyazı (sabit boyut), bağlam planı
    (özne bütün ≥ 1 sn), geçişler, kamera. Hatalar kesin: önce çekimi, özneyi ya da geçişi
    düzelt (kamera, zoom, `subject`, `say`, `transitions`), sonra tekrarla. Örnekler `out/<slug>/qa-samples.json`'da.
+   Otomatik: `qa-layout` kapısı.
 7. Kareleri Read ile kendin incele ve STYLE.md kontrol listesini madde madde uygula. Uymayanları düzelt, yeniden
-   render et.
+   render et. Otomatik: düzeltmeden sonra `qa-layout` kapısından yeniden geç; sonucu `note "kontrol listesi: …"` ile
+   yaz.
 8. Kullanıcıya `out/<slug>/stills/sheet.png` dosyasını ve gerekirse önemli tekil kareleri göster. **qa sonuç
    tablosunu**, kontrol listesinin sonucunu ve bilinen sapmaları yaz. **Dur.**
 
+   Otomatik: durma, f'ye geç; bunlar Durak 2'ye girer.
+
 ## f) Ses, müzik, render
+
+**Otomatik: ses.** Kullanıcı bir kayıt dosyası verdiyse aşağıdaki align yolunu izle. Vermediyse:
+
+1. Spec'te gerçek bir `voiceover.tts` (elevenlabs ya da azure) varsa önce `npm run voiceover -- build <slug> --estimate`:
+   - hesap ödeyemiyor (üretilecek karakter hesapta kalandan fazla) ya da sağlayıcı hata veriyor (anahtar yok, yetki)
+     → gerçek TTS yok, 2'ye geç
+   - video bütçesi aşılıyor → zorunlu durma noktası; `--over-budget`'ı yalnız kullanıcının onayıyla ver
+   - bütçe içinde → sormadan `npm run voiceover -- build <slug>` (sığmazsa `--widen`). İşaretli cümlelerin
+     alternatiflerinden en iyisini betik seçer; `review.html` Durak 2'de verilir.
+2. Gerçek TTS yoksa (spec'te `tts` yok ya da 1'de üretilemedi): `npm run voiceover -- build <slug> --provider say`
+   (sığmazsa `--widen`), render `npm run render -- <slug> --draft` → `out/<slug>.draft.mp4`, yayına uygun değil.
+   `note "ses: taslak (say), sebep: …"` yaz ve slug'ı KALAN-ISLER'deki "Taslak sesli videolar" listesine ekle (slug,
+   tarih, taslak dosyası, tahmini karakter). **`ekg` ve `gps` hiçbir zaman taslak ses almaz:** onlarda gerçek TTS
+   yoksa zorunlu durma noktası; kareler ve `qa-layout` tablosuyla dur, render alma.
+3. Sonra aşağıdaki 2–7'yi durmadan yürüt; 6 `qa` kapısıdır.
 
 Seslendirme dosyası verildiğinde:
 
@@ -210,6 +382,7 @@ Seslendirme dosyası verildiğinde:
    - süre önerisi
    - **"Record again" listesi:** sonda yükselen ya da kesik biten cümleler. Kayıt yeniden üretilemez; listeyi
      kullanıcıya ver (`out/<slug>/review.html` ile dinlenir), yeniden kaydedilen dosyayla align'ı tekrarla.
+     Otomatik: liste Durak 2'ye girer.
 2. Zamanlar artık `timing.json`'da; cümleye bağlı her şey kendiliğinden kayar. Sabit saniyeli işaretleri (`marks`)
    yeni bölüm başlangıçlarına göre güncelle. Konuşma süreyi aşıyorsa `durationSec`'i artır.
 3. Senkronu kontrol et: e'deki kilit anları `--sheet` ile yeniden üret, etiketlerin söylendikleri kelimeyle
@@ -221,19 +394,20 @@ Seslendirme dosyası verildiğinde:
    - **Uygun parça yoksa:** bunu söyle ve `space` drone yatağını `loop: true` ile 0'dan sona kullan
      (`sound.beds`); yatak hiçbir yerde kesilmemeli.
    - İnternetten kendiliğinden müzik indirme.
-5. `npm run render -- <slug>` → `out/<slug>.mp4`. Son satır "OK" olmalı (−14 ± 0,5 LUFS, ≤ −1 dBTP); değilse
-   nedenini bul.
+   - Otomatik: parçayı sen seç, sorma; seçimi `note` ile yaz.
+5. `npm run render -- <slug>` → `out/<slug>.mp4` (taslak seste `--draft` → `out/<slug>.draft.mp4`). Son satır "OK"
+   olmalı (−14 ± 0,5 LUFS, ≤ −1 dBTP); değilse nedenini bul.
 6. **`npm run qa -- <slug>` zorunlu:** yerleşim, konuşulan sürede 2,6–3,0 kelime/sn, cümle sonu araları (ortalama
    ≥ 0,35 sn), tonlama (işaretli cümleler), nicelik tutarlılığı, dijital sessizlik, yatak sürekliliği. Hata varsa
-   düzelt, yeniden render et.
+   düzelt, yeniden render et. Taslak seste qa `out/<slug>.draft.mp4`'i denetler; hız ve duraklamalar ölçülür,
+   tonlama "taslak ses, ölçülmedi". Otomatik: `qa` kapısı.
 7. Kullanıcıya bildir: dosya yolu, süre, loudness, **qa sonuç tablosu**, kontrol listesinin son durumu, kredilerin
-   özeti.
+   özeti. Otomatik: Durak 2.
 
-Seslendirme dosyası yoksa: önce ücretsiz geçici sesle zamanlamayı ve altyazıyı dene
-(`npm run voiceover -- build <slug> --provider say`; render yalnız `--draft`, tonlama ölçülmez). Gerçek ses için
-sağlayıcı `voiceover.tts.provider` (elevenlabs ya da azure). **Kredi harcamadan önce** `--estimate` ile tahmini al ve
-kullanıcıya söyle (üretilecek okuma, karakter, hesapta kalan); ElevenLabs ücretsiz planında çıkan ses ticari
-kullanılamaz, bunu da söyle.
+Seslendirme dosyası yoksa (adım adım): gerçek ses için sağlayıcı `voiceover.tts.provider` (elevenlabs ya da azure).
+`say` ile taslak ses ve `--draft` render yalnız otomatik modda, gerçek TTS yokken kullanılır; adım adımda kullanılmaz.
+**Kredi harcamadan önce** `--estimate` ile tahmini al ve kullanıcıya söyle (üretilecek okuma, karakter, hesapta
+kalan); ElevenLabs ücretsiz planında çıkan ses ticari kullanılamaz, bunu da söyle.
 
 - **Bütçe aşılacaksa betik durur (çıkış 3, "bütçe aşılıyor").** O zaman kullanıcıya sor; onay gelmeden
   `--over-budget` ile yeniden çalıştırma. Bütçe `voiceover.tts.budget`, harcanan `out/<slug>/tts-ledger.json`.

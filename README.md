@@ -14,11 +14,33 @@ npm run studio      # önizleme; videos/ altındaki her tarif "videolar" klasör
 
 ## Yeni video
 
-Konuyu Claude Code'a verirseniz skill bütün akışı onay noktalarıyla yürütür:
+Konuyu Claude Code'a verirseniz skill bütün akışı yürütür:
 
 ```
-/aciklayici-video <konu>
+/aciklayici-video <konu>                 # otomatik: iki durak
+/aciklayici-video adım adım <konu>       # dört durak: açı, metin, sahne planı, kareler
+/aciklayici-video gerçek ses <slug>      # taslak sesli videoya gerçek ses; zamanlama, qa, render yeniden
 ```
+
+**Otomatik mod** iki kez durur:
+
+- **Durak 1, konu ve metin:** açı, kaynaklar, editör bulguları, kanca/final seçenekleri ve dinletilen metin.
+- **Durak 2, bitmiş video:** render, qa tablosu ve müdahale kaydı.
+
+Arada `check` ve `qa` hatalarını spec'te kendisi düzeltir. Bir döngü en fazla 5 tur sürer; hata sayısı iki tur üst
+üste azalmazsa durur. STYLE.md, qa eşikleri, metin denetimi ve sahne kodu değişmez.
+
+Bunlar dışında yalnız zorunlu durma noktalarında sorar:
+
+- yeni sahne türü ya da varlık;
+- doğrulanamayan iddia;
+- kural istisnası;
+- TTS bütçesi aşımı;
+- sonuçsuz döngü.
+
+Her adımın süresi, turlar, duraklar ve müdahaleler `out/<slug>/run-log.md`'de. Gerçek TTS yoksa ses `say` ile
+taslaktır: `out/<slug>.draft.mp4`, yayına uygun değil (`ekg` ve `gps` hariç: onlar gerçek sesi bekler). Ayrıntı:
+`.claude/skills/aciklayici-video/SKILL.md`.
 
 Elle yapmak isterseniz:
 
@@ -45,9 +67,9 @@ de kareler incelenebilir.
 | `npm run stills -- <slug> <kare\|12.5s>… [--every N] [--out dir] [--sheet] [--ground]` | still kareler (+ kare sayfası); `--ground`: zemin anahtar renkte, qa'nın boş alan ölçümünün gördüğü gibi |
 | `npm run align -- <slug> <ses> [--dry]` | whisper.cpp (yerel) ile kelime zamanları → `timing.json`, `vo.wav` |
 | `npm run align -- <slug> --timing [--dry]` | Whisper'sız: mevcut `timing.json`'un kelime zamanlarıyla `vo.wav`'daki kısa cümle aralarına sessizlik ekler |
-| `npm run voiceover -- build <slug> [ses] [--provider elevenlabs\|azure\|say] [--estimate] [--over-budget] [--widen] [--offline]` | Seslendirme: her cümle ayrı (komşuları bağlam), cümle başına önbellek (`out/tts-cache/`, bağlam anahtara girmez: yalnız değişen cümle yeniden ücretlenir), cümle aralarına STYLE duraklamaları, tonlaması işaretli cümleye `voiceover.tts.takes` alternatif → `timing.json`, `vo.wav`, `out/<slug>/review.html`. Göndermeden önce üretilecek okumaları, karakterleri ve hesapta kalanı yazar; `voiceover.tts.budget` aşılacaksa durur (`--over-budget` ile onay). `--estimate`: yalnız tahmin. `azure`: SSML (`<break>` duraklamalar, bölümün `stress` kelimeleri vurgulu; `.env`'de `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`). `say`: macOS Yelda, ücretsiz geçici ses — yalnız zamanlama/altyazı denemesi, tonlama ölçülmez, render yalnız `--draft` ile. Sığmazsa tablo basar, `--widen` pencereleri genişletir |
+| `npm run voiceover -- build <slug> [ses] [--provider elevenlabs\|azure\|say] [--estimate] [--over-budget] [--widen] [--offline]` | Seslendirme: her cümle ayrı (komşuları bağlam), cümle başına önbellek (`out/tts-cache/`, bağlam anahtara girmez: yalnız değişen cümle yeniden ücretlenir), cümle aralarına STYLE duraklamaları, tonlaması işaretli cümleye `voiceover.tts.takes` alternatif → `timing.json`, `vo.wav`, `out/<slug>/review.html`. Göndermeden önce üretilecek okumaları, karakterleri ve hesapta kalanı yazar; `voiceover.tts.budget` aşılacaksa durur (`--over-budget` ile onay). `--estimate`: yalnız tahmin. `azure`: SSML (`<break>` duraklamalar, bölümün `stress` kelimeleri vurgulu; `.env`'de `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`). `say`: macOS Yelda, ücretsiz geçici ses — skill'in otomatik modunda gerçek TTS yokken taslak ses (`ekg` ve `gps` hariç), tonlama ölçülmez, render yalnız `--draft` ile. Sığmazsa tablo basar, `--widen` pencereleri genişletir |
 | `npm run voiceover -- voices [--provider p]` / `sample <slug> <ses>…` | seçilebilir sesler / ilk bölümden ses örnekleri (aynı tahmin ve bütçe yolundan) |
-| `npm run render -- <slug> [--draft]` | `out/<slug>.mp4`; geçici sesle yalnız `--draft` → `out/<slug>.draft.mp4` |
+| `npm run render -- <slug> [--draft]` | `out/<slug>.mp4`; geçici sesle yalnız `--draft` → `out/<slug>.draft.mp4` (yayına uygun değil) |
 | `npm run review -- <slug>` | `review.html`'i yerelde (127.0.0.1) açar: alternatifleri dinle, seç; seçim `voiceover.picks`'e yazılır, ses kredisiz yeniden kurulur |
 | `npm run voiceover -- pick <slug> <cümle#> <çekim>` | aynı seçim komut satırından |
 | `npm run voiceover -- listen <metin.json> [--provider say] [--sections id,id]` | skill c) taslağını ücretsiz geçici sesle okur → `out/<slug>/metin/ses/` (`tam`, `kanca-1..3`, `final-1..2`, bölüm başına süre; `--sections` yalnız o bölümler → `tam-<id>-<id>`). Yalnız `say`; spec, `timing.json`, `vo.wav` değişmez |
@@ -56,7 +78,8 @@ de kareler incelenebilir.
 | `npm run sfx [id…]` | ElevenLabs efektlerini katalogdan üretir → `public/kit/sfx/` |
 | `npm run music -- list` | lisanslı müzik kütüphanesini listeler ve doğrular |
 | `npm run compare -- <dirA> <dirB>` | kare kare SSIM (ya da iki ses dosyasında null test); regresyon kontrolü |
-| `npm run qa -- <slug> [--layout] [--audio] [--every 0.25] [--from s] [--to s]` | otomatik kalite kontrolü (aşağıda); `out/<slug>/qa.json`, hata varsa çıkış kodu 1. `--from`/`--to`: bir bölüm üzerinde çalışırken yalnız o aralığın yerleşimi; son karar tam çalıştırmada |
+| `npm run qa -- <slug> [--layout] [--audio] [--every 0.25] [--from s] [--to s]` | otomatik kalite kontrolü (aşağıda); `out/<slug>/qa.json`, hata varsa çıkış kodu 1. `--from`/`--to`: bir bölüm üzerinde çalışırken yalnız o aralığın yerleşimi; son karar tam çalıştırmada. Geçici seste `out/<slug>.draft.mp4`'i denetler |
+| `npm run log -- <slug> start\|end <adım> \| round <check\|qa-layout\|qa> [--errors N] [--fixed] \| stop \| user <adım> \| note \| show` | skill otomatik modunun kaydı: `out/<slug>/run-log.jsonl` → `run-log.md` (adım süreleri, düzeltme turları, duraklar, müdahaleler). `round` qa sayılarını `qa.json`'dan okur (kısmi çalıştırmayı tur saymaz) ve döngünün kararını yazar: `devam`, `temiz` ya da `DUR` (iki tur üst üste azalmadı / 5 turda sıfıra inmedi) |
 | `npm run models -- list` | 3D model kütüphanesini doğrular (lisans kaydı) ve parça adlarını listeler |
 | `npm run models -- pack <file.gltf> <id> [--max 1024] [--jpeg]` | glTF'i dokuları küçültülmüş tek GLB'ye paketler → `public/kit/models/<id>.glb` |
 | `npm run sfx -- --index` | efekt süre dizinini (`src/kit/audio/sfx-durations.json`) API'siz yeniden yazar |
@@ -188,7 +211,8 @@ değişirse eskir: Studio uyarı verip tahmini zamanlamaya düşer, render ise h
 - **Seslendirme** (`vo.wav` üzerinde, dinleyicinin duyduğu gibi): konuşulan sürede 2,6–3,0 kelime/sn dışındaysa
   uyarı; cümle sonu arası 0,25 sn'den kısaysa uyarı, ortalaması 0,35 sn'nin altındaysa hata; sonda +2 yarım tondan
   fazla yükselen ya da 60 ms'den kısa sönen cümle uyarı (insan kaydında "yeniden kaydet"); birimli bir etiket
-  ekrandayken seslendirme başka bir niceliği adlandırıyorsa uyarı.
+  ekrandayken seslendirme başka bir niceliği adlandırıyorsa uyarı. Geçici seste (`say`) hız ve duraklamalar
+  ölçülür, tonlama ölçülmez ("taslak ses, ölçülmedi").
 - **Ses** (render sonrası): son 0,7 sn dışında 0,3 sn'den uzun dijital sessizlik hata; bir yatak ya da müzik hâlâ
   duyulması gerekirken dosya biterse hata.
 

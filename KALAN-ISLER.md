@@ -1,6 +1,7 @@
 # Kalan işler
 
-Son güncelleme: 2026-11-27 (metin kalitesi; EKG metni yazıldı, GPS metni onaylı; `feat/metin-kalitesi` merge).
+Son güncelleme: 2026-11-27 (skill otomatik modu, `feat/otomatik-mod`; öncesinde metin kalitesi, `feat/metin-kalitesi`
+merge).
 `feat/genel-sahne-turleri` PR #1 (`55d38de`), `feat/sistem-kurallari` PR #2 (`40fe4f8`) ve `chore/nvmrc-ve-gitignore`
 PR #3 (`fab72e3`, `.nvmrc` + gitignore) main'e birleştirildi; yeni iş yeni branch'te.
 
@@ -23,6 +24,7 @@ PR #3 (`fab72e3`, `.nvmrc` + gitignore) main'e birleştirildi; yeni iş yeni bra
 | `13dd7cc` | model3d kadraj kaydırması: önemli parçalar panel/altyazıdan mercek kaydırmasıyla uzak tutulur. Ayrıntı: aşağıda. |
 | `311aa68`…`57c31e0` | Son EKG render'ından sistem kuralları (branch `feat/sistem-kurallari`). Ayrıntı: aşağıda "Sistem kuralları". |
 | `04120e7` | Metin kalitesi (branch `feat/metin-kalitesi`). Ayrıntı: aşağıda "Metin kalitesi". |
+| `feat/otomatik-mod` | Skill otomatik modu: iki durak, düzeltme döngüsü, `npm run log`, taslak ses. Ayrıntı: aşağıda "Otomatik mod". |
 
 **Seslendirme v2 (`27cdfa3`):**
 - bölüm bölüm üretim, duraklamalar sessizlikten açılır;
@@ -123,6 +125,44 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
 
 - Seslendirme sağlayıcısı: aşağıda "Seslendirme v2 Aşama B".
 
+## Otomatik mod (2026-11-27, `feat/otomatik-mod`)
+
+- `/aciklayici-video <konu>` artık otomatik. Kullanıcı iki kez devreye girer:
+  - Durak 1 (a+b+c: açı, kaynaklar, editör, 3 kanca / 2 final, söz → karşılık, `listen`);
+  - Durak 2 (render, qa tablosu, `run-log` özeti).
+  `adım adım <konu>` eski dört duraklı akış; `gerçek ses <slug>` taslak sese gerçek sesi koyar.
+- Düzeltme döngüsü: kapılar `check`, `qa-layout`, `qa`. Bir döngü en fazla 5 tur; iki tur üst üste azalmazsa durur.
+  `check` ilk spec hatasında durduğu için `--fixed` (önceki hata gitti) ilerleme sayılır. Otomatik düzeltme yalnız
+  spec'te; STYLE, qa eşikleri, metin denetimi, sahne kodu, `styleExceptions` ve onaylı metin değişmez.
+- `npm run log` (`scripts/runlog.mjs`, `scripts/lib/runlog.mjs`): `out/<slug>/run-log.jsonl` → `run-log.md`. Adım
+  süreleri, bekleme, turlar, duraklar ve müdahaleler kaydedilir. `round` sayıları `qa.json`'dan okur; kısmi
+  (`--from/--to`) ya da eski `qa.json`'u tur saymaz. `qa.json`'a `range`, `render`, `draftVoice` eklendi.
+- Taslak ses (kullanıcı kararı): `say` yalnız otomatik modda ve gerçek TTS yokken; `render --draft` →
+  `out/<slug>.draft.mp4`, yayına uygun değil. `ekg` ve `gps` taslak ses almaz; gerçek ses yoksa f'de durur. qa
+  geçici seste taslak dosyayı denetler; hız ve duraklamalar ölçülür, tonlama "taslak ses, ölçülmedi". Adım adım
+  akıştan `say` taslağı kaldırıldı (c `listen` kalır).
+- Doğrulama:
+  - `npm test` 46/46;
+  - `npm run check` temiz;
+  - demo-trace kopyasında `say` + `--draft` + tam qa beklendiği gibi çalıştı (Yelda 2,33 kelime/sn → hız uyarısı);
+    kopya ve önbellek dosyaları silindi;
+  - demo-trace gerçek ses yolunda qa tablosu eski `qa.mjs` ile birebir aynı (yalnız yeni "Render" satırı).
+- Uçtan uca otomatik video henüz üretilmedi. İlk deneme: yeni bir konu (gps gerçek ses beklediği için f'de durur).
+
+## Taslak sesli videolar
+
+Otomatik modda gerçek TTS olmadan bitmiş videolar. Sağlayıcı seçilince (Aşama B) her biri için
+`/aciklayici-video gerçek ses <slug>`:
+1. ses değişir;
+2. `timing.json` ve cümleye bağlı her şey kayar;
+3. `marks` güncellenir;
+4. `qa-layout`, render (`out/<slug>.mp4`), tam qa;
+5. Durak 2.
+Bitince satır silinir.
+
+| Slug | Tarih | Taslak dosyası | Tahmini karakter |
+|---|---|---|---|
+
 ## Metin kalitesi (2026-11-27, `feat/metin-kalitesi`)
 
 - `src/spec/script-audit.ts`: metin kuralları tek yerde (resolver, `npm run text`, `npm run check`). Yeni:
@@ -189,7 +229,8 @@ demo-trace temiz.
 
 - **`videos/gps` (tamamlanmış GPS, 60 sn):** metin onaylı (`videos/gps/metin.json`: kanca 1, Final 1). Kanca söylenirken ekranda haritadaki konum
   işareti (mavi nokta) görünür.
-  Sahne planı (skill d) ve render **şimdi değil**: otomatik akış ve temassız kart testinden sonra. `npm run new --
+  Sahne planı (skill d) ve render **şimdi değil**: otomatik akış ve temassız kart testinden sonra (otomatik akış
+  2026-11-27'de eklendi; gps taslak ses almaz, gerçek ses yoksa f'de durur). `npm run new --
   gps "…"` klasörde yalnız `spec.json` yoksa çalışır. Saat etiketi gibi söylenmeyen ekran yazıları etiket
   kontrolüne takılır; metinle eşle.
 - **Fikir: görelilik Short'u**, ayrı ve kendi içinde tamamlanmış: "Uydudaki saatler neden her gün ileri gidiyor?"
@@ -204,6 +245,9 @@ kullanılamaz; kullanıcıya hatırlat.
 - Seslendirme sağlayıcısı kararı bekliyor: ElevenLabs Starter (1 ay, ticari lisans) ya da Azure Speech F0 (gmail
   hesabıyla pay-as-you-go aboneliği).
 - gps-pilot'taki 'yukarı' bağlam uyarısını, yeniden seslendirmeden önce senaryodan düzelt.
+- Sağlayıcı seçilince sesi (sağlayıcı, ses kimliği, model) `videos/sablon/spec.json` `voiceover.tts`'e yaz: otomatik
+  mod yeni videolarda gerçek sesi oradan alır. Sonra "Taslak sesli videolar" listesindeki her video için
+  `/aciklayici-video gerçek ses <slug>`. EKG ve gps'in aşağıdaki planı aynen kalır (onlar `say` ile denenmez).
 
 0. Sağlayıcı seçimi: ElevenLabs (kredi) ya da Azure Speech (SSML; `.env`'e `AZURE_SPEECH_KEY`,
    `AZURE_SPEECH_REGION` — hesabı kullanıcı açar, ücretsiz kotayı birlikte kontrol ederiz). Önce geçici sesle

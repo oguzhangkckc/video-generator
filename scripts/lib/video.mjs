@@ -16,6 +16,9 @@ if (Number(process.versions.node.split(".")[0]) < 22) {
 export const videoDir = (slug) => path.join(ROOT, "videos", slug);
 export const publicDir = (slug) => path.join(ROOT, "public", "videos", slug);
 export const outDir = (slug) => path.join(ROOT, "out", slug);
+/** A draft (placeholder voice) never takes the name of the publishable render. */
+export const renderFile = (slug, { draft = false } = {}) => path.join(ROOT, "out", `${slug}${draft ? ".draft" : ""}.mp4`);
+export const isPlaceholderVoice = (timing) => Boolean(timing?.source.startsWith("placeholder"));
 
 export const requireSlug = (slug) => {
   if (!slug || !SLUG.test(slug)) {

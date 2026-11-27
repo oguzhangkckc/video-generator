@@ -352,7 +352,7 @@ const build = async (slug, voiceArg, flags) => {
   if (specChanged) writeFileSync(specFile, `${formatSpec(json)}\n`);
   console.log(`Bu videonun seslendirme harcaması: ${readLedger(slug).spent} karakter (out/${slug}/tts-ledger.json)`);
 
-  if (placeholder) console.log(`\nGeçici ses (${voice}): yalnız zamanlama ve altyazı denemesi; tonlama ölçülmedi, final render bu sesle yapılamaz.`);
+  if (placeholder) console.log(`\nGeçici ses (${voice}): taslak, tonlama ölçülmedi. Render yalnız --draft ile → out/${slug}.draft.mp4, yayına uygun değil.`);
   else {
     const reviewed = parts.map((p, i) => ({ ...p, n: i + 1 })).filter((p) => p.candidates.length > 1 || p.original.flags.length);
     const review = writeReview(slug, {
