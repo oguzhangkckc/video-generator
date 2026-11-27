@@ -1,6 +1,6 @@
 # Kalan işler
 
-Son güncelleme: 2026-11-27 (yalnız geliştirme ortamı: Claude Code araçları ve Node sürümü; proje kodu değişmedi).
+Son güncelleme: 2026-11-27 (metin kalitesi sistemi, branch `feat/metin-kalitesi`; EKG ve GPS metin önerileri onay bekliyor).
 `feat/genel-sahne-turleri` PR #1 (`55d38de`), `feat/sistem-kurallari` PR #2 (`40fe4f8`) ve `chore/nvmrc-ve-gitignore`
 PR #3 (`fab72e3`, `.nvmrc` + gitignore) main'e birleştirildi; yeni iş yeni branch'te.
 
@@ -22,6 +22,7 @@ PR #3 (`fab72e3`, `.nvmrc` + gitignore) main'e birleştirildi; yeni iş yeni bra
 | `3d0e9a5` | Trace şemasından kullanılmayan `labelAt` ve ona bağlı ölü hesap kaldırıldı. |
 | `13dd7cc` | model3d kadraj kaydırması: önemli parçalar panel/altyazıdan mercek kaydırmasıyla uzak tutulur. Ayrıntı: aşağıda. |
 | `311aa68`…`57c31e0` | Son EKG render'ından sistem kuralları (branch `feat/sistem-kurallari`). Ayrıntı: aşağıda "Sistem kuralları". |
+| `04120e7` | Metin kalitesi (branch `feat/metin-kalitesi`). Ayrıntı: aşağıda "Metin kalitesi". |
 
 **Seslendirme v2 (`27cdfa3`):**
 - bölüm bölüm üretim, duraklamalar sessizlikten açılır;
@@ -121,6 +122,28 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
 ## Bekleyen kararlar (kullanıcıya sor)
 
 - Seslendirme sağlayıcısı: aşağıda "Seslendirme v2 Aşama B".
+- EKG yeni metni: kanca ve final seçimi, onay (taslak `out/ekg/metin/metin.json`). Onaydan sonra spec'e yaz ve
+  `cue`'ları güncelle (aşağıda "Metin kalitesi"). O zamana kadar EKG `npm run check`'ten `peki-siniri` ile düşer.
+- GPS (yeni slug `videos/gps`): metin, kanca/final seçimi ve süre (öneri 60 sn) onayı (taslak
+  `out/gps/metin/metin.json`); sonra skill d) adımından sahne planı. gps-pilot donmuş regresyon referansı kalır.
+- PR: `feat/metin-kalitesi` EKG metni spec'e yazıldıktan sonra.
+
+## Metin kalitesi (2026-11-27, `feat/metin-kalitesi`)
+
+- `src/spec/script-audit.ts`: metin kuralları tek yerde (resolver, `npm run text`, `npm run check`). Yeni:
+  `peki-siniri` (en fazla 2 bölüm "Peki…?" ile açılır), `acik-final` (son cümle soru olamaz) hata;
+  `kacinilacak` uyarı (`src/spec/avoid.ts`). `styleExceptions: [{ rule, why }]` muaf tutar (gps-pilot `acik-final`).
+- Skill c): 3 kanca + 2 final, söz→karşılık, anlatma cümlesi, `out/<slug>/metin/metin.json`, editör ajanı
+  (`.claude/agents/metin-editoru.md`), `npm run voiceover -- listen` (yalnız `say`; bu turda çalıştırılmadı).
+- gps-pilot regresyonu birebir aynı (90 kare, SSIM 1,0; `out/regress-metin/frames`).
+- **EKG spec'e yazılırken değişecek `cue`'lar:** marks `dive` ("Peki bu elektrik", "Kalbinin sağ"), `fire`
+  ("Bir hücre"), `peak` ("İşte QRS"), `summary` ("Küçük tepe"), `reveal` ("elektrokardiyogram"); titles ("Ama
+  okumayı", "Peki cihaz"; yeni cue "Bu çizgi bir", çünkü "Bu çizgi" kancadakini bulur); labels "o kadar küçük"
+  (cihaz akımı cümlesi silindi: HİSSETME EŞİĞİ ve CİHAZ AKIMI etiketleri kalkar ya da yeni cümleye bağlanır),
+  "Kalbinin sağ", "Bir hücre", "dakikada", "Dalga tek", "Kan aşağı", "karıncıklar birden", "Kas bir an". Kanca
+  başlıkları yeni kanca kelimeleriyle yeniden yazılır.
+- Editörün önerip uygulanmayan: "telefon uydulara hiçbir şey göndermiyor" (resmî GPS kaynağıyla doğrulanamadı);
+  "ila"yı avoid listesine ekleme (önek eşleşmesi "ilaç"ı da yakalar; metinde "ile" kullanıldı).
 
 ## Görsel sistem v2: qa durumu
 
