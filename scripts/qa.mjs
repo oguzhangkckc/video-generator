@@ -4,6 +4,7 @@
 //   No flag: layout, plus audio when the render exists (out/<slug>.mp4; out/<slug>.draft.mp4 with a placeholder voice).
 //   Writes out/<slug>/qa.json and exits 1 on any error.
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -302,6 +303,10 @@ const frozen = existsSync(mp4) && !ranged ? freezes() : null;
 if (browserState) await browserState.instance.close({ silent: true });
 
 const UNMEASURED = "taslak ses, ölçülmedi";
+// Said-element shares compare across fix rounds only while every sentence keeps its time (no new voice, no --widen).
+const phraseTiming = laid?.spec?.phrases
+  ? createHash("sha1").update(JSON.stringify(laid.spec.phrases.map((p) => [p.text, p.start, p.end]))).digest("hex").slice(0, 12)
+  : null;
 const report = {
   slug,
   checked: { layout: runLayout, audio: runAudio },
@@ -310,6 +315,8 @@ const report = {
   draftVoice,
   errors,
   warnings,
+  said: laid?.stats?.said ?? null,
+  phraseTiming,
   audio: audioResult,
 };
 mkdirSync(outDir(slug), { recursive: true });

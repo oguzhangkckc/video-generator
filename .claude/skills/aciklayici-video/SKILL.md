@@ -53,6 +53,7 @@ yeniden yazılır.
 | bir adıma başlarken / bitirince | `start <adım>` / `end <adım> ["not"]` |
 | bir durak mesajını gönderirken / yanıt gelince | `start durak-1` / `end durak-1`, sonra `user durak-1 "<ne istedi>"` |
 | her kapı turundan sonra | `round <check\|qa-layout\|qa> …` (aşağıda "Düzeltme döngüsü") |
+| her düzeltmeden sonra (döngüde ya da kontrol listesinde) | `fix <check\|qa-layout\|qa\|kontrol-listesi> "<hata>" --change "<ne değiştirildi>" --why "<neden>"` |
 | zorunlu durma noktası | `end <adım> "durdu"`, `stop "<sebep>"`; yanıt gelince `user <adım> "<ne istedi>"`, `start <adım>` |
 | kullanıcı akış sırasında bir şey isterse | `user <adım> "<ne istedi>"` |
 | kontrol listesi sonucu, kısmi qa denemesi, ses kararı | `note "<metin>"` |
@@ -94,17 +95,29 @@ göster. Onaydan sonra `videos/<slug>/metin.json`'u yaz (c sonu) ve d, e, f'yi d
 - `qa-layout`: e.6, `npm run qa -- <slug> --layout`
 - `qa`: f.6, render sonrası tam `npm run qa -- <slug>`
 
-Kapı hata verirse düzelt ve yeniden çalıştır. Her tam çalıştırma bir turdur, kaydedilir:
+Kapı hata verirse düzelt ve yeniden çalıştır. Her düzeltmeyi ve her tam çalıştırmayı kaydet:
 
 ```bash
 npm run log -- <slug> round check --errors 1 "ne değişti"           # check ilk spec hatasında durur
+npm run log -- <slug> fix check "<hata>" --change "<ne değiştirildi>" --why "<neden>"
 npm run log -- <slug> round check --errors 1 --fixed "ne değişti"   # önceki turun hatası gitti, yenisi çıktı
 npm run log -- <slug> round qa-layout "ne değişti"                  # sayılar out/<slug>/qa.json'dan
 ```
 
-- Çıktıdaki karara uy: `devam`, `temiz` ya da `DUR: …`. Döngü, hata sayısı iki tur üst üste azalmazsa (check'te
-  `--fixed` ilerleme sayılır) ya da 5. turda sıfıra inmezse durur; betik durma kaydını kendisi ekler. Durunca
-  kullanıcıya kalan hataları, denediklerini, önerini ve `run-log.md` özetini ver.
+- **Her düzeltme kaydedilir:** hangi hata, ne değiştirildi, neden. Bir hatada birden fazla değişiklik varsa her biri
+  ayrı `fix`. Hatalı bir turdan sonra o kapının `fix` kaydı yoksa `round` yeni turu reddeder. Liste run-log'da
+  "Düzeltmeler" tablosundadır.
+- Çıktıdaki karara uy: `devam`, `temiz`, `İHLAL: …` ya da `DUR: …`. Döngü, hata sayısı iki tur üst üste azalmazsa
+  (check'te `--fixed` ilerleme sayılır) ya da 5. turda sıfıra inmezse durur; betik durma kaydını kendisi ekler.
+  Durunca kullanıcıya kalan hataları, denediklerini, önerini ve `run-log.md` özetini ver.
+- **Söylenen nesne ekrandan çıkmaz.** Bir düzeltme, seslendirmede o an adı geçen nesneyi ekrandan kaldıramaz ya da
+  kadraj dışına itemez. Bunu yapan yollar: görünürlük, `out`, kamera, zoom, katman penceresi, üstüne binen panel.
+  - `round` bunu `say`'e bağlı öğeler için ölçer. Aynı cümle zamanlamasında, son kurala uyan tura göre bir öğenin
+    cümlede görünme oranı düşerse karar `İHLAL` olur ve bu tur ilerleme sayılmaz.
+  - İhlalde düzeltmeyi geri al (`fix <kapı> "…" --change "geri alındı" --why "…"`) ve başka yol dene.
+  - `say`'e bağlı olmayan söylenen nesneleri ("yazı", "çizgi" gibi görsele gönderen kelimeler) karelerde kendin
+    kontrol et.
+  - Hata ancak böyle çözülebiliyorsa dur. İki ihlal üst üste gelirse betik kendisi durur.
 - `--from/--to` ile kısmi qa denemeleri tur sayılmaz (`round` kısmi `qa.json`'u reddeder); `note` ile yaz.
 - Her kapının döngüsü ayrıdır. Temiz biten ya da duran bir döngüden sonra kapının sonraki turu 1'den başlar.
 - `npm run check` bütün videoları denetler. Hata başka bir videonun spec'indeyse kapsam dışıdır, dur.
@@ -132,6 +145,7 @@ Yalnız bunlarda dur ve sor:
 - Doğrulanamayan ya da kaynakları çelişen bir iddia metinde ya da ekranda kalacak (d–f'de ekrana giren yeni rakam
   dahil).
 - Bir kurala istisna gerekiyor (`styleExceptions`) ya da düzeltme onaylı metni değiştirmeyi gerektiriyor.
+- Bir hata ancak seslendirmede o an adı geçen nesneyi ekrandan kaldırarak ya da kadraj dışına iterek çözülebiliyor.
 - TTS bütçesi aşılacak (`voiceover` çıkış 3, "bütçe aşılıyor").
 - Düzeltme döngüsü `DUR` dedi ya da hata başka bir videonun spec'inde.
 - `ekg` ya da `gps` gerçek ses olmadan f'ye geldi (bu videolar taslak ses almaz).
@@ -148,7 +162,8 @@ f bitince tek mesajda:
   listesinin sonucu, bilinen sapmalar.
 - `out/<slug>/stills/sheet.png`; gerçek seste `npm run review -- <slug>` (işaretli cümlelerin alternatifleri).
 - `credits` özeti; ElevenLabs ücretsiz planı kullanıldıysa ticari kullanım uyarısı.
-- `npm run log -- <slug> show`: müdahale kaydının özet tablosu.
+- `npm run log -- <slug> show`: müdahale kaydının özet tablosu ve düzeltme listesi (her düzeltme: hangi hata, ne
+  değiştirildi, neden; ihlaller ve geri almalar dahil).
 
 Kullanıcı değişiklik isterse kaydet (`user durak-2 …`), "önce sistemi düzelt" kuralına göre ilerle, ilgili
 kapılardan yeniden geç ve Durak 2'yi yeniden göster.
@@ -349,8 +364,8 @@ gerekiyorsa zorunlu durma noktasıdır.
    düzelt (kamera, zoom, `subject`, `say`, `transitions`), sonra tekrarla. Örnekler `out/<slug>/qa-samples.json`'da.
    Otomatik: `qa-layout` kapısı.
 7. Kareleri Read ile kendin incele ve STYLE.md kontrol listesini madde madde uygula. Uymayanları düzelt, yeniden
-   render et. Otomatik: düzeltmeden sonra `qa-layout` kapısından yeniden geç; sonucu `note "kontrol listesi: …"` ile
-   yaz.
+   render et. Otomatik: her düzeltmeyi `fix kontrol-listesi "<madde>" --change "…" --why "…"` ile yaz, sonra
+   `qa-layout` kapısından yeniden geç; sonucu `note "kontrol listesi: …"` ile yaz.
 8. Kullanıcıya `out/<slug>/stills/sheet.png` dosyasını ve gerekirse önemli tekil kareleri göster. **qa sonuç
    tablosunu**, kontrol listesinin sonucunu ve bilinen sapmaları yaz. **Dur.**
 

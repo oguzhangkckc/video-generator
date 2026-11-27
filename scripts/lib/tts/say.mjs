@@ -6,8 +6,13 @@ import os from "node:os";
 import path from "node:path";
 import { duration } from "../video.mjs";
 
-/** Words per minute at speed 1, near STYLE's 2.8 words a second for Turkish. */
-const RATE = 170;
+/**
+ * Words per minute at speed 1. Yelda's rate moves in steps: on a 93-word explainer qa measured 2.74 spoken words a
+ * second at 270 (STYLE 2.8), 2.89 at 280–290 and 1.92 at the old 170.
+ */
+const RATE = 270;
+/** The rate is in the cache key: a recalibrated RATE must not reuse takes read at the old speed. */
+const wpmOf = (speed) => Math.round(RATE * speed);
 
 const weight = (word) => word.replace(/[^\p{L}\p{N}]/gu, "").length + 1;
 
@@ -29,13 +34,13 @@ export const say = {
   placeholder: true,
   ext: "aiff",
   defaults: { voice: "Yelda" },
-  key: (r) => ({ voice: r.voice, text: r.text, speed: r.speed }),
+  key: (r) => ({ voice: r.voice, text: r.text, wpm: wpmOf(r.speed) }),
   cost: () => 0,
   synthesize: async (r) => {
     const dir = mkdtempSync(path.join(os.tmpdir(), "say-"));
     try {
       const file = path.join(dir, "take.aiff");
-      const run = spawnSync("say", ["-v", r.voice, "-r", String(Math.round(RATE * r.speed)), "-o", file, r.text], { encoding: "utf8" });
+      const run = spawnSync("say", ["-v", r.voice, "-r", String(wpmOf(r.speed)), "-o", file, r.text], { encoding: "utf8" });
       if (run.status !== 0) throw new Error(`say -v ${r.voice} failed: ${run.stderr || run.error}`);
       return { audio: readFileSync(file), words: spreadWords(r.text, duration(file)) };
     } finally {

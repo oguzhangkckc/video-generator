@@ -354,6 +354,8 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
     if (r.to - r.from > LIMITS.emptyHold) errors.push(`boş alan: ${fmt(r.from)}–${fmt(r.to)}: karenin %${Math.round(r.worst * 100)}'i boş (en fazla %${LIMITS.emptyMax * 100}, ${LIMITS.emptyHold} sn)`);
   }
 
+  // Kept for the fix loop (scripts/runlog.mjs): a fix must not take a said element off screen during its sentence.
+  const said = [];
   for (const p of phrases) {
     const inside = samples.filter((s) => s.t >= p.start && s.t <= p.end);
     const named = new Map();
@@ -370,6 +372,7 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
       }
     }
     for (const [id, n] of named) {
+      if (inside.length) said.push([id, p.text, Math.round((100 * n.seen) / inside.length) / 100]);
       if (inside.length && n.seen / inside.length < LIMITS.named) {
         errors.push(`bağlam: ${fmt(p.start)} "${p.text}" ${id} adını söylüyor ama öğe cümlenin yalnızca %${Math.round((100 * n.seen) / inside.length)}'inde görünüyor`);
       }
@@ -409,6 +412,7 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
   const stats = {
     subjectMin: Math.min(...subjectSeries.map((x) => x.v)),
     emptyMax: emptySeries.length ? Math.max(...emptySeries.map((x) => x.v)) : null,
+    said,
   };
   // STYLE "Kamera ve geçişler": every section shows its subject whole (a recognisable silhouette) for a while.
   for (const { id, window: [from, to] } of sections) {

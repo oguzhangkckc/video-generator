@@ -147,7 +147,24 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
   - demo-trace kopyasında `say` + `--draft` + tam qa beklendiği gibi çalıştı (Yelda 2,33 kelime/sn → hız uyarısı);
     kopya ve önbellek dosyaları silindi;
   - demo-trace gerçek ses yolunda qa tablosu eski `qa.mjs` ile birebir aynı (yalnız yeni "Render" satırı).
-- Uçtan uca otomatik video henüz üretilmedi. İlk deneme: yeni bir konu (gps gerçek ses beklediği için f'de durur).
+- **İkinci tur (aynı branch, PR öncesi kullanıcı isteği):**
+  - Söylenen nesne kuralı: bir düzeltme o an söylenen nesneyi ekrandan kaldıramaz.
+    - qa her (cümle, `say` öğesi) için görünme oranını `qa.json` `said`'e yazar; `phraseTiming` cümle zamanlarının
+      özetidir.
+    - `round`, aynı zamanlamada son kurala uyan turla karşılaştırır; oran %5'ten fazla düşerse `İHLAL` (ilerleme
+      sayılmaz, geri al). İki ihlal üst üste gelirse `DUR`.
+    - demo-flow kopyasında denendi: kamera telefonu %100 → %83'e düşürdü. qa'nın %50 eşiği bunu geçiriyordu,
+      döngü `İHLAL` dedi.
+    - `say`'e bağlı olmayan görsel kelimeler ("yazı", "çizgi") hâlâ kapsam dışı: aşağıdaki sistem notu.
+  - Düzeltme kaydı: `npm run log -- <slug> fix <kapı|kontrol-listesi> "<hata>" --change … --why …`.
+    - Hatalı turdan sonra kayıt yoksa `round` reddeder.
+    - run-log'da "Düzeltmeler" tablosu; Durak 2'de gösterilir.
+  - `say` kalibrasyonu: `RATE` 170 → 270 wpm.
+    - 93 kelimelik bir anlatım metninde qa ölçümüyle 1,92 → 2,74 kelime/sn. Yelda basamaklı: 270–275 → 2,74,
+      280–290 → 2,89.
+    - Önbellek anahtarı artık wpm'i içeriyor; eski `say` kayıtları (`out/tts-cache/say`, 150 dosya) kullanılmaz.
+- Uçtan uca otomatik video henüz üretilmedi. Kabul testi: temassız kart videosu bu branch'te (PR açık, merge
+  testten sonra). gps gerçek ses beklediği için f'de durur.
 
 ## Taslak sesli videolar
 
@@ -223,7 +240,8 @@ demo-trace temiz.
   görsele gönderme yapan kelimeleri de kapsamalı (ör. veri şeridinin `say`'i: "çizgi", "yazı", "tepe"). Ayrıca qa'yı
   temizlemek için yapılan bir yerleşim değişikliği söylenen nesneyi ekrandan kaldırmamalı: kontrol, söylenen bir
   nesnenin o cümle sırasında gizlenmesini (görünürlük `out`'u, kadraj dışı) hata saymalı. Örnek vaka: EKG finali
-  (yukarıda).
+  (yukarıda). **Kısmen yapıldı (2026-11-27):** otomatik moddaki düzeltme döngüsü `say`'e bağlı öğeler için bunu
+  denetliyor (`İHLAL`, yukarıda "Otomatik mod"). Görsele gönderen kelimelerin `say` kapsamına girmesi hâlâ açık.
 
 ## Sıradaki videolar ve fikirler
 
