@@ -255,3 +255,20 @@ test("composition: a squeeze must draw its group smaller", () => {
   // Declared but drawn the same size: the narration describes a movement the picture does not make.
   assert.equal(run([[0.75, 200], [1.25, 200], [1.5, 199], [2.25, 200]]).length, 1);
 });
+
+test("a globe satellite drawn before its glow is measured; drawn under the captions it is an error", async () => {
+  const { heroDrawn } = await import("../../src/kit/scenes/globe/hero.ts");
+  const visible = { in: [7, 8], out: [16, 17] };
+  // The model is in the sky from the globe's start; only its glow waits for visible.in. qa used to see it from 7 s.
+  assert.equal(heroDrawn(visible, 5.8), true);
+  assert.equal(heroDrawn(visible, 17.2), false);
+  const captionBox = { kind: "caption", id: "caption", text: "uydu dönüyor.", ...caption };
+  const hero = { id: "hero", kind: "satellite", important: true, say: ["uydu"], x1: 470, y1: 1440, x2: 610, y2: 1510, drawn: [[[470, 1475], [610, 1475]]] };
+  const at = (t) => sample(t, [scene({ type: "globe", layer: "earth", elements: heroDrawn(visible, t) ? [hero] : [] })], { boxes: [captionBox] });
+  const { errors } = composition({ samples: [5.8, 6.05, 6.3].map(at), step: 0.25, labelAlign: () => "left", phrases: [] });
+  assert.ok(errors.some((e) => e.startsWith("önemli öğe") && e.includes('earth "hero"')), errors.join("\n"));
+  // Behind the planet nothing of it is drawn: a sentence naming it does not count it as seen.
+  const behind = sample(10, [scene({ type: "globe", layer: "earth", elements: [{ ...hero, important: false, y1: 600, y2: 700, drawn: [] }] })]);
+  const named = composition({ samples: [behind], step: 0.25, labelAlign: () => "left", phrases: [{ text: "otuzdan fazla uydu dönüyor.", start: 9.9, end: 10.1 }] });
+  assert.ok(named.errors.some((e) => e.startsWith("bağlam") && e.includes("earth.hero")), named.errors.join("\n"));
+});

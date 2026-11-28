@@ -324,6 +324,11 @@ demo-trace temiz.
   alındı; çözüm yörünge hızıydı). Düzeltme: gövdeyi de zarfla soldur (ya da `in[0]`'dan önce çizme) ve qa'yı çizimle
   aynı aralıkta ölç; sonra gps-pilot regresyonu. **Plan (kullanıcı 2026-11-28):** PR #5 merge edildikten sonra ayrı
   bir dalda düzelt ve regresyonu çalıştır.
+  **Yapıldı (2026-11-28, `fix/globe-drawn`):** render değişmedi. Çizim ve rapor aynı fonksiyondan (`heroDrawn`,
+  `src/kit/scenes/globe/hero.ts`) okuyor: model uydu çizildiği her an raporlanıyor (parıltı `visible.in`'i beklese de).
+  Öğeler `drawn` taşıyor: kürenin arkasındaki uydu ve kameraya bakmayan konum hiçbir şey çizmiyor, görünür sayılmıyor.
+  Test: `visible.in`'den önce altyazının altında çizilen uydu artık hata. gps-pilot regresyonu birebir (SSIM 1,0); gps
+  yeni ölçümle 0 hata.
 
 - **Bağlam kuralı görsele gönderme yapan kelimeleri de kapsamalı:** "Seslendirmede adı geçen nesne o anda karede
   görünür" kuralı (STYLE "Kompozisyon → Bağlam", `say` takma adları) "yazı", "çizgi" gibi doğrudan ekrandaki bir
