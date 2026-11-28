@@ -62,6 +62,21 @@ export const sceneFindings = (spec: Spec): string[] => {
     }
   }
 
+  spec.layers.forEach((layer, i) => {
+    if (layer.type !== "flow") return;
+    const name = layerName(layer, i);
+    const ids = new Set(elementIds(layer));
+    for (const [group, members] of Object.entries(layer.groups)) {
+      for (const m of members) if (!ids.has(m)) out.push(`${name}.groups.${group}: no element "${m}"`);
+    }
+    layer.squeeze.forEach((s, k) => {
+      const where = `${name}.squeeze[${k}]`;
+      if (!s.group && !s.side) out.push(`${where}: name a group, a side or both`);
+      if (s.group && !layer.groups[s.group]) out.push(`${where}: no group "${s.group}" (${Object.keys(layer.groups).join(", ") || "none"})`);
+      if (typeof s.center === "string" && !layer.nodes.some((n) => n.id === s.center)) out.push(`${where}.center: no node "${s.center}"`);
+    });
+  });
+
   spec.labels.forEach((l, i) => {
     if (!l.pointTo) return;
     const [name, id] = splitPointer(l.pointTo);

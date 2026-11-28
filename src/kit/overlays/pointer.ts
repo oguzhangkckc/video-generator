@@ -1,9 +1,9 @@
 // A data line's leader to the scene element it names (`labels[].pointTo`): the renderer (LabelPointers) and qa
 // (scripts/lib/composition.mjs) draw it with this same geometry.
-import { isArea, type Vec } from "../framing.ts";
+import { isArea, nearestDrawn, type Vec } from "../framing.ts";
 import type { Box } from "./geometry";
 
-/** A point target's leader stops this far short of its centre at most (outside its ring); an area's runs in. */
+/** Without a drawn shape, a point target's leader stops this far short of its centre (outside its ring); an area's runs in. */
 const REACH = 40;
 /** Where the leader leaves the panel's top or bottom edge, kept this far from its corners. */
 const INSET = 16;
@@ -21,7 +21,7 @@ export type Pointer = { from: Vec; to: Vec; side: "left" | "right" | "top" | "bo
  * From the side of the panel that faces the element (at the label's own row when it leaves sideways) to the
  * element; null when the element lies within the panel's span on both axes or too close to it.
  */
-export const pointerLine = (label: Box, panel: Box, target: Box): Pointer | null => {
+export const pointerLine = (label: Box, panel: Box, target: Box & { drawn?: Vec[][] }): Pointer | null => {
   const c: Vec = [(target.x1 + target.x2) / 2, (target.y1 + target.y2) / 2];
   const row = Math.min(panel.y2, Math.max(panel.y1, (label.y1 + label.y2) / 2));
   const along = Math.min(panel.x2 - INSET, Math.max(panel.x1 + INSET, c[0]));
@@ -36,6 +36,10 @@ export const pointerLine = (label: Box, panel: Box, target: Box): Pointer | null
             ? [[along, panel.y1], "top"]
             : [null, null];
   if (!from) return null;
+  // The leader ends on what is drawn (the nearest point of it), not at the middle of its box: the middle of a hollow
+  // shape (a ring, an outline) can sit on another element.
+  const hit = target.drawn?.length ? nearestDrawn(from, target.drawn) : null;
+  if (hit) return hit.d < MIN_LENGTH ? null : { from, to: hit.at, side };
   const gap = isArea(target) ? 0 : Math.min(REACH, (target.x2 - target.x1) / 2, (target.y2 - target.y1) / 2);
   const d = Math.hypot(c[0] - from[0], c[1] - from[1]);
   if (d - gap < MIN_LENGTH) return null;

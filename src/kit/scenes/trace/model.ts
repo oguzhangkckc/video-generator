@@ -3,12 +3,13 @@ import { mentions } from "../../../spec/sentences.ts";
 import type { LayerOf } from "../../../spec/schema";
 import type { CurveFn } from "../../curves";
 import { CX, HEIGHT, WIDTH } from "../../format";
-import { IDENTITY, pointBox, pointsBox, type Adjust, type SceneElement, type SceneLabel } from "../../framing";
+import { IDENTITY, pointBox, pointsBox, thinPoints, type Adjust, type SceneElement, type SceneLabel } from "../../framing";
 import { LINE, textWidth, type Box } from "../../overlays/geometry";
 import { MONO } from "../../theme";
 import { envelope, ramp } from "../../time";
 import { project, viewAt, type View, type Vec } from "../camera2d/camera";
 import { labelRoom, placeLabels } from "./labels";
+import { swings } from "./swing.ts";
 import type { Waveform } from "./waveform";
 
 export type TraceLayer = LayerOf<"trace">;
@@ -145,24 +146,40 @@ const PEAK_INSET = 40;
  * line's sharp tips, which must stay clear of titles, captions and panels.
  */
 export const traceElements = (st: TraceState, spoken: string): SceneElement[] => {
-  const out: SceneElement[] = [{ id: "pen", kind: "pen", ...pointBox(st.penScreen, 24), important: true, say: [] }];
+  const out: SceneElement[] = [{ id: "pen", kind: "pen", ...pointBox(st.penScreen, 24), important: true, say: [], drawn: [[st.penScreen]] }];
+  const measured = st.parts.some((p) => p.part.drop !== undefined) ? swings(st.points(st.xFrom, st.now).map(st.toScreen)) : null;
   st.parts.forEach((p) => {
-    const box = pointsBox(st.points(p.from, p.drawnTo).map(st.toScreen));
+    const line = st.points(p.from, p.drawnTo).map(st.toScreen);
+    const box = pointsBox(line);
     if (!box) return;
     const drawing = st.now > p.from && st.now < p.to;
     const named = p.part.say.some((a) => mentions(spoken, a));
-    out.push({ id: `part:${p.part.text}`, kind: "part", ...box, important: p.glow > 0 || drawing || named, say: p.part.say });
+    // A drop is measured once the part is drawn whole: its lowest swing over two cycles, against the usual one.
+    const inside = measured && p.drawnTo >= p.to ? measured.windows.filter((w) => w.x1 >= box.x1 - 1 && w.x2 <= box.x2 + 1) : [];
+    const amplitude =
+      p.part.drop !== undefined && measured && inside.length
+        ? { drawn: Math.min(...inside.map((w) => w.swing)) / Math.max(1, measured.ref), want: p.part.drop }
+        : undefined;
+    out.push({
+      id: `part:${p.part.text}`,
+      kind: "part",
+      ...box,
+      important: p.glow > 0 || drawing || named,
+      say: p.part.say,
+      drawn: [thinPoints(line)],
+      ...(amplitude ? { amplitude } : {}),
+    });
   });
   if (st.say.length) {
     // Only what is seen: the line's history scrolls on past the frame's left edge.
     const seen = st.points(st.xFrom, st.now).map(st.toScreen).filter(([x, y]) => x >= 0 && x <= WIDTH && y >= 0 && y <= HEIGHT);
     const box = pointsBox(seen);
-    if (box) out.push({ id: "line", kind: "line", ...box, important: st.say.some((a) => mentions(spoken, a)), say: st.say });
+    if (box) out.push({ id: "line", kind: "line", ...box, important: st.say.some((a) => mentions(spoken, a)), say: st.say, drawn: [thinPoints(seen, 200)] });
   }
   if (!st.strip) {
     for (const { id, at } of st.peaks) {
       const inside = at[0] >= PEAK_INSET && at[0] <= WIDTH - PEAK_INSET && at[1] >= PEAK_INSET && at[1] <= HEIGHT - PEAK_INSET;
-      if (inside) out.push({ id, kind: "peak", ...pointBox(at, 10), important: true, say: [] });
+      if (inside) out.push({ id, kind: "peak", ...pointBox(at, 10), important: true, say: [], drawn: [[at]] });
     }
   }
   return out;

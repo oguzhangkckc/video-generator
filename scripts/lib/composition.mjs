@@ -1,7 +1,7 @@
 // Composition checks (STYLE.md "Kompozisyon", "Yerleşim", "Veri çizgisi etiketleri") over qa probe samples:
 // what each scene reported (QaProbe QA_SCENE), the overlay boxes (QA_BOXES) and how empty each frame looked.
 // Pure, so it can be tested with made-up samples.
-import { covered as coveredShare, isArea } from "../../src/kit/framing.ts";
+import { covered as coveredShare, isArea, nearestDrawn } from "../../src/kit/framing.ts";
 import { pointerLine, rowsInTheWay, splitPointer } from "../../src/kit/overlays/pointer.ts";
 import { mentions } from "../../src/spec/sentences.ts";
 
@@ -24,6 +24,14 @@ export const LIMITS = {
   passHold: 1,
   /** Around a transition, no frame may be emptier than this. */
   transitionEmpty: 0.6,
+  /** A squeeze draws at least this share of the shrink it declares. */
+  squeeze: 0.6,
+  /** Two data line labels side by side on one row stand at least this many label heights apart, or read as one. */
+  readGap: 1,
+  /** A data line part's drawn swing may exceed the drop it means by this share of the usual swing. */
+  amplitude: 0.08,
+  /** A leader's end lies on the element's drawn pixels, within this many px. */
+  pointerEnd: 3,
   /** Shape match: the two elements' centres within this share of the frame width. */
   match: 0.05,
   /** Through: the element fills at least this share of the frame. */
@@ -225,6 +233,7 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
   const touching = spans();
   const crossing = spans();
   const pointing = spans();
+  const amplitudes = spans();
   const texting = spans();
   const card = spans();
   const captionWide = spans();
@@ -271,6 +280,15 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
       for (let i = 0; i < labels.length; i++) {
         for (let j = i + 1; j < labels.length; j++) {
           if (overlap(labels[i], labels[j], 0)) touching.add(`${layer.layer}:${labels[i].text}|${labels[j].text}`, s.t, `${layer.layer}: "${labels[i].text}" ile "${labels[j].text}" birbirine değiyor`);
+          else {
+            const [a, b] = [labels[i], labels[j]];
+            const height = Math.max(a.y2 - a.y1, b.y2 - b.y1);
+            const sameRow = Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1) > 0;
+            const gap = Math.max(a.x1, b.x1) - Math.min(a.x2, b.x2);
+            if (sameRow && gap < LIMITS.readGap * height) {
+              touching.add(`${layer.layer}:row:${a.text}|${b.text}`, s.t, `${layer.layer}: "${a.text}" ile "${b.text}" yan yana tek ifade gibi okunuyor (${Math.round(gap)} px aralık, en az ${Math.round(LIMITS.readGap * height)})`);
+            }
+          }
         }
         const inner = { x1: labels[i].x1 + 2, y1: labels[i].y1 + 2, x2: labels[i].x2 - 2, y2: labels[i].y2 - 2 };
         const line = layer.line ?? [];
@@ -308,11 +326,27 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
       const own = `etiket paneli (${labelAlign(b.id)})`;
       const panel = cover.find((c) => c.kind === "panel" && c.id === own);
       const pointer = panel && pointerLine(b, panel, e);
+      // The leader must land on what the scene draws for the element, not on an empty middle or an invisible stand-in.
+      if (e.drawn && !e.drawn.length) {
+        pointing.add(`${b.id}:drawn`, s.t, `"${b.text}" ${target} öğesini gösteriyor ama öğe hiçbir şey çizmiyor (dolgusuz, kenarsız)`);
+      } else if (pointer && e.drawn) {
+        const hit = nearestDrawn(pointer.to, e.drawn);
+        if (hit && hit.d > LIMITS.pointerEnd) pointing.add(`${b.id}:end`, s.t, `"${b.text}" kılavuz ucu ${target} öğesinin çizilen bir noktasında değil (${Math.round(hit.d)} px uzakta)`);
+      }
       const others = s.boxes.filter((x) => x.kind === "label" && x.id !== b.id && labelAlign(x.id) === labelAlign(b.id));
       if (!pointer || rowsInTheWay(pointer, b, others).length) continue;
       for (const c of cover) {
         if (c.id === own || (c.kind === b.kind && c.id === b.id)) continue;
         if (crosses(pointer.from, pointer.to, c)) pointing.add(`${b.id}|${c.id}`, s.t, `"${b.text}" kılavuz çizgisi ${c.kind === "caption" ? "altyazının" : `"${c.text || c.id}"`} üstünden geçiyor`);
+      }
+    }
+    // A data line part that means an amplitude change (a gap, a load dip) is drawn with it (trace `drop`).
+    for (const layer of s.scene.layers) {
+      for (const e of layer.elements.filter((x) => x.amplitude && layer.opacity >= 0.5)) {
+        const { drawn, want } = e.amplitude;
+        if (drawn > want + LIMITS.amplitude) {
+          amplitudes.add(`${layer.layer}.${e.id}`, s.t, `${layer.layer} "${e.id.replace(/^part:/, "")}": genlik en fazla %${Math.round(want * 100)}'e düşmeli, çizilen en düşük %${Math.round(drawn * 100)} (iki döngü boyunca)`);
+        }
       }
     }
     const main = mainScene(s);
@@ -328,6 +362,7 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
   errors.push(...covered.list().map((m) => `önemli öğe: ${m}`));
   errors.push(...touching.list().map((m) => `veri etiketi: ${m}`), ...crossing.list().map((m) => `veri etiketi: ${m}`));
   errors.push(...pointing.list().map((m) => `kılavuz: ${m}`));
+  errors.push(...amplitudes.list().map((m) => `şerit: ${m}`));
   errors.push(...texting.list().map((m) => `yerleşim: ${m}`));
   errors.push(...card.list().map((m) => `kart: ${m}`));
   errors.push(...captionWide.list().map((m) => `altyazı: ${m}`));
@@ -371,7 +406,8 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
       for (const layer of s.scene.layers) {
         for (const e of layer.elements.filter((x) => x.say.some((a) => mentions(p.text, a)))) {
           const others = cover.filter((c) => !(c.kind === "strip" && c.id === layer.layer));
-          const seen = layer.opacity >= 0.5 && !e.hidden && onScreen(e) && coveredShare(clip(e), others) < 0.5;
+          const draws = !e.drawn || e.drawn.length > 0;
+          const seen = layer.opacity >= 0.5 && !e.hidden && draws && onScreen(e) && coveredShare(clip(e), others) < 0.5;
           const n = named.get(`${layer.layer}.${e.id}`) ?? { seen: 0 };
           n.seen += seen ? 1 : 0;
           named.set(`${layer.layer}.${e.id}`, n);
@@ -443,6 +479,33 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
     }
     if (who && longest < LIMITS.wholeHold) {
       warnings.push(`siluet: "${id}" bölümü (${fmt(from)}–${fmt(to)}): ${who} öznesi ${longest ? `en fazla ${longest.toFixed(2)} sn` : "hiç"} tamamen kadrajda (en az ${LIMITS.wholeHold} sn tanınabilir geniş plan)`);
+    }
+  }
+  // Actions the narration describes, measured on what is drawn: a squeeze must make its group visibly smaller.
+  const actions = new Map();
+  for (const s of samples) {
+    for (const layer of s.scene.layers) {
+      for (const a of layer.actions ?? []) {
+        const key = `${layer.layer} "${a.id.replace(/#\d+$/, "")}"`;
+        const entry = actions.get(key) ?? { ...a, seen: [] };
+        if (a.size != null) entry.seen.push({ t: s.t, size: a.size, shown: layer.opacity >= 0.5 });
+        actions.set(key, entry);
+      }
+    }
+  }
+  for (const [key, a] of actions) {
+    const [from, to] = a.range;
+    const relaxed = a.seen.filter((x) => x.t <= from || x.t >= to).sort((x, y) => Math.abs(x.t - from) - Math.abs(y.t - from))[0];
+    const during = a.seen.filter((x) => x.t > from && x.t < to && x.shown);
+    if (!relaxed || !during.length) {
+      errors.push(`eylem: ${key} sıkışması ${fmt(from)}–${fmt(to)} ölçülemedi (aralıkta görünen örnek yok)`);
+      continue;
+    }
+    const shrink = 1 - Math.min(...during.map((x) => x.size)) / relaxed.size;
+    const want = 1 - a.scale;
+    stats.actions = [...(stats.actions ?? []), [key, Math.round(shrink * 100) / 100, Math.round(want * 100) / 100]];
+    if (shrink < LIMITS.squeeze * want) {
+      errors.push(`eylem: ${key} sıkışması çizilmiyor: ${fmt(from)}–${fmt(to)} en çok %${Math.round(shrink * 100)} küçülüyor (bildirilen %${Math.round(want * 100)})`);
     }
   }
   return { errors, warnings, stats };

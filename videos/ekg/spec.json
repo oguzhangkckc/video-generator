@@ -412,7 +412,7 @@
           "shape": "glow",
           "color": "secondary",
           "r": 7,
-          "lit": [[{ "cue": "Emir alt odaların" }, "@qrsGo"]],
+          "lit": [[{ "cue": "Emir alt odaların" }, "@qrsGo"], [{ "cue": "ilk düzlük" }, { "cue": "sivri tepe alt", "offset": -0.1 }]],
           "visible": { "in": ["@dive.start+0.6", "@dive.end-0.4"] },
           "say": ["kapı"]
         },
@@ -493,7 +493,22 @@
       ],
       "highlight": [
         { "target": "sa", "range": [{ "cue": "sağ üst köşede", "offset": 0.4 }, "@fire"] },
-        { "target": "av", "range": [{ "cue": "Emir alt odaların" }, { "cue": "Peki ya o büyük" }] }
+        { "target": "av", "range": [{ "cue": "Emir alt odaların" }, { "cue": "Peki ya o büyük" }] },
+        { "target": "atria", "range": [{ "cue": "Yani küçük" }, { "cue": "ilk düzlük", "offset": -0.1 }] },
+        { "target": "av", "range": [{ "cue": "ilk düzlük" }, { "cue": "sivri tepe alt", "offset": -0.1 }] },
+        { "target": "ventricles", "range": [{ "cue": "sivri tepe alt" }, { "cue": "son tepe hazırlık", "offset": -0.1 }] },
+        { "target": "ventricles", "range": [{ "cue": "son tepe hazırlık" }, { "cue": "Artık okumaya", "offset": -0.4 }] },
+        { "target": "heart", "range": [{ "cue": "Artık okumaya" }, "@reveal-1.6"] }
+      ],
+      "groups": { "alt-odalar": ["heart", "ventricles", "ivs", "rbb", "lbb", "lbbAnt", "pk1", "pk2", "pk3", "pk4", "pk5"] },
+      "squeeze": [
+        {
+          "group": "alt-odalar",
+          "side": { "below": -40, "soft": 220 },
+          "range": [{ "cue": "önce emir", "offset": 0.6 }, { "cue": "önce emir", "offset": 1.6 }],
+          "center": [30, 130],
+          "scale": 0.8
+        }
       ],
       "camera": [
         { "at": "@toBody.end-0.3", "focus": "e2", "zoom": 4, "subject": ["skin"] },

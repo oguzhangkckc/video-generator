@@ -309,6 +309,8 @@ kaynaklar çelişiyorsa Durak 1'de "Karar gerekiyor".
    - editörün anlatma cümlesi ve söz → karşılık okuması seninkiyle aynı mı? Değilse metin, söylediğini sandığı şeyi
      söylemiyor; düzelt
    - metin değiştiyse 3. adımı tekrarla; büyük değişiklikte editörü yeniden çalıştır
+   - editör `labels`'ı (planlanan ekran etiketleri) geçtikleri cümleyle birlikte doğruluk açısından da okur (5.
+     bölüm): etiketteki rakam, birim ve neyi saydığı cümleyle ve kaynakla aynı olmalı
 5. **Dinletme.** `npm run voiceover -- listen out/<slug>/metin/metin.json --provider say`: ücretsiz geçici sesle
    (Yelda) `out/<slug>/metin/ses/` altına `tam`, `kanca-1..3`, `final-1..2` dosyaları ve bölüm başına konuşulan süre.
    `open out/<slug>/metin/ses` ile aç, yolları kullanıcıya ver. Bu yalnız metni duymak için bir taslak: spec,
@@ -396,7 +398,13 @@ gerekiyorsa zorunlu durma noktasıdır.
    (özne bütün ≥ 1 sn), geçişler, kamera. Hatalar kesin: önce çekimi, özneyi ya da geçişi
    düzelt (kamera, zoom, `subject`, `say`, `transitions`), sonra tekrarla. Örnekler `out/<slug>/qa-samples.json`'da.
    Otomatik: `qa-layout` kapısı.
-7. Kareleri Read ile kendin incele ve STYLE.md kontrol listesini madde madde uygula. Uymayanları düzelt, yeniden
+7. Spec'in etiketleri metin.json'daki plandan farklıysa (eklenen ya da değişen etiket, not, kavram kartı) editörü
+   **etiket turunda** çalıştır: ajana yalnız `videos/<slug>/spec.json` yolunu ve "etiket turu" de. Doğruluk
+   bulgusunu etiket metninde düzelt (onaylı metin değişmez); düzeltilemiyorsa zorunlu durma. Otomatik: her düzeltme
+   `fix editor …`.
+   Kareleri Read ile kendin incele ve STYLE.md kontrol listesini madde madde uygula. Eylem maddesi için her eylem
+   cümlesinde (kasılıyor, kayıyor, kararıyor, yayılıyor…) cümlenin başı ve sonundan iki kare al ve aradaki hareketi
+   gör; hareket yoksa ya da kit o hareketi çizemiyorsa (bir bölgenin biçim değiştirmesi gibi) zorunlu durma. Uymayanları düzelt, yeniden
    render et. Otomatik: her düzeltmeyi `fix kontrol-listesi "<madde>" --change "…" --why "…"` ile yaz, sonra
    `qa-layout` kapısından yeniden geç; sonucu `note "kontrol listesi: …"` ile yaz.
 8. Kullanıcıya `out/<slug>/stills/sheet.png` dosyasını ve gerekirse önemli tekil kareleri göster. **qa sonuç

@@ -109,6 +109,12 @@ export const traceSchema = <T extends z.ZodType, R extends z.ZodType, N extends 
               say: z.array(z.string().min(1)).default([]),
               /** Lit up (brighter, larger label) over these ranges, e.g. while the narration names the part. */
               lit: z.array(k.range).default([]),
+              /**
+               * What the part means for the line's amplitude: somewhere inside it the drawn swing falls to this share
+               * of the line's usual swing and stays there for two cycles (0.05: a gap, the carrier switched off; 0.35:
+               * a load dip). qa measures it on the drawn line.
+               */
+              drop: z.number().min(0).max(1).optional(),
             })
             .strict(),
         )

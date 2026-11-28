@@ -125,6 +125,52 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
 
 - Seslendirme sağlayıcısı: aşağıda "Seslendirme v2 Aşama B".
 
+## Anlam qa (2026-11-28, `feat/anlam-qa`)
+
+Kullanıcı üç taslağı kare kare inceledi (PR #5 merge edildi). Bulunanlar otomatik modun değil, qa'nın anlamı
+ölçmemesinin sonucuydu; önce kural, sonra video.
+
+- **Kılavuz ve vekil öğeler:** sahneler her öğenin çizdiğini (`drawn`, ekran px'inde çizgiler) raporluyor; dolgusuz
+  ve kenarsız bir bölge (vekil) `[]` raporlar. Kılavuz ucu öğenin çizilen en yakın noktasına gider (içi boş bir
+  şeklin ortasına değil). qa: hiçbir şey çizmeyen öğeye kılavuz hata, uç çizilen bir noktada değilse hata; söylenen
+  nesne ölçümü çizmeyen öğeyi görünür saymıyor. Temassız kartta yakaladı: BOBİN ve HALKALAR kılavuzları ve "Bobin…",
+  "kenarı boyunca", "halkalardan" cümleleri (rings/coil bölgeleri görünmez vekil; halkaları ve bobini yollar çiziyor).
+- **Şerit parçasının anlamı:** `parts[].drop` (kararma ≈ 0,05, yük çukuru ≈ 0,35); trace çizilen çizginin iki
+  döngülük pencerelerdeki en düşük genliğini olağan genliğe oranlayıp raporluyor (`src/kit/scenes/trace/swing.ts`),
+  qa bildirilenle karşılaştırıyor. Temassız kartta yakaladı: KARARMALAR %53 (≤ %5 olmalı), YÜK %70, CEVAP %85.
+- **Editör ekran etiketlerini okuyor:** `metin-editoru` 5. bölüm (etiket ↔ cümle doğruluğu, aynı şey mi, tekrar);
+  SKILL c.4'te metinle birlikte, e.7'de spec etiketleri plandan farklıysa "etiket turu". Temassız kartta kör okumada
+  "SANİYEDE 13,56 MİLYON KEZ"i yakaladı (yön bir salınımda iki kez değişir).
+- **Yan yana etiketler:** aynı satırdaki iki veri etiketi arasında en az bir etiket yüksekliği boşluk (yerleştirme ve
+  qa). EKG'de yakaladı: "ÜST" ile "ALT" 9 px (en az 36).
+- STYLE kontrol listesi: "Anlatılan her eylem (kasılma, kayma, kararma, yayılma) görüntüde bir hareketle
+  karşılanıyor mu?"; SKILL e.7 bunu iki kareyle kontrol ediyor, kit çizemiyorsa zorunlu durma.
+- Doğrulama: 61 test; gps-pilot regresyonu birebir (90 kare, SSIM 1,0).
+- **Videolarda uygulama:**
+  - temassız kart: BOBİN/HALKALAR kılavuzu ve `say` çizen yollara (rc3, cc1); şerit taşıyıcısı iki kararmada sıfır,
+    yük ve dört cevap çukurunda %30, parçalarda `drop`; şerit kamerası kararma ve titremelerde yaklaşıyor; etiket
+    "SANİYEDE MİLYONLARCA KEZ"; editör etiket turunun bulguları (4 ifade, "OKUYUCUYA YÜK" tekrarı kaldırıldı, not
+    "ŞERİT AĞIR ÇEKİM · ÇUKURLAR ABARTILI", us7926719 notuna Mors benzetmesi).
+  - gps: "≈ 300 M" kaldırıldı (300 METRE ile aynı anda), YAKLAŞIK notu kaldı.
+  - EKG: özetteki her parçada kalpte karşılığı yanıyor (üst odalar, kapı, alt odalar, sonda kalp); "ÜST" ile "ALT"
+    ayrı (sistemle).
+- **Yapıldı (kullanıcı onayıyla): flow `squeeze`.** `groups` adlı öğe kümeleri; `squeeze: [{ group, side?, range,
+  center, scale }]` grubu (yarı düzlem isteğe bağlı, yumuşak geçişli) merkeze doğru sıkıştırıp gevşetiyor; çizim,
+  kadraj ve qa aynı büzülmüş geometriyi kullanıyor. qa "Eylem" satırı: sıkışma aralığında grubun çizilen boyutu
+  (merkeze ortalama uzaklık, zoom'dan bağımsız) bildirilen küçülmenin en az %60'ı kadar düşmeli; ilk mekanik eylem
+  kontrolü. EKG: alt-odalar (kalbin alt hattı, karıncıklar, karıncık yolları), AV oluğunun altı, "önce emir, sonra
+  vuruş"un "sonra vuruş"una (ALT tepesi çizildikten sonra), %20; çizilen %20.
+- **Durak 2 (2026-11-28):** EKG onaylandı; sıkışma yalnız "sonra vuruş"ta kalır, her atımda tekrarlanmaz (kullanıcı
+  kararı). Üç taslak (temassız kart, gps, ekg) gerçek sesi "Taslak sesli videolar" listesinden alacak.
+- **Önceden: DURDU, EKG madde 4 (kit desteklemiyor):** "Alt odalar ancak bundan sonra kasılıyor: önce emir, sonra vuruş"
+  denirken alt odalar görünür biçimde sıkışmalı. flow kitinde bölgeler sabit çokgen; biçim ya da ölçek zamanla
+  değişmiyor (`visible`, `sweep`, `highlight` var, hareket yok). Gereken: flow katmanına bir **sıkışma** (`squeeze`):
+  `[{ range, center: [x, y], scale: 0.88, side: { below: y } }]` aralık boyunca (girip çıkan zarfla) bir yarı
+  düzlemdeki bütün geometriyi (bölgeler, kırpma bölgeleri, yollar, düğümler) merkeze doğru ölçekler; kalbin AV
+  düzleminin altı sıkışır, iletim yolları onunla birlikte hareket eder. Raporlanan öğe kutuları ve `drawn` dönüşmüş
+  geometriden gelir (qa çizileni ölçer). Tahmini iş: kit (model + çizim + şema) ve test ~1–2 saat, gps-pilot ve
+  demo-flow regresyonu. EKG'de "sonra vuruş"ta bir sıkışma, isteğe bağlı her atımda.
+
 ## Otomatik mod (2026-11-27, `feat/otomatik-mod`)
 
 - `/aciklayici-video <konu>` artık otomatik. Kullanıcı iki kez devreye girer:

@@ -134,7 +134,20 @@ export type ShotKind = "wide" | "medium" | "close";
  * An element a scene draws, in screen px; `important` ones are kept clear of the overlays. `hidden`: not shown at
  * this moment (reported anyway, so qa can tell that a named element is missing).
  */
-export type SceneElement = Box & { id: string; kind: string; important: boolean; say: string[]; hidden?: boolean };
+/**
+ * `drawn`: what the scene puts on screen for the element, as polylines in screen px (a closed outline repeats its first
+ * point); [] when it draws nothing (an invisible stand-in), absent when the scene cannot tell (a 3D model).
+ */
+export type SceneElement = Box & {
+  id: string;
+  kind: string;
+  important: boolean;
+  say: string[];
+  hidden?: boolean;
+  drawn?: Vec[][];
+  /** A data line part's amplitude: the share of the usual swing it is drawn at (`drawn`) and the one it means (`want`). */
+  amplitude?: { drawn: number; want: number };
+};
 /** A text label drawn by a scene on a data line, with the leader line that ties it to its point, if any. */
 export type SceneLabel = Box & {
   text: string;
@@ -157,6 +170,8 @@ export type SceneReport = {
   /** The drawn data line, sampled in screen px. */
   line?: Vec[];
   adjust: Adjust;
+  /** Actions the spec asks the scene to perform, with what is drawn now (a squeeze: the group's size, world px). */
+  actions?: { kind: "squeeze"; id: string; range: [number, number]; scale: number; size: number | null }[];
 };
 
 export type Framing = {
@@ -247,6 +262,35 @@ export const unionBox = (boxes: Box[]): Box | null =>
     : null;
 
 export const pointBox = ([x, y]: Vec, r: number): Box => ({ x1: x - r, y1: y - r, x2: x + r, y2: y + r });
+
+/** The point of `drawn` nearest to `p`, and how far it is. */
+export const nearestDrawn = (p: Vec, drawn: Vec[][]): { at: Vec; d: number } | null => {
+  let best: { at: Vec; d: number } | null = null;
+  for (const line of drawn) {
+    for (let i = 0; i < line.length; i++) {
+      const a = line[i];
+      const b = line[Math.min(i + 1, line.length - 1)];
+      const [dx, dy] = [b[0] - a[0], b[1] - a[1]];
+      const len = dx * dx + dy * dy;
+      const k = len ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len)) : 0;
+      const at: Vec = [a[0] + dx * k, a[1] + dy * k];
+      const d = Math.hypot(p[0] - at[0], p[1] - at[1]);
+      if (!best || d < best.d) best = { at, d };
+    }
+  }
+  return best;
+};
+
+/** A circle as a closed polyline. */
+export const circlePoints = ([x, y]: Vec, r: number, n = 24): Vec[] =>
+  Array.from({ length: n + 1 }, (_, i) => [x + r * Math.cos((2 * Math.PI * i) / n), y + r * Math.sin((2 * Math.PI * i) / n)] as Vec);
+
+/** At most `max` points of a long polyline, ends kept. */
+export const thinPoints = (points: Vec[], max = 120): Vec[] => {
+  if (points.length <= max) return points;
+  const every = (points.length - 1) / (max - 1);
+  return Array.from({ length: max }, (_, i) => points[Math.round(i * every)]);
+};
 export const pointsBox = (points: Vec[]): Box | null =>
   points.length
     ? {

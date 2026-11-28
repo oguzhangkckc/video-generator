@@ -1222,9 +1222,7 @@
           "smooth": false,
           "fill": "none",
           "edge": "none",
-          "say": [
-            "bobin"
-          ]
+          "say": []
         },
         {
           "id": "rings",
@@ -1345,10 +1343,7 @@
           "smooth": false,
           "fill": "none",
           "edge": "none",
-          "say": [
-            "halka",
-            "kenar"
-          ]
+          "say": []
         }
       ],
       "paths": [
@@ -1965,7 +1960,10 @@
           "smooth": false,
           "color": "secondary",
           "opacity": 0.6,
-          "width": 3
+          "width": 3,
+          "say": [
+            "bobin"
+          ]
         },
         {
           "id": "cc1",
@@ -2090,7 +2088,11 @@
           "smooth": false,
           "color": "you",
           "opacity": 0.45,
-          "width": 2.6
+          "width": 2.6,
+          "say": [
+            "halka",
+            "kenar"
+          ]
         },
         {
           "id": "cc2",
@@ -4034,31 +4036,31 @@
           ],
           [
             102,
-            0.05
+            1
           ],
           [
             103.5,
-            -0.05
+            0
           ],
           [
             105,
-            0.05
+            0
           ],
           [
             106.5,
-            -1
+            0
           ],
           [
             108,
-            0.05
+            0
           ],
           [
             109.5,
-            -0.05
+            0
           ],
           [
             111,
-            1
+            0
           ],
           [
             112.5,
@@ -4066,11 +4068,11 @@
           ],
           [
             114,
-            0.05
+            1
           ],
           [
             115.5,
-            -0.05
+            -1
           ],
           [
             117,
@@ -4082,35 +4084,35 @@
           ],
           [
             120,
-            0.05
-          ],
-          [
-            121.5,
-            -1
-          ],
-          [
-            123,
-            0.05
-          ],
-          [
-            124.5,
-            -0.05
-          ],
-          [
-            126,
-            0.05
-          ],
-          [
-            127.5,
-            -1
-          ],
-          [
-            129,
             1
           ],
           [
+            121.5,
+            0
+          ],
+          [
+            123,
+            0
+          ],
+          [
+            124.5,
+            0
+          ],
+          [
+            126,
+            0
+          ],
+          [
+            127.5,
+            0
+          ],
+          [
+            129,
+            0
+          ],
+          [
             130.5,
-            -0.05
+            -1
           ],
           [
             132,
@@ -4170,23 +4172,23 @@
           ],
           [
             153,
-            0.7
+            0.3
           ],
           [
             154.5,
-            -0.7
+            -0.3
           ],
           [
             156,
-            0.7
+            0.3
           ],
           [
             157.5,
-            -0.7
+            -0.3
           ],
           [
             159,
-            0.7
+            0.3
           ],
           [
             160.5,
@@ -4238,31 +4240,31 @@
           ],
           [
             178.5,
-            -0.7
+            -0.3
           ],
           [
             180,
-            0.7
+            0.3
           ],
           [
             181.5,
-            -0.7
+            -0.3
           ],
           [
             183,
-            1
+            0.3
           ],
           [
             184.5,
-            -1
+            -0.3
           ],
           [
             186,
-            0.7
+            0.3
           ],
           [
             187.5,
-            -0.7
+            -1
           ],
           [
             189,
@@ -4274,31 +4276,31 @@
           ],
           [
             192,
-            0.7
+            0.3
           ],
           [
             193.5,
-            -0.7
+            -0.3
           ],
           [
             195,
-            0.7
+            0.3
           ],
           [
             196.5,
-            -1
+            -0.3
           ],
           [
             198,
-            1
+            0.3
           ],
           [
             199.5,
-            -0.7
+            -0.3
           ],
           [
             201,
-            0.7
+            1
           ],
           [
             202.5,
@@ -4306,31 +4308,31 @@
           ],
           [
             204,
-            0.7
-          ],
-          [
-            205.5,
-            -0.7
-          ],
-          [
-            207,
-            0.7
-          ],
-          [
-            208.5,
-            -1
-          ],
-          [
-            210,
             1
           ],
           [
+            205.5,
+            -0.3
+          ],
+          [
+            207,
+            0.3
+          ],
+          [
+            208.5,
+            -0.3
+          ],
+          [
+            210,
+            0.3
+          ],
+          [
             211.5,
-            -1
+            -0.3
           ],
           [
             213,
-            0.7
+            0.3
           ],
           [
             214.5,
@@ -4346,31 +4348,31 @@
           ],
           [
             219,
-            0.7
+            0.3
           ],
           [
             220.5,
-            -0.7
+            -0.3
           ],
           [
             222,
-            0.7
+            0.3
           ],
           [
             223.5,
-            -1
+            -0.3
           ],
           [
             225,
-            1
+            0.3
           ],
           [
             226.5,
-            -0.7
+            -0.3
           ],
           [
             228,
-            0.7
+            1
           ],
           [
             229.5,
@@ -5387,6 +5389,69 @@
           "zoom": 1
         },
         {
+          "at": {
+            "cue": "alanını bir anlığına",
+            "offset": -0.4
+          },
+          "focus": "frame",
+          "zoom": 1
+        },
+        {
+          "at": {
+            "cue": "alanını bir anlığına",
+            "offset": 0.4
+          },
+          "focus": "pen",
+          "zoom": 1.6
+        },
+        {
+          "at": {
+            "cue": "Cevap sırası",
+            "offset": -0.3
+          },
+          "focus": "pen",
+          "zoom": 1.6
+        },
+        {
+          "at": {
+            "cue": "Cevap sırası",
+            "offset": 0.5
+          },
+          "focus": "frame",
+          "zoom": 1
+        },
+        {
+          "at": {
+            "cue": "Kart düğmeye basınca",
+            "offset": 0.2
+          },
+          "focus": "frame",
+          "zoom": 1
+        },
+        {
+          "at": {
+            "cue": "Kart düğmeye basınca",
+            "offset": 0.9
+          },
+          "focus": "frame",
+          "zoom": 1.35
+        },
+        {
+          "at": {
+            "cue": "kendi bobininde",
+            "offset": 0.3
+          },
+          "focus": "frame",
+          "zoom": 1.35
+        },
+        {
+          "at": {
+            "cue": "Kartın cevabı"
+          },
+          "focus": "frame",
+          "zoom": 1
+        },
+        {
           "at": "@end",
           "focus": "frame",
           "zoom": 1
@@ -5400,6 +5465,7 @@
       "parts": [
         {
           "text": "KARARMALAR",
+          "drop": 0.05,
           "range": [
             100,
             136
@@ -5419,6 +5485,7 @@
         },
         {
           "text": "YÜK",
+          "drop": 0.35,
           "range": [
             151,
             161
@@ -5438,6 +5505,7 @@
         },
         {
           "text": "CEVAP",
+          "drop": 0.35,
           "range": [
             176,
             230
@@ -5507,7 +5575,7 @@
       "size": 44,
       "bar": true,
       "sound": "tick",
-      "pointTo": "pos.coil"
+      "pointTo": "pos.rc3"
     },
     {
       "text": "MIKNATIS GİBİ ALAN",
@@ -5525,7 +5593,7 @@
       "sound": "tick"
     },
     {
-      "text": "SANİYEDE 13,56 MİLYON KEZ",
+      "text": "SANİYEDE MİLYONLARCA KEZ",
       "at": {
         "cue": "alanın yönü",
         "offset": 0.8
@@ -5553,7 +5621,7 @@
       "size": 44,
       "bar": true,
       "sound": "tick",
-      "pointTo": "pos.rings"
+      "pointTo": "pos.cc1"
     },
     {
       "text": "ELEKTRİK AKIYOR",
@@ -5571,7 +5639,7 @@
       "sound": "tick"
     },
     {
-      "text": "KABLOSUZ ŞARJ",
+      "text": "KABLOSUZ ŞARJ GİBİ",
       "at": {
         "cue": "Telefonunun",
         "offset": 0.6
@@ -5678,7 +5746,7 @@
       "pointTo": "pos.dugme"
     },
     {
-      "text": "DAHA ÇOK ENERJİ",
+      "text": "DAHA ÇOK ENERJİ ÇEKİYOR",
       "at": {
         "cue": "alandan daha",
         "offset": 0.4
@@ -5688,21 +5756,6 @@
         "offset": -0.2
       },
       "top": 220,
-      "size": 44,
-      "bar": true,
-      "sound": "tick"
-    },
-    {
-      "text": "OKUYUCUYA YÜK",
-      "at": {
-        "cue": "okuyucuya yük",
-        "offset": 0.3
-      },
-      "until": {
-        "cue": "Kart da bu düğmeye",
-        "offset": -0.2
-      },
-      "top": 290,
       "size": 44,
       "bar": true,
       "sound": "tick"
@@ -5753,7 +5806,7 @@
       "sound": "tick"
     },
     {
-      "text": "BOBİNİNDE HİSSEDİYOR",
+      "text": "OKUYUCU BOBİNİNDE HİSSEDİYOR",
       "at": {
         "cue": "kendi bobininde",
         "offset": 0.3
@@ -5799,7 +5852,7 @@
       "sound": "tick"
     },
     {
-      "text": "BİR YÜK · BİR HAFİF",
+      "text": "YÜK · HAFİF · YÜK · HAFİF",
       "at": {
         "cue": "okuyucuya bir yük",
         "offset": 0.4
@@ -5822,7 +5875,7 @@
       "top": 1384
     },
     {
-      "text": "İZ SADELEŞTİRİLDİ",
+      "text": "ŞERİT AĞIR ÇEKİM · ÇUKURLAR ABARTILI",
       "at": "@panelIn.end",
       "until": {
         "cue": "Bunun adı",
@@ -5963,7 +6016,7 @@
       "url": "https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/7926719",
       "accessed": "2026-11-27",
       "status": "simplified",
-      "note": "ABD patenti 7.926.719. 'Düğme' anahtarlanan yük; 'daha çok enerji çekiyor' dirençli yük modülasyonu için sadeleştirme; gerçek düşüş şeritteki kadar büyük değil."
+      "note": "ABD patenti 7.926.719. 'Düğme' anahtarlanan yük; 'daha çok enerji çekiyor' dirençli yük modülasyonu için sadeleştirme; gerçek düşüş şeritteki kadar büyük değil. Kartın düğmeye basıp bırakması da Mors'a benzetildi."
     }
   ],
   "credits": [

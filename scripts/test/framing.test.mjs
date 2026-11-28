@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { IDENTITY, moveBox, overlaps, smoothAdjust, solve } from "../../src/kit/framing.ts";
+import { IDENTITY, circlePoints, moveBox, nearestDrawn, overlaps, smoothAdjust, solve } from "../../src/kit/framing.ts";
 import { pointerLine, rowsInTheWay } from "../../src/kit/overlays/pointer.ts";
 import { splitPage } from "../../src/spec/timing.ts";
 import { composition, coverFindings, textFindings } from "../lib/composition.mjs";
@@ -217,4 +217,41 @@ test("composition: a said element its layer never draws during the sentence stil
     sample(t, [scene({ type: "trace", layer: "strip", elements: [strip] }), scene({ layer: t < 1 ? "body" : "final", elements: [heart()] })]),
   );
   assert.deepEqual(run(copies).errors.filter((e) => e.startsWith("bağlam")), []);
+});
+
+test("a leader ends on what the element draws, not at the middle of its box", () => {
+  const panel = { x1: 100, y1: 100, x2: 500, y2: 200 };
+  const label = { x1: 110, y1: 110, x2: 300, y2: 150 };
+  // A hollow ring around a middle where something else sits: the box centre is (540, 900).
+  const ring = circlePoints([540, 900], 200, 48);
+  const target = { x1: 340, y1: 700, x2: 740, y2: 1100 };
+  const toCentre = pointerLine(label, panel, target);
+  assert.deepEqual(toCentre.to.map(Math.round), [540, 900]);
+  const onRing = pointerLine(label, panel, { ...target, drawn: [ring] });
+  assert.ok(nearestDrawn(onRing.to, [ring]).d < 1, JSON.stringify(onRing.to));
+  assert.ok(Math.hypot(onRing.to[0] - 540, onRing.to[1] - 900) > 195);
+});
+
+test("composition: an element that draws nothing is not seen, and a leader to it is an error", () => {
+  const stand = { id: "rings", kind: "region", important: false, say: ["halka"], x1: 300, y1: 600, x2: 800, y2: 1200, drawn: [] };
+  const samples = [0, 0.5, 1].map((t) => sample(t, [scene({ layer: "pos", elements: [stand] })]));
+  const { errors } = composition({ samples, step: 0.5, labelAlign: () => "left", phrases: [{ text: "Değişen alan bu halkalardan geçince", start: 0, end: 1 }] });
+  assert.ok(errors.some((e) => e.startsWith("bağlam") && e.includes("pos.rings")), errors.join("\n"));
+});
+
+test("composition: a chamber clipped to a filled organ is seen as that part of it", () => {
+  // The scene reports what it draws; a clipped sub-region of a filled region reports its part of the outline.
+  const chamber = { id: "ventricles", kind: "region", important: false, say: ["alt oda"], x1: 300, y1: 900, x2: 800, y2: 1200, drawn: [[[300, 900], [800, 900], [800, 1200]]] };
+  const samples = [0, 0.5, 1].map((t) => sample(t, [scene({ layer: "body", elements: [chamber] })]));
+  const { errors } = composition({ samples, step: 0.5, labelAlign: () => "left", phrases: [{ text: "Emir alt odaların", start: 0, end: 1 }] });
+  assert.deepEqual(errors.filter((e) => e.startsWith("bağlam")), []);
+});
+
+test("composition: a squeeze must draw its group smaller", () => {
+  const at = (t, size) => sample(t, [scene({ layer: "body", actions: [{ kind: "squeeze", id: "alt-odalar#0", range: [1, 2], scale: 0.85, size }] })]);
+  const run = (sizes) => composition({ samples: sizes.map(([t, s]) => at(t, s)), step: 0.25, labelAlign: () => "left", phrases: [] }).errors.filter((e) => e.startsWith("eylem"));
+  // Drawn 13 % smaller at its peak for a declared 15 %: the action is seen.
+  assert.deepEqual(run([[0.75, 200], [1.25, 190], [1.5, 174], [1.75, 185], [2.25, 200]]), []);
+  // Declared but drawn the same size: the narration describes a movement the picture does not make.
+  assert.equal(run([[0.75, 200], [1.25, 200], [1.5, 199], [2.25, 200]]).length, 1);
 });
