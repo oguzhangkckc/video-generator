@@ -199,3 +199,22 @@ test("card: the concept card and the lines shown with it sit on one dark panel; 
   assert.deepEqual(run([concept, line]), []);
   assert.equal(run([concept, line, title]).length, 1);
 });
+
+test("composition: a said element its layer never draws during the sentence still counts, unless a copy is drawn", () => {
+  const strip = { id: "line", kind: "line", important: false, say: ["çizgi", "yazı"], x1: 100, y1: 1100, x2: 980, y2: 1300 };
+  const heart = (layer) => ({ id: "heart", kind: "region", important: false, say: ["kalp"], x1: 300, y1: 500, x2: 800, y2: 1000 });
+  const phrase = { text: "kalbin elektrikle yazdığı yazı.", start: 1, end: 2 };
+  // The strip is drawn early in the video, then hidden for the whole sentence that names it.
+  const samples = [0, 0.5, 1, 1.5, 2].map((t) =>
+    sample(t, [scene({ layer: "body", elements: [heart()] }), ...(t < 1 ? [scene({ type: "trace", layer: "strip", elements: [strip] })] : [])]),
+  );
+  const run = (s) => composition({ samples: s, step: 0.5, labelAlign: () => "left", phrases: [phrase] });
+  const { errors, stats } = run(samples);
+  assert.ok(errors.some((e) => e.startsWith("bağlam") && e.includes("strip.line")), errors.join("\n"));
+  assert.deepEqual(stats.said.find(([id]) => id === "strip.line"), ["strip.line", phrase.text, 0]);
+  // The heart is drawn by another layer (a copy) during the sentence: the hidden one does not count against it.
+  const copies = [0, 0.5, 1, 1.5, 2].map((t) =>
+    sample(t, [scene({ type: "trace", layer: "strip", elements: [strip] }), scene({ layer: t < 1 ? "body" : "final", elements: [heart()] })]),
+  );
+  assert.deepEqual(run(copies).errors.filter((e) => e.startsWith("bağlam")), []);
+});

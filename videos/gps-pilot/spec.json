@@ -419,6 +419,10 @@
     {
       "rule": "etiket-sozu",
       "why": "Pilot donmuş regresyon referansı; etiketler (saat, ışık hızı, tur süresi) etiket kuralından önce yazıldı."
+    },
+    {
+      "rule": "gorsel-soz",
+      "why": "Pilot donmuş regresyon referansı; 'haritada' denirken harita ekranda, ama sahnelere say eklenmez."
     }
   ],
   "transitions": [

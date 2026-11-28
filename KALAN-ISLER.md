@@ -282,7 +282,14 @@ demo-trace temiz.
   temizlemek için yapılan bir yerleşim değişikliği söylenen nesneyi ekrandan kaldırmamalı: kontrol, söylenen bir
   nesnenin o cümle sırasında gizlenmesini (görünürlük `out`'u, kadraj dışı) hata saymalı. Örnek vaka: EKG finali
   (yukarıda). **Kısmen yapıldı (2026-11-27):** otomatik moddaki düzeltme döngüsü `say`'e bağlı öğeler için bunu
-  denetliyor (`İHLAL`, yukarıda "Otomatik mod"). Görsele gönderen kelimelerin `say` kapsamına girmesi hâlâ açık.
+  denetliyor (`İHLAL`, yukarıda "Otomatik mod"). **Yapıldı (2026-11-28):** görsele gönderen isimler
+  (`src/spec/visual-words.ts`: çizgi, yazı, tepe, düzlük, eğri, grafik, şema, şerit, harita) hiçbir öğenin `say`'inde
+  değilse `npm run check` uyarı verir (`gorsel-soz`, muaf tutulabilir); veri çizgisinin bütünü (`trace.say`) ve harita
+  (`cityMap.say`) artık bağlanabiliyor, bağlananlar söylenen nesne ölçümüne (qa "Bağlam", döngüde `İHLAL`) giriyor.
+  Ölçüm açığı da kapandı: bağlı bir öğenin katmanı cümle boyunca hiç çizilmiyorsa (gizli katman, henüz çizilmemiş
+  parça) öğe artık ölçümden düşmüyor, görünme oranı 0 sayılıyor; aynı söz için başka bir katmanda çizilen kopya yeterli.
+  İlk çalıştırma: ekg 13 uyarı (çizgi, tepe, düzlük, yazı), gps 1 (harita), temassız kart temiz; gps-pilot ve
+  demo-trace muaf.
 - **Durak 1 sonrası editör önerileri (kabul testi notu, kullanıcı 2026-11-28):** Durak 1 onayından sonra metinde
   değişiklik yapılır ve editörden geçerse, editörün yalnız ifade düzeyindeki önerileri (anlamı ve iddiayı
   değiştirmeyenler: kelime seçimi, ek, tekrar, ses akışı) otomatik uygulanıp run-log'a yazılsın; anlam ya da doğruluk

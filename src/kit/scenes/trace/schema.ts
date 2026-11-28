@@ -85,6 +85,11 @@ export const traceSchema = <T extends z.ZodType, R extends z.ZodType, N extends 
       camera: z.array(shotSchema(k, z.union([z.enum(["frame", "pen"]), z.tuple([z.number(), z.number()])]))).min(1),
       drift: driftSchema.prefault({}),
       color: ColorToken.default("you"),
+      /**
+       * Words the narration uses for the line as a whole ("çizgi", "yazı"); while a phrase says one, the drawn line is
+       * important and qa checks it is on screen. Parts have their own `say`.
+       */
+      say: z.array(z.string().min(1)).default([]),
       /** Named stretches of the waveform, lit and labelled while the pen draws them (P, QRS, T…). */
       parts: z
         .array(

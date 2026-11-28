@@ -8,6 +8,7 @@ import { IDENTITY, pointBox, useFraming } from "../../framing";
 import { groundGradient, useGround } from "../../ground";
 import { COLOR } from "../../theme";
 import { EASING, ramp, sec, useTime, windowAlpha } from "../../time";
+import { mentions } from "../../../spec/sentences.ts";
 import { LAYOUTS, buildCity } from "./layouts";
 
 /** Screen radius of the marker's halo; ringShrink lands on it. */
@@ -23,7 +24,7 @@ export const CityMap: React.FC<{ layer: CityMapLayer; curve: (name: string) => C
   const t = useTime();
   const ground = useGround();
   const { fps } = useVideoConfig();
-  const { report } = useFraming();
+  const { report, spokenAt } = useFraming();
   const city = useMemo(() => buildCity(layer.seed), [layer.seed]);
   const rotationAt = useMemo(() => (layer.rotation ? curveFn(layer.rotation) : () => 0), [layer.rotation]);
   const { water, avenues, bridges } = LAYOUTS[layer.layout];
@@ -71,7 +72,12 @@ export const CityMap: React.FC<{ layer: CityMapLayer; curve: (name: string) => C
       opacity,
       shot: { kind: scale < 0.8 ? "wide" : scale < 2 ? "medium" : "close" },
       subject: { x1: 0, y1: 0, x2: WIDTH, y2: HEIGHT },
-      elements: [{ id: "marker", kind: "marker", ...pointBox([dot.x, dot.y], MARKER_HALO_R), important: dotAlpha > 0, say: [] }],
+      elements: [
+        { id: "marker", kind: "marker", ...pointBox([dot.x, dot.y], MARKER_HALO_R), important: dotAlpha > 0, say: [] },
+        ...(layer.say.length
+          ? [{ id: "map", kind: "area", x1: 0, y1: 0, x2: WIDTH, y2: HEIGHT, important: layer.say.some((a) => mentions(spokenAt(t), a)), say: layer.say }]
+          : []),
+      ],
       adjust: IDENTITY,
     });
   }

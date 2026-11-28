@@ -8,6 +8,7 @@ import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { captionsSchema, layoutSchema } from "../src/kit/overlays/schema.ts";
 import { auditScript, waivedRules } from "../src/spec/script-audit.ts";
+import { sayAliases } from "../src/spec/visual-words.ts";
 import { captionMisfits } from "./lib/caption-fit.mjs";
 import { readDraft, variantsOf } from "./lib/draft.mjs";
 import { ROOT, loadSpec, requireSlug, videoDir } from "./lib/video.mjs";
@@ -46,7 +47,7 @@ const auditDraft = (draft, misfits) => {
 
 const auditSpec = (slug) => {
   const { spec } = loadSpec(requireSlug(slug));
-  return auditScript(spec.voiceover.sections, { template: spec.template, waived: waivedRules(spec.styleExceptions) });
+  return auditScript(spec.voiceover.sections, { template: spec.template, waived: waivedRules(spec.styleExceptions), say: sayAliases(spec.layers) });
 };
 
 const LABEL = { error: "HATA ", warning: "uyarı" };

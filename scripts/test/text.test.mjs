@@ -7,6 +7,7 @@ import { labelQuantity, namedQuantities, quantityMismatches } from "../../src/sp
 import { auditScript, waivedRules } from "../../src/spec/script-audit.ts";
 import { endsOnQuestionWord, sentenceKind, sentencesOf } from "../../src/spec/sentences.ts";
 import { captionMisfits } from "../../src/spec/timing.ts";
+import { isFormOf, sayAliases, unboundVisualNouns, visualNounsIn } from "../../src/spec/visual-words.ts";
 import { variantsOf } from "../lib/draft.mjs";
 
 test("the voice reads the spoken form, the captions keep one word per written word", () => {
@@ -173,4 +174,43 @@ test("a label must show what the voice-over says around it", async () => {
   assert.deepEqual(texts([{ text: "◀ SENİN SAĞIN", at: 11.7 }, { text: "KALBİN SAATİ", at: 12 }, { text: "KAPI", at: 20.4 }, { text: "≈ 0,1 SN BEKLEME", at: 22.4 }]), []);
   // A number shown while none is said is reported even when the word is said.
   assert.deepEqual(unspokenLabels([{ text: "KAPI 3", at: 20.1 }], phrases.slice(2, 4)).map((u) => u.number), [true]);
+});
+
+test("nouns that point at the screen are found with their endings, not as other words", () => {
+  assert.deepEqual(visualNounsIn("Bu çizgiyi dizilerde mutlaka görmüşsündür."), ["çizgi"]);
+  assert.deepEqual(visualNounsIn("kalbin elektrikle yazdığı yazı."), ["yazı"]);
+  assert.deepEqual(visualNounsIn("haritada üç yüz metre kayarsın."), ["harita"]);
+  assert.deepEqual(visualNounsIn("Yani küçük tepe üst odalar, ilk düzlük kapıdaki bekleme,"), ["tepe", "düzlük"]);
+  assert.equal(isFormOf("düzlüğü", "düzlük"), true);
+  assert.equal(isFormOf("tepeler", "tepe"), true);
+  assert.equal(isFormOf("çizginin", "çizgi"), true);
+  // Verbs, adjectives and other nouns sharing the start are not the visual noun.
+  for (const [word, noun] of [["yazıyor", "yazı"], ["yazıcı", "yazı"], ["çizgili", "çizgi"], ["yazdığı", "yazı"], ["şemsiye", "şema"]]) {
+    assert.equal(isFormOf(word, noun), false, word);
+  }
+});
+
+test("a visual noun is bound when the phrase says an element's say alias that contains it", () => {
+  assert.deepEqual(unboundVisualNouns("kalbin elektrikle yazdığı yazı.", []), ["yazı"]);
+  assert.deepEqual(unboundVisualNouns("kalbin elektrikle yazdığı yazı.", ["yazı", "çizgi"]), []);
+  assert.deepEqual(unboundVisualNouns("Bu çizgiyi dizilerde mutlaka görmüşsündür.", ["veri çizgisi"]), ["çizgi"]);
+  assert.deepEqual(unboundVisualNouns("Bu çizgiyi dizilerde mutlaka görmüşsündür.", ["kalp"]), ["çizgi"]);
+  const layers = [
+    { type: "flow", regions: [{ say: ["kalp"] }], paths: [], nodes: [{ say: ["düğme"] }] },
+    { type: "trace", say: ["çizgi", "yazı"], parts: [{ say: ["tepe"] }] },
+    { type: "cityMap", say: ["harita"] },
+    { type: "globe", location: { say: [] }, hero: { say: ["uydu"] } },
+  ];
+  assert.deepEqual(sayAliases(layers), ["kalp", "düğme", "çizgi", "yazı", "tepe", "harita", "uydu"]);
+});
+
+test("a spec's unbound visual nouns are warnings, and a spec can waive them", () => {
+  const sections = [{ id: "final", phrases: ["Artık okumaya başladın.", "kalbin elektrikle yazdığı yazı."] }];
+  const found = auditScript(sections, { say: [] }).filter((f) => f.rule === "gorsel-soz");
+  assert.equal(found.length, 1);
+  assert.equal(found[0].level, "warning");
+  assert.deepEqual(auditScript(sections, { say: ["yazı"] }).filter((f) => f.rule === "gorsel-soz"), []);
+  // A draft has no scenes: no say, no finding.
+  assert.deepEqual(auditScript(sections).filter((f) => f.rule === "gorsel-soz"), []);
+  assert.equal(auditScript(sections, { say: [], waived: ["gorsel-soz"] }).find((f) => f.rule === "gorsel-soz").waived, true);
 });

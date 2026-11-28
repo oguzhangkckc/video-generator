@@ -7,9 +7,10 @@ import { needsReading, splitToken, unreadable } from "./lexicon.ts";
 import { quantityMismatches } from "./quantities.ts";
 import { endsOnQuestionWord, sentencesOf } from "./sentences.ts";
 import { estimatePhrases } from "./timing.ts";
+import { unboundVisualNouns } from "./visual-words.ts";
 
 /** Rules a spec may knowingly break, named in `styleExceptions` as `{ rule, why }`; "etiket-sozu" is checked by resolve.ts. */
-export const WAIVABLE = ["peki-siniri", "acik-final", "etiket-sozu"] as const;
+export const WAIVABLE = ["peki-siniri", "acik-final", "etiket-sozu", "gorsel-soz"] as const;
 export type WaivableRule = (typeof WAIVABLE)[number];
 
 export const PEKI_LIMIT = 2;
@@ -65,7 +66,12 @@ const auditPlannedLabels = (sections: Section[], labels: PlannedLabel[], out: Fi
 
 export const auditScript = (
   sections: Section[],
-  { template = false, waived = [] as readonly string[], labels = [] as PlannedLabel[] } = {},
+  {
+    template = false,
+    waived = [] as readonly string[],
+    labels = [] as PlannedLabel[],
+    say = undefined as readonly string[] | undefined,
+  }: { template?: boolean; waived?: readonly string[]; labels?: PlannedLabel[]; say?: readonly string[] } = {},
 ): Finding[] => {
   const out: Finding[] = [];
   const error = (rule: string, text: string, message: string) => out.push({ level: "error", rule, text, message, ...(waived.includes(rule) ? { waived: true } : {}) });
@@ -115,6 +121,20 @@ export const auditScript = (
   for (const p of phrases) {
     for (const a of avoidedIn(p)) {
       out.push({ level: "warning", rule: "kacinilacak", text: p, message: `"${p}": "${a.match}…" — ${a.why}; instead: ${a.instead}` });
+    }
+  }
+  // A draft has no scenes yet; a spec passes every `say` alias of its layers.
+  if (say) {
+    for (const p of phrases) {
+      for (const noun of unboundVisualNouns(p, say)) {
+        out.push({
+          level: "warning",
+          rule: "gorsel-soz",
+          text: p,
+          message: `"${p}": "${noun}" points at something on screen, but no scene element has it in \`say\` — tie it to the element so qa checks it is on screen`,
+          ...(waived.includes("gorsel-soz") ? { waived: true } : {}),
+        });
+      }
     }
   }
   if (labels.length) auditPlannedLabels(sections, labels, out);

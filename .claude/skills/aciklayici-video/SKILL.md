@@ -344,7 +344,9 @@ Otomatik: bu çıktı Durak 1 mesajına girer; dur, onaydan sonra metni aynı ye
   yükseklik) | kamera hareketi | **önemli öğeler** | ekran yazısı | **geçiş türü ve gerekçe** | efekt. Kamera hiç
   durmaz.
 - Seslendirmede geçen her yer ve öğe adını bir sahne öğesine bağla (`say`: "kalp", "sağ üst köşe"); o öğe cümlenin
-  en az yarısı boyunca ekranda olmalı.
+  en az yarısı boyunca ekranda olmalı. Görsele gönderen isimler de ("bu çizgi", "kalbin yazdığı yazı", "haritada")
+  öğe adıdır: onları çizen öğeye bağla (veri çizgisinin bütünü `trace.say`, harita `cityMap.say`); bağlanmamışsa
+  `npm run check` `gorsel-soz` uyarısı verir.
 - Sahne değişimleri `transitions` ile: önce içinden geçme (`through`), sonra şekil eşleştirme (`match`), renk
   parlaması (`flash`, haze) yalnızca son çare ve gerekçeyle. Neredeyse boş kareye eriyerek geçme.
 - Veri çizgisi parçaları: aralık anlatan `marker: "bracket"` (çizginin altında köşeli parantez), nokta ya da dalga

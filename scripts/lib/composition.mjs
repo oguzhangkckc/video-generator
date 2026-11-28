@@ -356,6 +356,13 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
 
   // Kept for the fix loop (scripts/runlog.mjs): a fix must not take a said element off screen during its sentence.
   const said = [];
+  // Every say-bound element the render reported anywhere in the video.
+  const bound = new Map();
+  for (const s of samples) {
+    for (const layer of s.scene.layers) {
+      for (const e of layer.elements) if (e.say.length) bound.set(`${layer.layer}.${e.id}`, e.say);
+    }
+  }
   for (const p of phrases) {
     const inside = samples.filter((s) => s.t >= p.start && s.t <= p.end);
     const named = new Map();
@@ -370,6 +377,13 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
           named.set(`${layer.layer}.${e.id}`, n);
         }
       }
+    }
+    // A said word whose elements the render never draws during the sentence (a hidden layer, a part not drawn yet)
+    // would otherwise drop out of the check; another element drawn for the same word (a copy in another layer) is enough.
+    const drawn = new Set([...named.keys()].flatMap((id) => bound.get(id) ?? []).filter((a) => mentions(p.text, a)));
+    for (const [id, say] of bound) {
+      const aliases = say.filter((a) => mentions(p.text, a));
+      if (aliases.length && !named.has(id) && !aliases.some((a) => drawn.has(a))) named.set(id, { seen: 0 });
     }
     for (const [id, n] of named) {
       if (inside.length) said.push([id, p.text, Math.round((100 * n.seen) / inside.length) / 100]);
