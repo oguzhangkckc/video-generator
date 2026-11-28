@@ -28,7 +28,13 @@ const BELOW = 24;
 const TICK = 12;
 const ROWS = 4;
 
-const overlaps = (a: Box, b: Box) => a.x1 < b.x2 + GAP && a.x2 > b.x1 - GAP && a.y1 < b.y2 + GAP && a.y2 > b.y1 - GAP;
+/** Side by side on one row, two labels stand a label height apart; closer, they read as one phrase ("ÜST ALT"). */
+const READ_GAP = 1;
+const overlaps = (a: Box, b: Box) => {
+  const sameRow = Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1) > 0;
+  const gx = sameRow ? Math.max(GAP, READ_GAP * Math.max(a.y2 - a.y1, b.y2 - b.y1)) : GAP;
+  return a.x1 < b.x2 + gx && a.x2 > b.x1 - gx && a.y1 < b.y2 + GAP && a.y2 > b.y1 - GAP;
+};
 
 /** Whether a leader passes through a label box (sampled; leaders are a few dozen px long). */
 const crosses = ([[ax, ay], [bx, by]]: [Vec, Vec], b: Box) => {

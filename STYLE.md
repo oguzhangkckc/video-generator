@@ -195,8 +195,11 @@ Sıra her zaman aynıdır:
 - Veri satırı sahnedeki bir öğeyi adlandırıyor ve öğe kendiliğinden seçilmiyorsa (birkaç düğümden biri, küçük bir
   parça) satır panelden öğeye ince bir **kılavuz çizgiyle** bağlanır (`pointTo: "katman.öğe"`). Gösterilen öğe satır
   boyunca önemli sayılır, panelin dışında tutulur. Kılavuz panelin öğeye bakan kenarından çıkar; alttan (üstten)
-  çıkan kılavuz yalnız en alttaki (üstteki) satıra aittir, altına yeni satır gelince söner. qa: öğe ekranda değilse
-  ya da kılavuz başka bir yazının (etiket, not, sayaç, altyazı) üstünden geçerse hata.
+  çıkan kılavuz yalnız en alttaki (üstteki) satıra aittir, altına yeni satır gelince söner. Kılavuz öğenin **çizilen**
+  bir noktasında biter (içi boş bir şeklin ortasında değil; orada başka bir öğe durabilir). Hiçbir şey çizmeyen bir
+  vekil öğeye (dolgusuz, kenarsız bölge) ne kılavuz ne `say` bağlanır: onu çizen öğeye bağlanır. qa: öğe ekranda
+  değilse, hiçbir şey çizmiyorsa, kılavuz ucu öğenin çizilen bir noktasında değilse ya da kılavuz başka bir yazının
+  (etiket, not, sayaç, altyazı) üstünden geçerse hata.
 - **Güvenli alanlar:** alt %15 (≈ 1630 px altı) ve sağ kenarın son 120 px'i platform arayüzü için boş kalır.
   Okunması gereken hiçbir şey oraya konmaz. Varsayılan `layout` (sağ boşluk 132 px, ortalanmış genişlik 840 px) bunu
   sağlar; `npm run qa` taşan ya da çakışan her yazıyı hata olarak bildirir.
@@ -238,7 +241,13 @@ Sıra her zaman aynıdır:
 - Tek bir **noktayı** ya da dalgayı anlatan etiket (P, QRS, T) çizginin üstüne konur ve kısa bir **kılavuz çizgiyle**
   tepesine bağlanır (`marker: "leader"`). Çakışan etiketler yana kayar ya da bir sıra yukarı çıkar.
 - Veri şeridinde etiketler panelin içinde kalır (panel kırpar); yer yoksa qa bildirir.
-- qa: etiket teması, çizgiyi kesme, kılavuzun başka etikete değmesi ve panelden taşma hatadır.
+- **Yan yana iki etiket tek ifade gibi okunmaz:** aynı satırdaki iki etiketin arasında en az bir etiket yüksekliği
+  boşluk olur ("ÜST ALT" bir ifade gibi okunur; "ÜST" ile "ALT" iki ayrı ad).
+- **Parça anlamını çizer:** genliğin değiştiğini anlatan bir parça (kararma: taşıyıcı kısa süre sıfıra iner; yük
+  çukuru: belirgin bir düşüş) bunu spec'te `drop` ile bildirir (kararma ≈ 0,05, çukur ≈ 0,35) ve çizgi en az iki
+  döngü o düzeyde kalır. Fark yalnız renkle verilmez; abartılı çizilen değişiklik için not konur.
+- qa: etiket teması, yan yana okunma, çizgiyi kesme, kılavuzun başka etikete değmesi, panelden taşma ve çizilen
+  genliğin bildirilen `drop`'a inmemesi hatadır.
 
 ## Ses
 
@@ -276,7 +285,10 @@ Still kareler incelenirken (skill adım e) her madde tek tek kontrol edilir:
 - [ ] Sahne tüm kareyi kullanıyor; önemli öğe panele, şeride ya da altyazıya girmiyor; bir bölüm içinde sayacın hız
       etiketi değişmiyor.
 - [ ] Özne ≥ %35, kare ≤ %40 boş, donma yok; söylenen yer o anda ekranda.
-- [ ] Veri etiketleri değmiyor, çizgiyi kesmiyor; aralıklar köşeli parantezle altta, noktalar kılavuzla üstte.
+- [ ] Veri etiketleri değmiyor, yan yana tek ifade gibi okunmuyor, çizgiyi kesmiyor; aralıklar köşeli parantezle
+      altta, noktalar kılavuzla üstte; kılavuz gösterdiği şeyin çizilen kenarında bitiyor.
+- [ ] Anlatılan her eylem (kasılma, kayma, kararma, yayılma) görüntüde bir hareketle karşılanıyor mu? Bir parça
+      genlik değişikliği anlatıyorsa çizgi gerçekten iniyor; fark yalnız renkle verilmiyor.
 - [ ] Kancadaki soru finalde açıkça cevaplanıyor; video soruyla bitmiyor.
 - [ ] En fazla 2 bölüm "Peki…?" ile açılıyor, diğerleri iddia, rakam ya da "ama" ile; izleyiciye "sen" deniyor.
 - [ ] Anlatma cümlesi var ve editörün çıkardığıyla aynı; editör listesindeki her bulgu düzeltildi ya da gerekçeli.

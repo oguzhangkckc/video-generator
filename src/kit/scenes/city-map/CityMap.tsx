@@ -4,7 +4,7 @@ import type { LayerOf } from "../../../spec/schema";
 import type { CurveFn } from "../../curves";
 import { curveFn } from "../../curves";
 import { CX, CY, HEIGHT, WIDTH } from "../../format";
-import { IDENTITY, pointBox, useFraming } from "../../framing";
+import { IDENTITY, circlePoints, pointBox, useFraming } from "../../framing";
 import { groundGradient, useGround } from "../../ground";
 import { COLOR } from "../../theme";
 import { EASING, ramp, sec, useTime, windowAlpha } from "../../time";
@@ -73,9 +73,21 @@ export const CityMap: React.FC<{ layer: CityMapLayer; curve: (name: string) => C
       shot: { kind: scale < 0.8 ? "wide" : scale < 2 ? "medium" : "close" },
       subject: { x1: 0, y1: 0, x2: WIDTH, y2: HEIGHT },
       elements: [
-        { id: "marker", kind: "marker", ...pointBox([dot.x, dot.y], MARKER_HALO_R), important: dotAlpha > 0, say: [] },
+        { id: "marker", kind: "marker", ...pointBox([dot.x, dot.y], MARKER_HALO_R), important: dotAlpha > 0, say: [], drawn: dotAlpha > 0 ? [circlePoints([dot.x, dot.y], MARKER_HALO_R)] : [] },
         ...(layer.say.length
-          ? [{ id: "map", kind: "area", x1: 0, y1: 0, x2: WIDTH, y2: HEIGHT, important: layer.say.some((a) => mentions(spokenAt(t), a)), say: layer.say }]
+          ? [
+              {
+                id: "map",
+                kind: "area",
+                x1: 0,
+                y1: 0,
+                x2: WIDTH,
+                y2: HEIGHT,
+                important: layer.say.some((a) => mentions(spokenAt(t), a)),
+                say: layer.say,
+                drawn: [[[0, 0], [WIDTH, 0], [WIDTH, HEIGHT], [0, HEIGHT], [0, 0]] as [number, number][]],
+              },
+            ]
           : []),
       ],
       adjust: IDENTITY,

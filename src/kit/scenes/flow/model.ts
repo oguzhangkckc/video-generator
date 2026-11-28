@@ -3,7 +3,7 @@ import { mentions } from "../../../spec/sentences.ts";
 import type { LayerOf } from "../../../spec/schema";
 import type { CurveFn } from "../../curves";
 import { CX } from "../../format";
-import { IDENTITY, currentShot, pointBox, pointsBox, shapeAround, unionBox, type Adjust, type SceneElement } from "../../framing";
+import { IDENTITY, circlePoints, currentShot, pointBox, pointsBox, shapeAround, unionBox, type Adjust, type SceneElement } from "../../framing";
 import type { Box } from "../../overlays/geometry";
 import { EASING, envelope, ramp, windowAlpha } from "../../time";
 import { project, viewAt, type View, type Vec } from "../camera2d/camera";
@@ -110,12 +110,17 @@ export const flowElements = (layer: FlowLayer, geo: FlowGeometry, st: FlowState,
     const inside = r.clipTo ? regionBox(r.clipTo) : own;
     const box = { x1: Math.max(own.x1, inside.x1), y1: Math.max(own.y1, inside.y1), x2: Math.min(own.x2, inside.x2), y2: Math.min(own.y2, inside.y2) };
     const hidden = !shown(r.visible);
-    out.push({ id: r.id, kind: "region", ...box, important: !hidden && (st.lit(r.id) > 0 || (p > 0 && p < 1) || said(r.say)), say: r.say, hidden });
+    // A region with no fill and no edge is an invisible stand-in: it draws only while swept or highlighted.
+    const outline = geo.regions.get(r.id)!.map(st.toScreen);
+    const draws = r.fill !== "none" || r.edge !== "none" || p > 0 || st.lit(r.id) > 0;
+    const drawn = draws ? [[...outline, outline[0]]] : [];
+    out.push({ id: r.id, kind: "region", ...box, important: !hidden && (st.lit(r.id) > 0 || (p > 0 && p < 1) || said(r.say)), say: r.say, hidden, drawn });
   }
   for (const p of layer.paths) {
-    const box = pointsBox(geo.paths.get(p.id)!.points.map(st.toScreen))!;
+    const line = geo.paths.get(p.id)!.points.map(st.toScreen);
+    const box = pointsBox(line)!;
     const hidden = !shown(p.visible);
-    out.push({ id: p.id, kind: "path", ...box, important: !hidden && (st.lit(p.id) > 0 || said(p.say)), say: p.say, hidden });
+    out.push({ id: p.id, kind: "path", ...box, important: !hidden && (st.lit(p.id) > 0 || said(p.say)), say: p.say, hidden, drawn: [line] });
   }
   for (const n of layer.nodes) {
     const near = (times: number[]) => times.some((x) => t >= x && t <= x + HOLD);
@@ -123,7 +128,8 @@ export const flowElements = (layer: FlowLayer, geo: FlowGeometry, st: FlowState,
       n.lit.some(([from, to]) => t >= from && t <= to) || near(st.arrivals.get(n.id) ?? []) || near(n.flashes) || st.lit(n.id) > 0;
     const r = Math.max(18, n.r * st.view.zoom * 2.6 + 6);
     const hidden = !shown(n.visible);
-    out.push({ id: n.id, kind: "node", ...pointBox(st.toScreen(n.at), r), important: !hidden && (active || said(n.say)), say: n.say, hidden });
+    const drawn = [circlePoints(st.toScreen(n.at), Math.max(4, n.r * st.view.zoom), 16)];
+    out.push({ id: n.id, kind: "node", ...pointBox(st.toScreen(n.at), r), important: !hidden && (active || said(n.say)), say: n.say, hidden, drawn });
   }
   st.signals.forEach(({ s, tip, route }, i) => {
     if (tip && s.head) out.push({ id: `signal${i}`, kind: "signal", ...pointBox(st.toScreen(tip), 24), important: true, say: [] });

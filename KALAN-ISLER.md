@@ -125,6 +125,28 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
 
 - Seslendirme sağlayıcısı: aşağıda "Seslendirme v2 Aşama B".
 
+## Anlam qa (2026-11-28, `feat/anlam-qa`)
+
+Kullanıcı üç taslağı kare kare inceledi (PR #5 merge edildi). Bulunanlar otomatik modun değil, qa'nın anlamı
+ölçmemesinin sonucuydu; önce kural, sonra video.
+
+- **Kılavuz ve vekil öğeler:** sahneler her öğenin çizdiğini (`drawn`, ekran px'inde çizgiler) raporluyor; dolgusuz
+  ve kenarsız bir bölge (vekil) `[]` raporlar. Kılavuz ucu öğenin çizilen en yakın noktasına gider (içi boş bir
+  şeklin ortasına değil). qa: hiçbir şey çizmeyen öğeye kılavuz hata, uç çizilen bir noktada değilse hata; söylenen
+  nesne ölçümü çizmeyen öğeyi görünür saymıyor. Temassız kartta yakaladı: BOBİN ve HALKALAR kılavuzları ve "Bobin…",
+  "kenarı boyunca", "halkalardan" cümleleri (rings/coil bölgeleri görünmez vekil; halkaları ve bobini yollar çiziyor).
+- **Şerit parçasının anlamı:** `parts[].drop` (kararma ≈ 0,05, yük çukuru ≈ 0,35); trace çizilen çizginin iki
+  döngülük pencerelerdeki en düşük genliğini olağan genliğe oranlayıp raporluyor (`src/kit/scenes/trace/swing.ts`),
+  qa bildirilenle karşılaştırıyor. Temassız kartta yakaladı: KARARMALAR %53 (≤ %5 olmalı), YÜK %70, CEVAP %85.
+- **Editör ekran etiketlerini okuyor:** `metin-editoru` 5. bölüm (etiket ↔ cümle doğruluğu, aynı şey mi, tekrar);
+  SKILL c.4'te metinle birlikte, e.7'de spec etiketleri plandan farklıysa "etiket turu". Temassız kartta kör okumada
+  "SANİYEDE 13,56 MİLYON KEZ"i yakaladı (yön bir salınımda iki kez değişir).
+- **Yan yana etiketler:** aynı satırdaki iki veri etiketi arasında en az bir etiket yüksekliği boşluk (yerleştirme ve
+  qa). EKG'de yakaladı: "ÜST" ile "ALT" 9 px (en az 36).
+- STYLE kontrol listesi: "Anlatılan her eylem (kasılma, kayma, kararma, yayılma) görüntüde bir hareketle
+  karşılanıyor mu?"; SKILL e.7 bunu iki kareyle kontrol ediyor, kit çizemiyorsa zorunlu durma.
+- Doğrulama: 61 test; gps-pilot regresyonu birebir (90 kare, SSIM 1,0).
+
 ## Otomatik mod (2026-11-27, `feat/otomatik-mod`)
 
 - `/aciklayici-video <konu>` artık otomatik. Kullanıcı iki kez devreye girer:
