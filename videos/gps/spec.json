@@ -411,6 +411,9 @@
     {
       "type": "cityMap",
       "id": "harita",
+      "say": [
+        "harita"
+      ],
       "visible": [
         {
           "out": "@mapToSpace"
