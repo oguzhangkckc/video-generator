@@ -2,11 +2,15 @@
 // resolver share it, so a draft (out/<slug>/metin/metin.json) is held to the same rules as a spec.
 // Shared by the bundle and the Node scripts (type stripping), so it imports only pure modules.
 import { avoidedIn } from "./avoid.ts";
+import { AFTER, BEFORE, unspokenLabels } from "./label-speech.ts";
 import { needsReading, splitToken, unreadable } from "./lexicon.ts";
+import { quantityMismatches } from "./quantities.ts";
 import { endsOnQuestionWord, sentencesOf } from "./sentences.ts";
+import { estimatePhrases } from "./timing.ts";
+import { unboundVisualNouns } from "./visual-words.ts";
 
 /** Rules a spec may knowingly break, named in `styleExceptions` as `{ rule, why }`; "etiket-sozu" is checked by resolve.ts. */
-export const WAIVABLE = ["peki-siniri", "acik-final", "etiket-sozu"] as const;
+export const WAIVABLE = ["peki-siniri", "acik-final", "etiket-sozu", "gorsel-soz"] as const;
 export type WaivableRule = (typeof WAIVABLE)[number];
 
 export const PEKI_LIMIT = 2;
@@ -19,12 +23,56 @@ export type Finding = {
   waived?: boolean;
 };
 
-type Section = { id?: string; phrases: string[] };
+type Section = { id?: string; window?: [number, number]; phrases: string[] };
+
+/** A data line planned in a draft (skill step c): its text, and the phrase it appears with (+ offset, default 0.3 s). */
+export type PlannedLabel = { text: string; cue: string; offset?: number };
 
 const PEKI = /^peki\b/i;
 const isQuestion = (text: string) => /\?["”»']?$/.test(text.trim());
 
-export const auditScript = (sections: Section[], { template = false, waived = [] as readonly string[] } = {}): Finding[] => {
+/**
+ * A draft's planned data lines against its words, on the draft timing estimate: each one says what is said around it
+ * (as resolve.ts does for a spec) and names the quantity the voice-over names (as qa does after the render).
+ */
+const auditPlannedLabels = (sections: Section[], labels: PlannedLabel[], out: Finding[]) => {
+  const error = (rule: string, text: string, message: string) => out.push({ level: "error", rule, text, message });
+  if (!sections.every((s) => s.window)) {
+    error("etiket-plani", "", "planned labels need every section's window (the draft timing estimate)");
+    return;
+  }
+  const phrases = estimatePhrases(sections.map((s) => ({ id: s.id ?? "", window: s.window!, phrases: s.phrases })));
+  const placed = labels.flatMap((l) => {
+    const phrase = phrases.find((p) => p.text.startsWith(l.cue));
+    if (!phrase) {
+      error("etiket-plani", l.text, `"${l.text}": no phrase starts with "${l.cue}"`);
+      return [];
+    }
+    return [{ text: l.text, at: phrase.start + (l.offset ?? 0.3) }];
+  });
+  for (const u of unspokenLabels(placed, phrases)) {
+    const why = [u.missing.length ? `not said: ${u.missing.join(", ")}` : "", u.number ? "shows a number while none is said" : ""].filter(Boolean);
+    error("etiket-sozu", u.text, `"${u.text}": ${why.join("; ")} (−${BEFORE}…+${AFTER} s) — say it, reword the label, or drop it`);
+  }
+  for (const m of quantityMismatches(placed, phrases)) {
+    out.push({
+      level: "warning",
+      rule: "nicelik",
+      text: m.label,
+      message: `"${m.label}" shows ${m.label_q} while "${m.phrase}" names ${m.named.join(", ")} — the voice-over and the label name the same quantity`,
+    });
+  }
+};
+
+export const auditScript = (
+  sections: Section[],
+  {
+    template = false,
+    waived = [] as readonly string[],
+    labels = [] as PlannedLabel[],
+    say = undefined as readonly string[] | undefined,
+  }: { template?: boolean; waived?: readonly string[]; labels?: PlannedLabel[]; say?: readonly string[] } = {},
+): Finding[] => {
   const out: Finding[] = [];
   const error = (rule: string, text: string, message: string) => out.push({ level: "error", rule, text, message, ...(waived.includes(rule) ? { waived: true } : {}) });
   const phrases = sections.flatMap((s) => s.phrases);
@@ -75,6 +123,21 @@ export const auditScript = (sections: Section[], { template = false, waived = []
       out.push({ level: "warning", rule: "kacinilacak", text: p, message: `"${p}": "${a.match}…" — ${a.why}; instead: ${a.instead}` });
     }
   }
+  // A draft has no scenes yet; a spec passes every `say` alias of its layers.
+  if (say) {
+    for (const p of phrases) {
+      for (const noun of unboundVisualNouns(p, say)) {
+        out.push({
+          level: "warning",
+          rule: "gorsel-soz",
+          text: p,
+          message: `"${p}": "${noun}" points at something on screen, but no scene element has it in \`say\` — tie it to the element so qa checks it is on screen`,
+          ...(waived.includes("gorsel-soz") ? { waived: true } : {}),
+        });
+      }
+    }
+  }
+  if (labels.length) auditPlannedLabels(sections, labels, out);
   return out;
 };
 

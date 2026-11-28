@@ -72,6 +72,10 @@ export const splitPage = <T extends { text: string }>(tokens: T[], fits: (text: 
   return best ? [tokens.slice(0, best.k), tokens.slice(best.k)] : null;
 };
 
+/** Phrases that fit the caption line neither as one page nor as two pages of 2–6 words (splitPage). */
+export const captionMisfits = (phrases: string[], fits: (text: string) => boolean) =>
+  phrases.filter((p) => !splitPage(p.split(" ").map((text) => ({ text })), fits));
+
 /**
  * Caption pages from the phrases, filled with the spoken word timings when there are any; a phrase too long for one
  * line becomes two pages (splitPage). `fits` says whether a text fits the caption line at the caption size.

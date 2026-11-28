@@ -1,6 +1,7 @@
 # Kalan işler
 
-Son güncelleme: 2026-11-27 (metin kalitesi; EKG metni yazıldı, GPS metni onaylı; `feat/metin-kalitesi` merge).
+Son güncelleme: 2026-11-27 (skill otomatik modu, `feat/otomatik-mod`; öncesinde metin kalitesi, `feat/metin-kalitesi`
+merge).
 `feat/genel-sahne-turleri` PR #1 (`55d38de`), `feat/sistem-kurallari` PR #2 (`40fe4f8`) ve `chore/nvmrc-ve-gitignore`
 PR #3 (`fab72e3`, `.nvmrc` + gitignore) main'e birleştirildi; yeni iş yeni branch'te.
 
@@ -23,6 +24,7 @@ PR #3 (`fab72e3`, `.nvmrc` + gitignore) main'e birleştirildi; yeni iş yeni bra
 | `13dd7cc` | model3d kadraj kaydırması: önemli parçalar panel/altyazıdan mercek kaydırmasıyla uzak tutulur. Ayrıntı: aşağıda. |
 | `311aa68`…`57c31e0` | Son EKG render'ından sistem kuralları (branch `feat/sistem-kurallari`). Ayrıntı: aşağıda "Sistem kuralları". |
 | `04120e7` | Metin kalitesi (branch `feat/metin-kalitesi`). Ayrıntı: aşağıda "Metin kalitesi". |
+| `feat/otomatik-mod` | Skill otomatik modu: iki durak, düzeltme döngüsü, `npm run log`, taslak ses. Ayrıntı: aşağıda "Otomatik mod". |
 
 **Seslendirme v2 (`27cdfa3`):**
 - bölüm bölüm üretim, duraklamalar sessizlikten açılır;
@@ -123,6 +125,87 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
 
 - Seslendirme sağlayıcısı: aşağıda "Seslendirme v2 Aşama B".
 
+## Otomatik mod (2026-11-27, `feat/otomatik-mod`)
+
+- `/aciklayici-video <konu>` artık otomatik. Kullanıcı iki kez devreye girer:
+  - Durak 1 (a+b+c: açı, kaynaklar, editör, 3 kanca / 2 final, söz → karşılık, `listen`);
+  - Durak 2 (render, qa tablosu, `run-log` özeti).
+  `adım adım <konu>` eski dört duraklı akış; `gerçek ses <slug>` taslak sese gerçek sesi koyar.
+- Düzeltme döngüsü: kapılar `check`, `qa-layout`, `qa`. Bir döngü en fazla 5 tur; iki tur üst üste azalmazsa durur.
+  `check` ilk spec hatasında durduğu için `--fixed` (önceki hata gitti) ilerleme sayılır. Otomatik düzeltme yalnız
+  spec'te; STYLE, qa eşikleri, metin denetimi, sahne kodu, `styleExceptions` ve onaylı metin değişmez.
+- `npm run log` (`scripts/runlog.mjs`, `scripts/lib/runlog.mjs`): `out/<slug>/run-log.jsonl` → `run-log.md`. Adım
+  süreleri, bekleme, turlar, duraklar ve müdahaleler kaydedilir. `round` sayıları `qa.json`'dan okur; kısmi
+  (`--from/--to`) ya da eski `qa.json`'u tur saymaz. `qa.json`'a `range`, `render`, `draftVoice` eklendi.
+- Taslak ses (kullanıcı kararı): `say` yalnız otomatik modda ve gerçek TTS yokken; `render --draft` →
+  `out/<slug>.draft.mp4`, yayına uygun değil. `ekg` ve `gps` dahil (kullanıcı 2026-11-28: önceki "taslak ses yok"
+  kuralı, gerçek seste zamanlamanın elle yeniden kurulması gerektiği içindi; `gerçek ses <slug>` artık bunu
+  kendiliğinden yapıyor). qa
+  geçici seste taslak dosyayı denetler; hız ve duraklamalar ölçülür, tonlama "taslak ses, ölçülmedi". Adım adım
+  akıştan `say` taslağı kaldırıldı (c `listen` kalır).
+- Doğrulama:
+  - `npm test` 46/46;
+  - `npm run check` temiz;
+  - demo-trace kopyasında `say` + `--draft` + tam qa beklendiği gibi çalıştı (Yelda 2,33 kelime/sn → hız uyarısı);
+    kopya ve önbellek dosyaları silindi;
+  - demo-trace gerçek ses yolunda qa tablosu eski `qa.mjs` ile birebir aynı (yalnız yeni "Render" satırı).
+- **İkinci tur (aynı branch, PR öncesi kullanıcı isteği):**
+  - Söylenen nesne kuralı: bir düzeltme o an söylenen nesneyi ekrandan kaldıramaz.
+    - qa her (cümle, `say` öğesi) için görünme oranını `qa.json` `said`'e yazar; `phraseTiming` cümle zamanlarının
+      özetidir.
+    - `round`, aynı zamanlamada son kurala uyan turla karşılaştırır; oran %5'ten fazla düşerse `İHLAL` (ilerleme
+      sayılmaz, geri al). İki ihlal üst üste gelirse `DUR`.
+    - demo-flow kopyasında denendi: kamera telefonu %100 → %83'e düşürdü. qa'nın %50 eşiği bunu geçiriyordu,
+      döngü `İHLAL` dedi.
+    - `say`'e bağlı olmayan görsel kelimeler ("yazı", "çizgi") hâlâ kapsam dışı: aşağıdaki sistem notu.
+  - Düzeltme kaydı: `npm run log -- <slug> fix <kapı|kontrol-listesi> "<hata>" --change … --why …`.
+    - Hatalı turdan sonra kayıt yoksa `round` reddeder.
+    - run-log'da "Düzeltmeler" tablosu; Durak 2'de gösterilir.
+  - `say` kalibrasyonu: `RATE` 170 → 270 wpm.
+    - 93 kelimelik bir anlatım metninde qa ölçümüyle 1,92 → 2,74 kelime/sn. Yelda basamaklı: 270–275 → 2,74,
+      280–290 → 2,89.
+    - Önbellek anahtarı artık wpm'i içeriyor; eski `say` kayıtları (`out/tts-cache/say`, 150 dosya) kullanılmaz.
+- **Kabul testinden sistem düzeltmeleri (2026-11-28, temassız kart):**
+  - `avoid.ts`: "anlar için", "anahtar kapan" (`a232b9c`).
+  - Metne bağlı her denetim Durak 1'den önce: `npm run text` taslakta altyazı sığmasını tarayıcıda, `check` ile aynı
+    ölçüyle (gizli `metin-olcu` kompozisyonu, `src/spec/caption-fit.ts`) ve planlanan etiketleri (`labels`) söz ve
+    nicelik açısından denetler. Sebep: "Okuyucunun alanını kullanıyor." onaydan sonra `check`'te altyazıya sığmadı
+    ve video ikinci kez durdu. `check` de artık Inter'in yüklenmesini bekleyip ölçüyor (önceden yedek yazı tipiyle
+    ölçmüş olabilirdi; bütün videolar yine temiz).
+  - Taslak ses yayınlanabilir dosyanın adını almaz: `say` çıktıları `videos/<slug>/timing.draft.json` ve
+    `public/videos/<slug>/vo.draft.wav` (gitignore'da). `loadTiming` ve Remotion kökü önce gerçek sese, yoksa taslağa
+    bakar; gerçek ses (voiceover ya da insan kaydı ile align) taslağı siler. `out/` altına taşımak Remotion'ın paket
+    bağlamını ve ses sunumunu (`public/`) bozacağı için seçilmedi.
+  - run-log: aynı adım yeniden başlayınca açık kalan eski kayıt kapanır; arada bir durak başladıysa durağın başında
+    ("durak-1 ile ara", bekleme çalışma sayılmaz), yoksa yeniden başlarken ("yeniden başladı").
+- **Kabul testi videosu üretildi (2026-11-28, Durak 2 onayı bekliyor):** `videos/temassiz-kart` (72,1 sn, taslak ses
+  `out/temassiz-kart.draft.mp4`). Kayıt `out/temassiz-kart/run-log.md`. Üç durma: c'de editör (kullanıcı "sorun
+  çıkarsa dur" dedi), e'de altyazı sığması (onaylı metin değişti; sistem açığı `a325788` ile kapandı). Kapılar:
+  `check` 2 tur, `qa-layout` 3 + 1 tur, `qa` 1 tur; son qa 0 hata, 1 uyarı (Yelda hızı 3,06 kelime/sn). Spec
+  `out/`'taki değil, oturumdaki bir üreteçle değerlerden yazıldı.
+- **İkinci kabul testi: `videos/gps` (2026-11-28, Durak 2'de onaylandı; kesik çizgiye ≈ 300 M etiketi eklendi):** 60 sn, taslak ses `out/gps.draft.mp4`.
+  Kayıt `out/gps/run-log.md`. d'den başladı. Tek durma d'de oldu: onaylı metin yeni altyazı denetimine takıldı,
+  kullanıcı "karşılaştır → kıyasla"yı seçti. Kapılar: `check` 1 tur, `qa-layout` 4 + 2 tur, `qa` 2 tur. Son qa
+  0 hata, 3 uyarı (kenar ×2, "yukarı" bağlamı). 22 düzeltme; biri geri alındı (yukarıdaki globe notu). Spec,
+  oturumdaki bir üreteçle yazıldı.
+
+## Taslak sesli videolar
+
+Otomatik modda gerçek TTS olmadan bitmiş videolar. Sağlayıcı seçilince (Aşama B) her biri için
+`/aciklayici-video gerçek ses <slug>`:
+1. ses değişir;
+2. `timing.json` ve cümleye bağlı her şey kayar;
+3. `marks` güncellenir;
+4. `qa-layout`, render (`out/<slug>.mp4`), tam qa;
+5. Durak 2.
+Bitince satır silinir.
+
+| Slug | Tarih | Taslak dosyası | Tahmini karakter |
+|---|---|---|---|
+| temassiz-kart | 2026-11-28 | `out/temassiz-kart.draft.mp4` | ≈ 1.160 (önerilen bütçe 1.700) |
+| gps | 2026-11-28 | `out/gps.draft.mp4` | ≈ 850 (önerilen bütçe 1.300) |
+| ekg | 2026-11-28 | `out/ekg.draft.mp4` | ≈ 895 (önerilen bütçe 1.350) |
+
 ## Metin kalitesi (2026-11-27, `feat/metin-kalitesi`)
 
 - `src/spec/script-audit.ts`: metin kuralları tek yerde (resolver, `npm run text`, `npm run check`). Yeni:
@@ -152,6 +235,14 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
 - **EKG final yerleşimi, seslendirmeden sonra yeniden kurulacak:** finalde "kalbin elektrikle yazdığı yazı" denirken
   veri şeridi kayboluyor ve kalbin tamamı görünmüyor (qa'yı temizlemek için yapılan değişiklik). Seslendirmeden sonra
   final, söylenen nesneler (şerit ve kalp) görünür kalacak şekilde yeniden kurulur.
+  **Taslak seste kontrol edildi (2026-11-28, `out/ekg.draft.mp4`):** sorun sürüyor. "kalbin elektrikle yazdığı yazı"
+  60,64 sn'de başlıyor; şerit tam o anda kavram kartıyla birlikte sönüyor, kalp kartın altına inerken soldan ve
+  alttan kırpılıyor (kareler `out/ekg/final-taslak/sheet.png`). qa (taslak): 1 hata (33,87 sn kulakçık %26 üst yazı
+  altında, sınır %25), 3 uyarı (kenar, finalde siluet yok, Yelda hızı 3,10 kelime/sn). Söylenen "yazı" `say`'e bağlı
+  değil; qa bu yüzden yakalamıyor (aşağıda "Bağlam kuralı görsele gönderme yapan kelimeleri de kapsamalı").
+  **Düzeltildi (2026-11-28, Durak 2 onayı bekliyor):** şerit sona kadar ekranda ve "çizgi / yazı / tepe"ye bağlı;
+  finalde aynı çizimden bir `govde-final` katmanı kalbin üstünde eşleşip göğse çekiliyor (kalbin tamamı kart ile şerit
+  arasında, omuz çizgisi görünür); "≈ 0,1 SN BEKLEME" kendi cümlesiyle bitiyor (33,87 sn çakışması). Taslak qa 0 hata.
 - **Veri çizgisi etiket yerleşimi** (`src/kit/scenes/trace/labels.ts`): kılavuzu başka bir etiketten geçen yer
   seçilmez (qa'nın kuralı artık yerleştirmede de).
 - **Etiket ↔ seslendirme kontrolü** (`src/spec/label-speech.ts`, `npm run check` hatası, muafiyet `etiket-sozu`):
@@ -178,20 +269,45 @@ demo-trace temiz.
 
 ## Sistem notları (henüz uygulanmadı)
 
+- **Genel kural (kullanıcı 2026-11-28): qa, render'ın çizdiğini ölçmeli.** qa ile render'ın bir şeyi ayrı ayrı
+  hesapladığı her durum bir açıktır; ölçüm, çizimin kullandığı aynı değerden (aynı fonksiyon, aynı zarf, aynı
+  aralık) gelmeli. İlk örnek aşağıdaki globe açığı.
+- **globe: model uydu `hero.visible.in`'den önce de çiziliyor (gps kabul testi, 2026-11-28).** `HeroSatellite`
+  zarfı yalnız parıltıya uyguluyor; gövde ve paneller pencere boyunca görünüyor. qa ise uyduyu `in[0]`'dan önce
+  ölçmüyor. Sonuç: `in`'i geciktirmek uyduyu qa'dan gizler ama ekrandan kaldırmaz (gps'te bu yol denendi ve geri
+  alındı; çözüm yörünge hızıydı). Düzeltme: gövdeyi de zarfla soldur (ya da `in[0]`'dan önce çizme) ve qa'yı çizimle
+  aynı aralıkta ölç; sonra gps-pilot regresyonu. **Plan (kullanıcı 2026-11-28):** PR #5 merge edildikten sonra ayrı
+  bir dalda düzelt ve regresyonu çalıştır.
+
 - **Bağlam kuralı görsele gönderme yapan kelimeleri de kapsamalı:** "Seslendirmede adı geçen nesne o anda karede
   görünür" kuralı (STYLE "Kompozisyon → Bağlam", `say` takma adları) "yazı", "çizgi" gibi doğrudan ekrandaki bir
   görsele gönderme yapan kelimeleri de kapsamalı (ör. veri şeridinin `say`'i: "çizgi", "yazı", "tepe"). Ayrıca qa'yı
   temizlemek için yapılan bir yerleşim değişikliği söylenen nesneyi ekrandan kaldırmamalı: kontrol, söylenen bir
   nesnenin o cümle sırasında gizlenmesini (görünürlük `out`'u, kadraj dışı) hata saymalı. Örnek vaka: EKG finali
-  (yukarıda).
+  (yukarıda). **Kısmen yapıldı (2026-11-27):** otomatik moddaki düzeltme döngüsü `say`'e bağlı öğeler için bunu
+  denetliyor (`İHLAL`, yukarıda "Otomatik mod"). **Yapıldı (2026-11-28):** görsele gönderen isimler
+  (`src/spec/visual-words.ts`: çizgi, yazı, tepe, düzlük, eğri, grafik, şema, şerit, harita) hiçbir öğenin `say`'inde
+  değilse `npm run check` uyarı verir (`gorsel-soz`, muaf tutulabilir); veri çizgisinin bütünü (`trace.say`) ve harita
+  (`cityMap.say`) artık bağlanabiliyor, bağlananlar söylenen nesne ölçümüne (qa "Bağlam", döngüde `İHLAL`) giriyor.
+  Ölçüm açığı da kapandı: bağlı bir öğenin katmanı cümle boyunca hiç çizilmiyorsa (gizli katman, henüz çizilmemiş
+  parça) öğe artık ölçümden düşmüyor, görünme oranı 0 sayılıyor; aynı söz için başka bir katmanda çizilen kopya yeterli.
+  İlk çalıştırma: ekg 13 uyarı (çizgi, tepe, düzlük, yazı), gps 1 (harita), temassız kart temiz; gps-pilot ve
+  demo-trace muaf.
+- **Durak 1 sonrası editör önerileri (kabul testi notu, kullanıcı 2026-11-28):** Durak 1 onayından sonra metinde
+  değişiklik yapılır ve editörden geçerse, editörün yalnız ifade düzeyindeki önerileri (anlamı ve iddiayı
+  değiştirmeyenler: kelime seçimi, ek, tekrar, ses akışı) otomatik uygulanıp run-log'a yazılsın; anlam ya da doğruluk
+  değişikliği gerekiyorsa dur. Örnek: temassız kart testindeki ikinci durma (c, 2026-11-27). "bastıkça → basınca" ve
+  "fazladan → daha çok" ifade düzeyiydi, otomatik uygulanabilirdi; "durmadan → Mors gibi" (cevabın bilgi taşıdığı) ve
+  yön cümlesinin silinmesi ya da bağlanması anlam değişikliğiydi, orada durmak doğruydu. **Yapıldı (2026-11-28):**
+  SKILL Durak 1 ve zorunlu durma noktaları; editör her bulguyu "ifade" / "anlam" diye işaretler ve değişen cümleler
+  turunda yalnız onlara bakar; ifade düzeltmeleri `npm run log -- <slug> fix editor …` ile düzeltmeler listesine.
 
 ## Sıradaki videolar ve fikirler
 
 - **`videos/gps` (tamamlanmış GPS, 60 sn):** metin onaylı (`videos/gps/metin.json`: kanca 1, Final 1). Kanca söylenirken ekranda haritadaki konum
   işareti (mavi nokta) görünür.
-  Sahne planı (skill d) ve render **şimdi değil**: otomatik akış ve temassız kart testinden sonra. `npm run new --
-  gps "…"` klasörde yalnız `spec.json` yoksa çalışır. Saat etiketi gibi söylenmeyen ekran yazıları etiket
-  kontrolüne takılır; metinle eşle.
+  Otomatik modda d)'den taslak sesle (say) Durak 2'ye kadar üretildi: otomatik modun ikinci kabul testi (kullanıcı
+  2026-11-28; yukarıda "İkinci kabul testi"). Gerçek ses "Taslak sesli videolar" listesinden gelir.
 - **Fikir: görelilik Short'u**, ayrı ve kendi içinde tamamlanmış: "Uydudaki saatler neden her gün ileri gidiyor?"
   (net ≈ 38 µs/gün: hız −7, kütleçekim +45; düzeltme fırlatmadan önce saat frekansına işlenir. Kaynaklar: Penn State
   GEOG 862 "The Satellite Clock", arXiv gr-qc/0507121).
@@ -204,6 +320,10 @@ kullanılamaz; kullanıcıya hatırlat.
 - Seslendirme sağlayıcısı kararı bekliyor: ElevenLabs Starter (1 ay, ticari lisans) ya da Azure Speech F0 (gmail
   hesabıyla pay-as-you-go aboneliği).
 - gps-pilot'taki 'yukarı' bağlam uyarısını, yeniden seslendirmeden önce senaryodan düzelt.
+- Sağlayıcı seçilince sesi (sağlayıcı, ses kimliği, model) `videos/sablon/spec.json` `voiceover.tts`'e yaz: otomatik
+  mod yeni videolarda gerçek sesi oradan alır. Sonra "Taslak sesli videolar" listesindeki her video için
+  `/aciklayici-video gerçek ses <slug>`. EKG ve gps de taslak ses alır ve gerçek sesi aynı yoldan alır (kullanıcı
+  2026-11-28); aşağıdaki plan gps-pilot için geçerli.
 
 0. Sağlayıcı seçimi: ElevenLabs (kredi) ya da Azure Speech (SSML; `.env`'e `AZURE_SPEECH_KEY`,
    `AZURE_SPEECH_REGION` — hesabı kullanıcı açar, ücretsiz kotayı birlikte kontrol ederiz). Önce geçici sesle

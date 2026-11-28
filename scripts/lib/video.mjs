@@ -16,6 +16,29 @@ if (Number(process.versions.node.split(".")[0]) < 22) {
 export const videoDir = (slug) => path.join(ROOT, "videos", slug);
 export const publicDir = (slug) => path.join(ROOT, "public", "videos", slug);
 export const outDir = (slug) => path.join(ROOT, "out", slug);
+/** A draft (placeholder voice) never takes the name of the publishable render. */
+export const renderFile = (slug, { draft = false } = {}) => path.join(ROOT, "out", `${slug}${draft ? ".draft" : ""}.mp4`);
+export const isPlaceholderVoice = (timing) => Boolean(timing?.source.startsWith("placeholder"));
+
+/**
+ * Voice-over files: the timing (videos/<slug>/) and the audio (its path under public/). A placeholder voice writes the
+ * *.draft.* names, which .gitignore keeps out of git, so a draft never lies in the tree as if it were the real one.
+ */
+export const voiceFiles = (slug, { draft = false } = {}) => ({
+  timing: path.join(videoDir(slug), draft ? "timing.draft.json" : "timing.json"),
+  audio: `videos/${slug}/${draft ? "vo.draft.wav" : "vo.wav"}`,
+});
+
+/** The timing in use: the real voice-over's, else the draft's (Root.tsx picks the same one). */
+export const timingFile = (slug) => [voiceFiles(slug).timing, voiceFiles(slug, { draft: true }).timing].find((f) => existsSync(f)) ?? null;
+
+/** A real voice-over replaces the draft: its files go. */
+export const removeDraftVoice = (slug) => {
+  const { timing, audio } = voiceFiles(slug, { draft: true });
+  const gone = [timing, path.join(ROOT, "public", audio)].filter((f) => existsSync(f));
+  for (const f of gone) rmSync(f);
+  return gone;
+};
 
 export const requireSlug = (slug) => {
   if (!slug || !SLUG.test(slug)) {
@@ -67,8 +90,8 @@ export const formatSpec = (value, indent = 0, prefix = 0) => {
 };
 
 export const loadTiming = (slug) => {
-  const file = path.join(videoDir(slug), "timing.json");
-  return existsSync(file) ? Timing.parse(JSON.parse(readFileSync(file, "utf8"))) : null;
+  const file = timingFile(slug);
+  return file ? Timing.parse(JSON.parse(readFileSync(file, "utf8"))) : null;
 };
 
 export const ffmpeg = (...args) => execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args]);

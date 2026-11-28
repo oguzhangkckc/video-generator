@@ -20,6 +20,7 @@
     "models": "node scripts/models.mjs",
     "qa": "node scripts/qa.mjs",
     "review": "node scripts/review.mjs",
+    "log": "node scripts/runlog.mjs",
     "test": "node --test scripts/test/*.test.mjs"
   },
   "dependencies": {

@@ -132,7 +132,7 @@ export const traceState = (layer: TraceLayer, wave: Waveform, clock: CurveFn, t:
       }),
   );
   const lowest = Math.min(0, ...tips.map((p) => p.v));
-  return { pen, view, anchor, toScreen, now, xAt, yAt, xFrom, points, parts, penScreen, reach, left, pxPerY, peaks, lowest, strip: Boolean(layer.panel) };
+  return { pen, view, anchor, toScreen, now, xAt, yAt, xFrom, points, parts, penScreen, reach, left, pxPerY, peaks, lowest, strip: Boolean(layer.panel), say: layer.say };
 };
 export type TraceState = ReturnType<typeof traceState>;
 
@@ -140,8 +140,9 @@ export type TraceState = ReturnType<typeof traceState>;
 const PEAK_INSET = 40;
 
 /**
- * The pen, which always matters; each drawn part, important while it is drawn, lit or named; and, for a trace that is
- * a scene, the line's sharp tips, which must stay clear of titles, captions and panels.
+ * The pen, which always matters; each drawn part, important while it is drawn, lit or named; the drawn line as a whole
+ * when the layer has `say` words ("çizgi", "yazı"), important while one is said; and, for a trace that is a scene, the
+ * line's sharp tips, which must stay clear of titles, captions and panels.
  */
 export const traceElements = (st: TraceState, spoken: string): SceneElement[] => {
   const out: SceneElement[] = [{ id: "pen", kind: "pen", ...pointBox(st.penScreen, 24), important: true, say: [] }];
@@ -152,6 +153,12 @@ export const traceElements = (st: TraceState, spoken: string): SceneElement[] =>
     const named = p.part.say.some((a) => mentions(spoken, a));
     out.push({ id: `part:${p.part.text}`, kind: "part", ...box, important: p.glow > 0 || drawing || named, say: p.part.say });
   });
+  if (st.say.length) {
+    // Only what is seen: the line's history scrolls on past the frame's left edge.
+    const seen = st.points(st.xFrom, st.now).map(st.toScreen).filter(([x, y]) => x >= 0 && x <= WIDTH && y >= 0 && y <= HEIGHT);
+    const box = pointsBox(seen);
+    if (box) out.push({ id: "line", kind: "line", ...box, important: st.say.some((a) => mentions(spoken, a)), say: st.say });
+  }
   if (!st.strip) {
     for (const { id, at } of st.peaks) {
       const inside = at[0] >= PEAK_INSET && at[0] <= WIDTH - PEAK_INSET && at[1] >= PEAK_INSET && at[1] <= HEIGHT - PEAK_INSET;

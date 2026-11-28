@@ -69,7 +69,8 @@
         "window": [56.74, 62.69],
         "phrases": ["Artık okumaya başladın.", "EKG, yani elektro, kardiyo, gram:", "kalbin elektrikle yazdığı yazı."]
       }
-    ]
+    ],
+    "tts": { "provider": "say", "voice": "Yelda" }
   },
   "marks": {
     "toBody": [{ "cue": "Bu çizgi ne anlatıyor", "offset": 1.2 }, { "cue": "Bu çizgi ne anlatıyor", "offset": 2.2 }],
@@ -115,6 +116,7 @@
     {
       "type": "trace",
       "id": "monitor",
+      "say": ["çizgi"],
       "visible": [{ "out": ["@toBody.end-0.15", "@toBody.end+0.1"] }],
       "clock": "beat",
       "waveform": {
@@ -137,7 +139,7 @@
     {
       "type": "flow",
       "id": "body",
-      "visible": [{ "in": ["@toBody.end-0.3", "@toBody.end-0.1"] }],
+      "visible": [{ "in": ["@toBody.end-0.3", "@toBody.end-0.1"], "out": ["@reveal-1.6", "@reveal-1.2"] }],
       "anchorY": 870,
       "regions": [
         {
@@ -538,16 +540,205 @@
         { "at": { "cue": "Kapı açılıyor" }, "focus": [15, 268], "zoom": 1.6, "easing": "inOutCubic" },
         { "at": "@summary", "focus": [45, 205], "zoom": 1.65, "easing": "inOutCubic", "subject": ["heart"] },
         { "at": "@summary+1.5", "focus": [45, 205], "zoom": 1.66, "subject": ["heart"] },
-        { "at": "@reveal-0.8", "focus": [45, 205], "zoom": 1.68 },
-        { "at": "@reveal", "focus": [70, 0], "zoom": 2.1 },
-        { "at": "@end", "focus": [70, 8], "zoom": 2.14 }
+        { "at": "@reveal-1.2", "focus": [45, 205], "zoom": 1.68 },
+        { "at": "@end", "focus": [45, 205], "zoom": 1.69 }
+      ],
+      "drift": { "degPerSec": 0.15, "px": 8, "periodSec": 8 }
+    },
+    {
+      "type": "flow",
+      "id": "govde-final",
+      "visible": [{ "in": ["@reveal-1.6", "@reveal-1.2"] }],
+      "anchorY": 870,
+      "regions": [
+        {
+          "id": "head",
+          "points": [
+            [70, -1230],
+            [34, -1102],
+            [-61, -1022],
+            [-179, -1022],
+            [-274, -1102],
+            [-310, -1230],
+            [-274, -1358],
+            [-179, -1438],
+            [-61, -1438],
+            [34, -1358]
+          ],
+          "fill": "skin",
+          "edge": "faint"
+        },
+        {
+          "id": "skin",
+          "points": [
+            [-250, -1000],
+            [-260, -800],
+            [-560, -720],
+            [-860, -600],
+            [-960, -420],
+            [-990, -100],
+            [-970, 300],
+            [-950, 900],
+            [-940, 1700],
+            [700, 1700],
+            [710, 900],
+            [730, 300],
+            [750, -100],
+            [720, -420],
+            [620, -600],
+            [320, -720],
+            [20, -800],
+            [10, -1000]
+          ],
+          "fill": "skin",
+          "edge": "faint",
+          "say": ["göğüs", "göğs"]
+        },
+        {
+          "id": "heart",
+          "points": [
+            [-150, -300],
+            [-250, -250],
+            [-300, -130],
+            [-295, 0],
+            [-265, 120],
+            [-170, 240],
+            [-30, 320],
+            [110, 360],
+            [230, 300],
+            [310, 170],
+            [330, 20],
+            [300, -120],
+            [230, -240],
+            [120, -290],
+            [20, -270],
+            [-70, -295]
+          ],
+          "fill": "surface",
+          "edge": "surface",
+          "say": ["kalp"]
+        },
+        {
+          "id": "atria",
+          "points": [
+            [-360, 25],
+            [-300, 10],
+            [-160, -30],
+            [-20, -60],
+            [140, -100],
+            [320, -140],
+            [380, -155],
+            [380, -800],
+            [-360, -800]
+          ],
+          "smooth": false,
+          "fill": "none",
+          "edge": "none",
+          "clipTo": "heart",
+          "sweep": { "origin": "sa", "reach": 560, "progress": { "curve": "beat", "range": ["#saFire", "#atriaDone"] } },
+          "say": ["kulakçık", "üst oda"]
+        },
+        {
+          "id": "ventricles",
+          "points": [
+            [-360, 25],
+            [-300, 10],
+            [-160, -30],
+            [-20, -60],
+            [140, -100],
+            [320, -140],
+            [380, -155],
+            [380, 800],
+            [-360, 800]
+          ],
+          "smooth": false,
+          "fill": "none",
+          "edge": "none",
+          "clipTo": "heart",
+          "sweep": { "origin": [10, 120], "reach": 380, "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+          "say": ["karıncık", "alt oda"]
+        }
+      ],
+      "paths": [
+        {
+          "id": "groove",
+          "points": [[-300, 10], [-160, -30], [-20, -60], [140, -100], [320, -140]],
+          "color": "surface",
+          "opacity": 0.7,
+          "width": 1.4
+        },
+        { "id": "ias", "points": [[20, -270], [0, -160], [-20, -60]], "color": "surface", "opacity": 0.7, "width": 1.4 },
+        {
+          "id": "ivs",
+          "points": [[-10, 12], [30, 140], [80, 280], [108, 345]],
+          "color": "surface",
+          "opacity": 0.7,
+          "width": 1.4
+        },
+        { "id": "internodal", "points": [[-178, -262], [-150, -190], [-100, -120], [-55, -85]] },
+        { "id": "bachmann", "points": [[-178, -262], [-80, -245], [60, -240], [200, -205]] },
+        { "id": "avNode", "points": [[-55, -85], [-40, -70], [-28, -50], [-18, -30]] },
+        { "id": "his", "points": [[-18, -30], [-12, -10], [-10, 12]] },
+        { "id": "rbb", "points": [[-10, 12], [-30, 100], [-25, 190], [-70, 250], [-160, 225]] },
+        { "id": "lbb", "points": [[-10, 12], [20, 90], [55, 190], [95, 290], [150, 320]] },
+        { "id": "lbbAnt", "points": [[20, 90], [120, 70], [230, 110]] },
+        { "id": "pk1", "points": [[-160, 225], [-235, 150], [-265, 50]] },
+        { "id": "pk2", "points": [[-25, 190], [-120, 200], [-200, 130]] },
+        { "id": "pk3", "points": [[150, 320], [240, 270], [300, 160], [315, 40]] },
+        { "id": "pk4", "points": [[230, 110], [290, 30], [290, -60]] },
+        { "id": "pk5", "points": [[55, 190], [170, 210], [250, 200]] }
+      ],
+      "nodes": [
+        {
+          "id": "sa",
+          "at": [-178, -262],
+          "shape": "glow",
+          "color": "you",
+          "r": 9,
+          "flashes": ["@fire"],
+          "say": ["sağ üst köşe"]
+        },
+        {
+          "id": "av",
+          "at": [-40, -70],
+          "shape": "glow",
+          "color": "secondary",
+          "r": 7,
+          "lit": [[{ "cue": "Emir alt odaların" }, "@qrsGo"]],
+          "say": ["kapı"]
+        }
+      ],
+      "signals": [
+        { "along": ["internodal"], "progress": { "curve": "beat", "range": ["#saFire", "#avArrive"] } },
+        { "along": ["bachmann"], "progress": { "curve": "beat", "range": ["#saFire", "#atriaDone"] } },
+        { "along": ["avNode"], "progress": { "curve": "beat", "range": ["#avArrive", "#avLeave"] } },
+        { "along": ["his", "rbb"], "progress": { "curve": "beat", "range": ["#avLeave", "#hisDone"] } },
+        { "along": ["his", "lbb"], "progress": { "curve": "beat", "range": ["#avLeave", "#hisDone"] } },
+        { "along": ["lbbAnt"], "progress": { "curve": "beat", "range": ["#avLeave", "#hisDone"] } },
+        { "along": ["pk1"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+        { "along": ["pk2"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+        { "along": ["pk3"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+        { "along": ["pk4"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } },
+        { "along": ["pk5"], "progress": { "curve": "beat", "range": ["#hisDone", "#ventDone"] } }
+      ],
+      "fields": [],
+      "highlight": [
+        { "target": "sa", "range": [{ "cue": "sağ üst köşede", "offset": 0.4 }, "@fire"] },
+        { "target": "av", "range": [{ "cue": "Emir alt odaların" }, { "cue": "Peki ya o büyük" }] }
+      ],
+      "camera": [
+        { "at": "@summary+1.5", "focus": [45, 205], "zoom": 1.66, "subject": ["heart"] },
+        { "at": "@reveal-1.2", "focus": [45, 205], "zoom": 1.68 },
+        { "at": "@reveal+0.2", "focus": [15, 190], "zoom": 0.75, "subject": ["skin", "heart"] },
+        { "at": "@end", "focus": [15, 188], "zoom": 0.77, "subject": ["skin", "heart"] }
       ],
       "drift": { "degPerSec": 0.15, "px": 8, "periodSec": 8 }
     },
     {
       "type": "trace",
       "id": "strip",
-      "visible": [{ "in": ["@fire-0.6", "@fire"], "out": ["@reveal-0.2", "@reveal+0.4"] }],
+      "say": ["çizgi", "yazı", "tepe"],
+      "visible": [{ "in": ["@fire-0.6", "@fire"] }],
       "clock": "beat",
       "waveform": {
         "preset": "ecg",
@@ -570,11 +761,13 @@
         {
           "text": "ÜST",
           "range": ["#saFire", "#atriaDone"],
+          "say": ["küçük tepe"],
           "lit": [[{ "cue": "Önce üst odalara" }, { "cue": "Ama sonra çizgi" }], [{ "cue": "Yani küçük" }, "@end+1"]]
         },
         {
           "text": "BEKLEME",
           "range": ["#atriaDone", "#hisDone"],
+          "say": ["düzlük"],
           "lit": [[{ "cue": "kapısında" }, { "cue": "Peki ya o büyük" }], [{ "cue": "ilk düzlük" }, "@end+1"]],
           "marker": "bracket"
         },
@@ -589,6 +782,7 @@
         {
           "text": "HAZIRLIK",
           "range": ["#tStart", "#tEnd"],
+          "say": ["son tepe"],
           "lit": [[{ "cue": "alt odalar yeni" }, { "cue": "Yani küçük" }], [{ "cue": "son tepe hazırlık" }, "@end+1"]]
         }
       ],
@@ -664,7 +858,7 @@
     {
       "text": "≈ 0,1 SN BEKLEME",
       "at": { "cue": "saniyenin onda", "offset": 0.2 },
-      "until": { "cue": "Peki ya o büyük", "offset": -0.9 },
+      "until": { "cue": "Üst odalar kanı", "offset": -0.15 },
       "top": 220,
       "size": 48,
       "bar": true,
@@ -938,6 +1132,7 @@
   ],
   "styleExceptions": [],
   "transitions": [
-    { "at": "@toBody.end", "from": "monitor", "to": "body", "kind": "match", "via": { "from": "pen", "to": "e2" } }
+    { "at": "@toBody.end", "from": "monitor", "to": "body", "kind": "match", "via": { "from": "pen", "to": "e2" } },
+    { "at": "@reveal-1.4", "from": "body", "to": "govde-final", "kind": "match", "via": { "from": "heart", "to": "heart" } }
   ]
 }

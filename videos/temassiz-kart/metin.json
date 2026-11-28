@@ -1,0 +1,280 @@
+{
+  "slug": "temassiz-kart",
+  "durationSec": 73,
+  "sections": [
+    {
+      "id": "kanca",
+      "window": [
+        0,
+        6.1
+      ],
+      "phrases": [
+        "Temassız kartında pil yok.",
+        "Kendi vericisi de yok.",
+        "Kart okuyucuya nasıl cevap veriyor?"
+      ]
+    },
+    {
+      "id": "alan",
+      "window": [
+        6.1,
+        26.1
+      ],
+      "phrases": [
+        "Kasadaki okuyucunun içinde bir tel bobin var.",
+        "Bobin, mıknatıs gibi bir alan yayıyor;",
+        "alanın yönü saniyede milyonlarca kez değişiyor.",
+        "Kartının içinde, kenarı boyunca",
+        "ince telden birkaç halka var.",
+        "Değişen alan bu halkalardan geçince",
+        "telde elektrik akmaya başlıyor.",
+        "Telefonunun kablosuz şarjı da",
+        "böyle çalışıyor.",
+        "Çip bu elektrikle uyanıyor."
+      ]
+    },
+    {
+      "id": "soru",
+      "window": [
+        26.1,
+        36.4
+      ],
+      "phrases": [
+        "Okuyucu önce soruyor:",
+        "“Orada bir kart var mı?”",
+        "Fenerle Mors alfabesi çakar gibi,",
+        "alanını bir anlığına kısıp açıyor.",
+        "Kart bu kısa kararmaları okuyor."
+      ]
+    },
+    {
+      "id": "cevap",
+      "window": [
+        36.4,
+        64.4
+      ],
+      "phrases": [
+        "Cevap sırası kartta;",
+        "ama kartın kısacak bir alanı yok.",
+        "Bunun yerine okuyucunun alanını kullanıyor.",
+        "Çipte minicik bir elektrik düğmesi var.",
+        "Kart düğmeye basınca",
+        "alandan daha çok enerji çekiyor;",
+        "okuyucuya yük oluyor.",
+        "Alan bir an zayıflıyor:",
+        "ütüyü prize taktığında",
+        "lambanın titremesi gibi.",
+        "Kart da bu düğmeye Mors gibi basıp bırakıyor;",
+        "okuyucu her titremeyi",
+        "kendi bobininde hissediyor.",
+        "Kartın cevabı bu titremelerde saklı.",
+        "Okuyucu aslında kartı değil,",
+        "kendi alanını dinliyor."
+      ]
+    },
+    {
+      "id": "final",
+      "window": [
+        64.4,
+        72
+      ],
+      "phrases": [
+        "Yani kartın kendi feneri yok;",
+        "okuyucuya bir yük olup",
+        "bir hafifleyerek cevap veriyor.",
+        "Bunun adı yük modülasyonu."
+      ]
+    }
+  ],
+  "options": {
+    "kanca": [
+      [
+        "Temassız kartında pil yok.",
+        "Kendi vericisi de yok.",
+        "Kart okuyucuya nasıl cevap veriyor?"
+      ]
+    ],
+    "final": [
+      [
+        "Yani kartın kendi feneri yok;",
+        "okuyucuya bir yük olup",
+        "bir hafifleyerek cevap veriyor.",
+        "Bunun adı yük modülasyonu."
+      ]
+    ]
+  },
+  "claims": [
+    {
+      "claim": "Okuyucunun anten bobini kartı çalıştıracak gücü veren manyetik alanı üretir, karta veri yollar ve karttan veri alır (NXP AN11019)",
+      "value": "kartın enerjisi okuyucudan",
+      "status": "verified"
+    },
+    {
+      "claim": "Taşıyıcı frekans 13,56 MHz: alanın yönü saniyede milyonlarca kez döner (ECMA-340)",
+      "value": "13,56 MHz",
+      "status": "simplified"
+    },
+    {
+      "claim": "Kartın anten bobini kartın kenarı boyunca birkaç tur dolanır ve çipin anten uçlarına bağlanır; bobin tel, aşındırılmış ya da basılı olabilir (Infineon kart bobini notu, Şekil 1, Tablo 2)",
+      "value": "birkaç halka",
+      "status": "simplified"
+    },
+    {
+      "claim": "Verici bobindeki değişken akım manyetik alan üretir, alan alıcı bobinde gerilim doğurur; kablosuz şarj (Qi) da böyle çalışır (WPC)",
+      "value": "indüksiyon",
+      "status": "simplified"
+    },
+    {
+      "claim": "Okuyucu ilk olarak REQA komutuyla alanda Tip A kart olup olmadığını yoklar; kart ATQA ile cevap verir (TI SLOA136)",
+      "value": "“Orada bir kart var mı?”",
+      "status": "simplified"
+    },
+    {
+      "claim": "Okuyucu karta alanının genliğini kısarak veri yollar: Tip A'da %100, Tip B'de %10 (NXP AN11019)",
+      "value": "alanı kısıp açma",
+      "status": "simplified"
+    },
+    {
+      "claim": "Pasif modda alanı yalnız okuyucu üretir; kart, okuyucunun alanını modüle ederek cevap verir: yük modülasyonu (ECMA-340, 7)",
+      "value": "yük modülasyonu",
+      "status": "verified"
+    },
+    {
+      "claim": "Yük modülasyonu: alandaki rezonans devresinin özellikleri değiştirilerek alanın genliği modüle edilir; kartın bobinindeki yük modülasyonu akımı okuyucunun bobininde gerilim değişimi doğurur (ECMA-340 4.8, NXP AN11019 Şekil 10)",
+      "value": "anahtar → alan zayıflar",
+      "status": "simplified"
+    },
+    {
+      "claim": "Kart veri gönderirken antenini kısa devre eder; okuyucunun anteninde küçük, uzaklıkla değişen bir gerilim düşüşü olur (US 7926719)",
+      "value": "düğme → alan bir an zayıflar",
+      "status": "simplified"
+    }
+  ],
+  "notes": [
+    "Durak 1 (2026-11-27): K1 + F1, süre ≈ 71 sn, dolgu yok; anahtar → düğme; bobin, halkalar, çip, alan ve düğme say ile sahneye bağlanır.",
+    "Durak 1 sonrası (2026-11-28): editörün değişen cümle bulgularından A seçeneği (\"Değişen alan…\", \"basınca / daha çok\", \"Kart da bu düğmeye Mors gibi\"); yeni editör turu yok.",
+    "e (2026-11-28): \"Okuyucunun alanını kullanıyor.\" altyazıya sığmadı → \"Bunun yerine okuyucunun alanını kullanıyor.\" (kullanıcı, A)."
+  ],
+  "labels": [
+    {
+      "text": "BOBİN",
+      "cue": "Kasadaki",
+      "offset": 1.3
+    },
+    {
+      "text": "MIKNATIS GİBİ ALAN",
+      "cue": "Bobin, mıknatıs",
+      "offset": 0.7
+    },
+    {
+      "text": "SANİYEDE 13,56 MİLYON KEZ",
+      "cue": "alanın yönü",
+      "offset": 0.8
+    },
+    {
+      "text": "HALKALAR",
+      "cue": "ince telden",
+      "offset": 0.6
+    },
+    {
+      "text": "ELEKTRİK AKIYOR",
+      "cue": "telde elektrik",
+      "offset": 0.4
+    },
+    {
+      "text": "KABLOSUZ ŞARJ",
+      "cue": "Telefonunun",
+      "offset": 0.6
+    },
+    {
+      "text": "ÇİP UYANIYOR",
+      "cue": "Çip bu elektrikle",
+      "offset": 0.5
+    },
+    {
+      "text": "“KART VAR MI?”",
+      "cue": "“Orada bir",
+      "offset": 0.3
+    },
+    {
+      "text": "MORS GİBİ",
+      "cue": "Fenerle Mors",
+      "offset": 0.5
+    },
+    {
+      "text": "KARARMALAR",
+      "cue": "Kart bu kısa",
+      "offset": 0
+    },
+    {
+      "text": "KISACAK ALANI YOK",
+      "cue": "ama kartın kısacak",
+      "offset": 0.5
+    },
+    {
+      "text": "OKUYUCUNUN ALANI",
+      "cue": "Bunun yerine",
+      "offset": 0.8
+    },
+    {
+      "text": "DÜĞME",
+      "cue": "Çipte minicik",
+      "offset": 1
+    },
+    {
+      "text": "DAHA ÇOK ENERJİ",
+      "cue": "alandan daha",
+      "offset": 0.4
+    },
+    {
+      "text": "OKUYUCUYA YÜK",
+      "cue": "okuyucuya yük",
+      "offset": 0.3
+    },
+    {
+      "text": "YÜK",
+      "cue": "okuyucuya yük",
+      "offset": 0
+    },
+    {
+      "text": "ALAN ZAYIFLIYOR",
+      "cue": "Alan bir an",
+      "offset": 0.3
+    },
+    {
+      "text": "LAMBANIN TİTREMESİ GİBİ",
+      "cue": "ütüyü prize",
+      "offset": 0.6
+    },
+    {
+      "text": "MORS GİBİ BAS · BIRAK",
+      "cue": "Kart da bu düğmeye",
+      "offset": 0.6
+    },
+    {
+      "text": "BOBİNİNDE HİSSEDİYOR",
+      "cue": "kendi bobininde",
+      "offset": 0.3
+    },
+    {
+      "text": "CEVAP",
+      "cue": "Kartın cevabı",
+      "offset": 0
+    },
+    {
+      "text": "KENDİ ALANINI DİNLİYOR",
+      "cue": "kendi alanını",
+      "offset": 0.2
+    },
+    {
+      "text": "KARTIN FENERİ YOK",
+      "cue": "Yani kartın",
+      "offset": 0.4
+    },
+    {
+      "text": "BİR YÜK · BİR HAFİF",
+      "cue": "okuyucuya bir yük",
+      "offset": 0.4
+    }
+  ]
+}

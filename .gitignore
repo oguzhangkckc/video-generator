@@ -1,5 +1,8 @@
 node_modules/
 out/
+# Placeholder voice-overs (macOS say, skill auto mode): never committed; a real voice-over replaces them.
+videos/*/timing.draft.json
+public/videos/*/vo.draft.wav
 .DS_Store
 *.log
 .env*

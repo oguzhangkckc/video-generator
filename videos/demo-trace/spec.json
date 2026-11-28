@@ -121,5 +121,8 @@
       "url": "https://www.remotion.dev/license"
     }
   ],
-  "styleExceptions": ["Tür demosu: STYLE'ın kanca, bölüm ve final akışı uygulanmaz."]
+  "styleExceptions": [
+    "Tür demosu: STYLE'ın kanca, bölüm ve final akışı uygulanmaz.",
+    { "rule": "gorsel-soz", "why": "Tür demosu, yer tutucu metin: 'saat eğrisi' çizilen bir şey değil, kalemin izlediği zaman çizelgesi." }
+  ]
 }

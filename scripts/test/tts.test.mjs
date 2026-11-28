@@ -4,6 +4,7 @@ import { ssmlFor, wordsFromBoundaries } from "../lib/tts/azure.mjs";
 import { elevenlabs } from "../lib/tts/elevenlabs.mjs";
 import { spreadWords } from "../lib/tts/say.mjs";
 import { cacheKey, overspend } from "../lib/tts/spend.mjs";
+import { voiceFiles } from "../lib/video.mjs";
 
 const request = (over = {}) => ({ text: "Kalbin sağ üst köşesi.", voice: "v", model: "m", seed: 7, speed: 1, previous: "Önce.", next: "Sonra.", ...over });
 
@@ -43,4 +44,11 @@ test("say: the placeholder's word times cover the take in order, longer words lo
   assert.equal(words[0].start, 0);
   assert.ok(Math.abs(words.at(-1).end - 2) < 1e-9);
   assert.ok(words[3].end - words[3].start > words[0].end - words[0].start);
+});
+
+test("a placeholder voice-over never takes the names of the real one", () => {
+  const real = voiceFiles("demo");
+  const draft = voiceFiles("demo", { draft: true });
+  assert.ok(real.timing.endsWith("videos/demo/timing.json") && real.audio === "videos/demo/vo.wav");
+  assert.ok(draft.timing.endsWith("videos/demo/timing.draft.json") && draft.audio === "videos/demo/vo.draft.wav");
 });

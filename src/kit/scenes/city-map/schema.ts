@@ -9,6 +9,8 @@ export const cityMapSchema = <T extends z.ZodType, R extends z.ZodType, N extend
       /** Opacity is the strongest of these windows; outside them the map is not rendered. */
       visible: z.array(windowSchema(k)).min(1),
       layout: z.enum(["coastal-strait"]).default("coastal-strait"),
+      /** Words the narration uses for the map itself ("harita"); while a phrase says one, qa checks the map is on screen. */
+      say: z.array(z.string().min(1)).default([]),
       /** Changes the procedural districts and lights; omit for the reference city. */
       seed: z.string().optional(),
       zoom: z

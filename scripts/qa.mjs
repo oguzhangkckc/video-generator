@@ -1,8 +1,10 @@
 // Automatic quality checks (STYLE.md). Layout runs in the browser bundle before any render; audio checks the render.
 //   node scripts/qa.mjs <slug> [--layout] [--audio] [--every 0.25] [--from s] [--to s]
 //   --from/--to: layout only over that stretch (for iterating on a section); the full run decides.
-//   No flag: layout, plus audio when out/<slug>.mp4 exists. Writes out/<slug>/qa.json and exits 1 on any error.
+//   No flag: layout, plus audio when the render exists (out/<slug>.mp4; out/<slug>.draft.mp4 with a placeholder voice).
+//   Writes out/<slug>/qa.json and exits 1 on any error.
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -14,7 +16,7 @@ import { parseArgs } from "./lib/args.mjs";
 import { composition, coverFindings } from "./lib/composition.mjs";
 import { flagText } from "./lib/review.mjs";
 import { speechReport } from "./lib/speech.mjs";
-import { ROOT, duration, loadSpec, loadTiming, outDir, readPcm, requireSlug } from "./lib/video.mjs";
+import { ROOT, duration, isPlaceholderVoice, loadSpec, loadTiming, outDir, readPcm, renderFile, requireSlug } from "./lib/video.mjs";
 
 const SAFE_RIGHT = 960;
 const SAFE_BOTTOM = 1632;
@@ -32,7 +34,8 @@ const { positional, flags } = parseArgs(process.argv.slice(2), { layout: "boolea
 const inRange = (t) => t >= (flags.from ?? 0) && t <= (flags.to ?? Infinity);
 const slug = requireSlug(positional[0]);
 const { json: rawSpec } = loadSpec(slug);
-const mp4 = path.join(ROOT, "out", `${slug}.mp4`);
+const draftVoice = isPlaceholderVoice(loadTiming(slug));
+const mp4 = renderFile(slug, { draft: draftVoice });
 const runLayout = flags.layout || !flags.audio;
 const runAudio = flags.audio || (!flags.layout && existsSync(mp4));
 const every = flags.every ?? 0.25;
@@ -222,7 +225,7 @@ const quantities = (shown) => {
 
 const audio = async (sound) => {
   if (!existsSync(mp4)) {
-    errors.push(`ses: ${path.relative(ROOT, mp4)} yok — önce npm run render -- ${slug}`);
+    errors.push(`ses: ${path.relative(ROOT, mp4)} yok — önce npm run render -- ${slug}${draftVoice ? " --draft" : ""}`);
     return {};
   }
   const end = duration(mp4);
@@ -236,10 +239,10 @@ const audio = async (sound) => {
     const wav = path.join(ROOT, "public", timing.audio ?? `videos/${slug}/vo.wav`);
     const words = timing.words.map((w) => ({ start: w.startMs / 1000, end: w.endMs / 1000 }));
     const report = speechReport({ wav, pcm: readPcm(wav, { channels: 2 }), channels: 2, words, sections: rawSpec.voiceover.sections });
-    // The placeholder voice (macOS say) only times sections and captions: its rate and intonation say nothing.
-    const placeholder = timing.source.startsWith("placeholder");
+    // The placeholder voice (macOS say) is no performance: its intonation says nothing, its rate and pauses still count.
+    const placeholder = isPlaceholderVoice(timing);
     rates.spoken = report.words / report.spokenSeconds;
-    if (!placeholder && (rates.spoken < SPOKEN_RATE[0] || rates.spoken > SPOKEN_RATE[1])) {
+    if (rates.spoken < SPOKEN_RATE[0] || rates.spoken > SPOKEN_RATE[1]) {
       warnings.push(`konuşma hızı: konuşulan sürede ${rates.spoken.toFixed(2)} kelime/sn (hedef ${SPOKEN_RATE.join("–")})`);
     }
     const sentenceEnds = report.pauses.filter((p) => p.sentenceEnd);
@@ -299,7 +302,23 @@ const ranged = flags.from != null || flags.to != null;
 const frozen = existsSync(mp4) && !ranged ? freezes() : null;
 if (browserState) await browserState.instance.close({ silent: true });
 
-const report = { slug, checked: { layout: runLayout, audio: runAudio }, errors, warnings, audio: audioResult };
+const UNMEASURED = "taslak ses, ölçülmedi";
+// Said-element shares compare across fix rounds only while every sentence keeps its time (no new voice, no --widen).
+const phraseTiming = laid?.spec?.phrases
+  ? createHash("sha1").update(JSON.stringify(laid.spec.phrases.map((p) => [p.text, p.start, p.end]))).digest("hex").slice(0, 12)
+  : null;
+const report = {
+  slug,
+  checked: { layout: runLayout, audio: runAudio },
+  ...(ranged ? { range: { from: flags.from ?? null, to: flags.to ?? null } } : {}),
+  render: runAudio || frozen !== null ? path.relative(ROOT, mp4) : null,
+  draftVoice,
+  errors,
+  warnings,
+  said: laid?.stats?.said ?? null,
+  phraseTiming,
+  audio: audioResult,
+};
 mkdirSync(outDir(slug), { recursive: true });
 writeFileSync(path.join(outDir(slug), "qa.json"), `${JSON.stringify(report, null, 2)}\n`);
 
@@ -324,12 +343,12 @@ const rows = [
     runLayout ? (errors.some((e) => e.startsWith(prefix)) ? "HATA" : warnings.some((w) => w.startsWith(prefix)) ? "uyarı" : "temiz") : "—",
   ]),
   ["Donma (render)", frozen === null ? "—" : frozen ? "HATA" : "temiz"],
-  ["Konuşma hızı (konuşulan süre)", runAudio ? (audioResult?.intonation?.placeholder ? "— (geçici ses)" : warnings.some((w) => w.startsWith("konuşma")) ? "uyarı" : "temiz") : "—"],
+  ["Konuşma hızı (konuşulan süre)", runAudio ? (warnings.some((w) => w.startsWith("konuşma")) ? "uyarı" : "temiz") : "—"],
   ["Duraklamalar", runAudio ? (errors.some((e) => e.startsWith("duraklama")) ? "HATA" : warnings.some((w) => w.startsWith("duraklama")) ? "uyarı" : "temiz") : "—"],
   [
     "Tonlama (cümle sonları)",
     audioResult?.intonation?.placeholder
-      ? "— (geçici ses)"
+      ? UNMEASURED
       : runAudio && audioResult?.intonation
       ? warnings.some((w) => w.startsWith("tonlama"))
         ? `uyarı${audioResult.intonation.recorded ? " (yeniden kaydet)" : ""}`
@@ -340,7 +359,8 @@ const rows = [
   ["Dijital sessizlik", runAudio ? (errors.some((e) => e.startsWith("sessizlik")) ? "HATA" : "temiz") : "—"],
   ["Yatak sürekliliği", runAudio ? (errors.some((e) => e.startsWith("yatak")) ? "HATA" : warnings.some((w) => w.startsWith("yatak")) ? "uyarı" : "temiz") : "—"],
 ];
-console.log(`\nQA ${slug}${flags.from != null || flags.to != null ? ` (yalnız ${flags.from ?? 0}–${flags.to ?? "son"} sn)` : ""}`);
+console.log(`\nQA ${slug}${ranged ? ` (yalnız ${flags.from ?? 0}–${flags.to ?? "son"} sn)` : ""}`);
+if (report.render) console.log(`  ${"Render".padEnd(36)} ${report.render}${draftVoice ? " (taslak ses, yayına uygun değil)" : ""}`);
 for (const [name, result] of rows) console.log(`  ${name.padEnd(36)} ${result}`);
 if (laid?.stats) {
   const { subjectMin, emptyMax } = laid.stats;
@@ -351,7 +371,8 @@ if (audioResult?.rates?.spoken) {
   console.log(`  ${"Cümle sonu arası ort. / en kısa".padEnd(36)} ${audioResult.rates.meanSentencePause.toFixed(2)} / ${audioResult.rates.minPause.toFixed(2)} sn`);
   const s = audioResult.intonation?.sentences ?? [];
   const checked = s.filter((x) => x.kind === "statement" || x.kind === "wh-question");
-  console.log(`  ${"İşaretli cümle (tonlama)".padEnd(36)} ${checked.filter((x) => x.flags.length).length} / ${checked.length}`);
+  const flagged = audioResult.intonation?.placeholder ? UNMEASURED : `${checked.filter((x) => x.flags.length).length} / ${checked.length}`;
+  console.log(`  ${"İşaretli cümle (tonlama)".padEnd(36)} ${flagged}`);
 }
 for (const e of errors) console.log(`  ✗ ${e}`);
 for (const w of warnings) console.log(`  ! ${w}`);

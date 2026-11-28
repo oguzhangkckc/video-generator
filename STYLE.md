@@ -225,7 +225,10 @@ Sıra her zaman aynıdır:
 - Kasıtlı bir yakın plan (`kind: "close"`) değilse özne kare kenarında kırpılmaz (uyarı).
 - **Bağlam:** seslendirmede bir yer ya da öğe adı geçiyorsa (`say` takma adları) o öğe cümlenin en az yarısı boyunca
   karede ve üst yazıların dışında görünür (hata). Konum sözü ("köşe", "üst", "yörünge"…) geçip hiçbir öğeye bağlı
-  değilse uyarı.
+  değilse uyarı. **Görsele gönderen isimler** ("çizgi", "yazı", "tepe", "düzlük", "eğri", "grafik", "şema", "şerit",
+  "harita"; `src/spec/visual-words.ts`) de öğe adıdır: söylendiğinde o görseli çizen öğeye `say` ile bağlanır ve aynı
+  ölçüme girer; bağlı değilse `npm run check` uyarı verir (`gorsel-soz`). Veri çizgisinin bütünü (`trace.say`) ve
+  harita (`cityMap.say`) da bağlanabilir.
 
 ## Veri çizgisi etiketleri
 

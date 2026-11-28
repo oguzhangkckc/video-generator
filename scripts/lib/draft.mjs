@@ -1,5 +1,6 @@
 // A script draft from skill step c), before any spec exists: out/<slug>/metin/metin.json.
-//   { slug, durationSec, sections: [{ id, window, phrases }], options: { kanca: [phrases…], final: [phrases…] }, claims }
+//   { slug, durationSec, sections: [{ id, window, phrases }], options: { kanca: [phrases…], final: [phrases…] }, claims,
+//     labels: [{ text, cue, offset? }] }   ← planned data lines (step b's quantity table), checked against the words
 // `sections` is the recommended text; each hook option replaces the first section's phrases, each final option the
 // last one's. The promise→answer and the one-line takeaway stay out of the file so the editor reads it blind.
 import { readFileSync } from "node:fs";

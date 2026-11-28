@@ -1,9 +1,11 @@
 // Voice-over for one video from a text-to-speech provider (scripts/lib/tts): ElevenLabs, Azure Speech (SSML), or the
 // free macOS `say` placeholder. A human recording goes through npm run align instead.
 //   node scripts/voiceover.mjs voices [--provider p]                       → voices and models to choose from
-//   node scripts/voiceover.mjs sample <slug> <voice>... [--provider p]     → out/<slug>/voice-samples/ (first section)
+//   node scripts/voiceover.mjs sample <slug> <voice[:Name]>... [--sections a,b] [--provider p]
+//                                          → out/<slug>/voice-samples/ + out/<slug>/voices.html (default: first section)
 //   node scripts/voiceover.mjs build <slug> [voice] [--provider p] [--model id] [--speed 1.0] [--widen] [--offline]
 //                                          [--estimate] [--over-budget]   → public/videos/<slug>/vo.wav + videos/<slug>/timing.json
+//                                          (the placeholder: vo.draft.wav + timing.draft.json, git-ignored; a real build removes them)
 //   node scripts/voiceover.mjs pick <slug> <sentence#> <take>              → spec voiceover.picks, then build --offline
 //   node scripts/voiceover.mjs listen <metin.json> [--provider say] [--sections a,b] → out/<slug>/metin/ses/: a script draft
 //                                          (skill step c) read by the free placeholder voice; no spec, timing or credit
@@ -23,12 +25,26 @@ import { PAUSE, pauseAfter } from "../src/spec/pauses.ts";
 import { sentencesOf } from "../src/spec/sentences.ts";
 import { parseArgs } from "./lib/args.mjs";
 import { readDraft, variantsOf } from "./lib/draft.mjs";
-import { flagText, writeReview } from "./lib/review.mjs";
+import { flagText, writeReview, writeVoiceSamples } from "./lib/review.mjs";
 import { PROSODY, analyse, measureProsody, openPauses, phraseBounds, phraseRanges, trimToSound } from "./lib/speech.mjs";
 import { api } from "./lib/tts/elevenlabs.mjs";
 import { PROVIDERS, providerOf } from "./lib/tts/index.mjs";
 import { cacheDir, cacheKey, estimate, overspend, readLedger, record } from "./lib/tts/spend.mjs";
-import { ROOT, SAMPLE_RATE, formatSpec, loadSpec, outDir, publicDir, readPcm, requireSlug, videoDir, writeVoice, writeWav } from "./lib/video.mjs";
+import {
+  ROOT,
+  SAMPLE_RATE,
+  formatSpec,
+  loadSpec,
+  outDir,
+  publicDir,
+  readPcm,
+  removeDraftVoice,
+  requireSlug,
+  videoDir,
+  voiceFiles,
+  writeVoice,
+  writeWav,
+} from "./lib/video.mjs";
 
 /** Window start → first sound, and last sound → window end. */
 const LEAD = 0.2;
@@ -328,7 +344,11 @@ const build = async (slug, voiceArg, flags) => {
   const pcm = new Float32Array(Math.max(audioEnd, videoEnd));
   for (const { frame, samples } of placed) for (let j = 0; j < samples.length; j++) pcm[frame + j] += samples[j];
   mkdirSync(publicDir(slug), { recursive: true });
-  const voOut = path.join(publicDir(slug), "vo.wav");
+  const files = voiceFiles(slug, { draft: placeholder });
+  if (placeholder && existsSync(voiceFiles(slug).timing)) {
+    console.warn(`${slug}: a real voice-over exists (videos/${slug}/timing.json) and stays in use; this draft is written beside it`);
+  }
+  const voOut = path.join(ROOT, "public", files.audio);
   writeVoice(voOut, pcm);
 
   // Phrase bounds in timing.json are where the sound starts and stops, so captions and qa follow what is heard.
@@ -337,7 +357,7 @@ const build = async (slug, voiceArg, flags) => {
   ranges.forEach(([first], i) => (words[first].start = Math.max(words[first].start, final[i].onset)));
   const timing = {
     source: placeholder ? `placeholder:${provider.id}/${voice}` : `${provider.id}:${voice}${model ? `/${model}` : ""}`,
-    audio: `videos/${slug}/vo.wav`,
+    audio: files.audio,
     phrases: phrases.map((text, i) => ({ text, start: round2(final[i].onset), end: round2(final[i].offset) })),
     words: words.map((w) => ({
       text: w.text,
@@ -347,12 +367,13 @@ const build = async (slug, voiceArg, flags) => {
       confidence: null,
     })),
   };
-  const timingFile = path.join(videoDir(slug), "timing.json");
+  const timingFile = files.timing;
   writeFileSync(timingFile, `${JSON.stringify(timing, null, 2)}\n`);
+  if (!placeholder) for (const f of removeDraftVoice(slug)) console.log(`draft removed: ${path.relative(ROOT, f)}`);
   if (specChanged) writeFileSync(specFile, `${formatSpec(json)}\n`);
   console.log(`Bu videonun seslendirme harcaması: ${readLedger(slug).spent} karakter (out/${slug}/tts-ledger.json)`);
 
-  if (placeholder) console.log(`\nGeçici ses (${voice}): yalnız zamanlama ve altyazı denemesi; tonlama ölçülmedi, final render bu sesle yapılamaz.`);
+  if (placeholder) console.log(`\nGeçici ses (${voice}): taslak, tonlama ölçülmedi. Render yalnız --draft ile → out/${slug}.draft.mp4, yayına uygun değil.`);
   else {
     const reviewed = parts.map((p, i) => ({ ...p, n: i + 1 })).filter((p) => p.candidates.length > 1 || p.original.flags.length);
     const review = writeReview(slug, {
@@ -459,20 +480,30 @@ if (cmd === "voices") {
     for (const v of voices) console.log(`  ${v.voice_id}  ${v.name.padEnd(22)} [${v.category}] ${Object.values(v.labels ?? {}).join(", ")}`);
   }
 } else if (cmd === "sample") {
+  // Voices as "id" or "id:Name"; --sections picks the passages (default: the first), each read whole by every voice.
   const slug = requireSlug(args.shift());
   const { spec } = loadSpec(slug);
   const provider = providerOf(flags.provider ?? spec.voiceover.tts?.provider ?? "elevenlabs");
-  const section = spec.voiceover.sections[0];
-  const requests = (args.length ? args : [provider.defaults.voice]).filter(Boolean).map((voice) => ({
-    text: spoken(section.phrases.join(" ")),
-    phrases: section.phrases.map(spoken),
-    pauses: section.phrases.map((p) => pauseAfter(p)),
-    seed: seedOf(section.phrases.join(" ")),
-    speed,
-    voice,
-    model: flags.model ?? provider.defaults.model,
-    stress: (section.stress ?? []).map(spoken),
-  }));
+  const only = flags.sections?.split(",");
+  const sections = only ? spec.voiceover.sections.filter((s) => only.includes(s.id)) : [spec.voiceover.sections[0]];
+  if (only && sections.length !== only.length) throw new Error(`--sections: no such section among ${spec.voiceover.sections.map((s) => s.id).join(", ")}`);
+  const voices = (args.length ? args : [provider.defaults.voice]).filter(Boolean).map((v) => {
+    const [id, ...name] = v.split(":");
+    return { id, name: name.join(":") || id };
+  });
+  const requests = voices.flatMap((v) =>
+    sections.map((section) => ({
+      text: spoken(section.phrases.join(" ")),
+      phrases: section.phrases.map(spoken),
+      pauses: section.phrases.map((p) => pauseAfter(p)),
+      seed: seedOf(section.phrases.join(" ")),
+      speed,
+      voice: v.id,
+      model: flags.model ?? provider.defaults.model,
+      stress: (section.stress ?? []).map(spoken),
+      section: section.id,
+    })),
+  );
   const ctx = { slug, provider, budget: spec.voiceover.tts?.budget, overBudget: flags["over-budget"], estimateOnly: flags.estimate };
   await spend(ctx, requests, "Ses örnekleri");
   if (!flags.estimate) {
@@ -480,10 +511,17 @@ if (cmd === "voices") {
     mkdirSync(dir, { recursive: true });
     for (const r of requests) {
       const res = await fetchTake(ctx, r);
-      const file = path.join(dir, `${provider.id}-${r.voice}.${provider.ext}`);
+      const file = path.join(dir, `${provider.id}-${r.voice}-${r.section}.${provider.ext}`);
       writeFileSync(file, res.audio);
       console.log(path.relative(ROOT, file));
     }
+    const page = writeVoiceSamples(slug, {
+      provider: provider.id,
+      model: flags.model ?? provider.defaults.model,
+      sections: sections.map((s) => ({ id: s.id, text: s.phrases.join(" ") })),
+      voices: voices.map((v) => ({ ...v, files: sections.map((s) => `voice-samples/${provider.id}-${v.id}-${s.id}.${provider.ext}`) })),
+    });
+    console.log(`${path.relative(ROOT, page)} — open ${path.relative(ROOT, page)}`);
   }
 } else if (cmd === "build") {
   await build(requireSlug(args[0]), args[1], flags);
@@ -509,7 +547,7 @@ if (cmd === "voices") {
 } else {
   console.error(
     `Usage: node scripts/voiceover.mjs voices [--provider ${Object.keys(PROVIDERS).join("|")}]\n` +
-      "                                | sample <slug> <voice>... [--provider p] [--model id] [--speed 1.0] [--estimate]\n" +
+      "                                | sample <slug> <voice[:Name]>... [--sections a,b] [--provider p] [--model id] [--speed 1.0] [--estimate]\n" +
       "                                | build <slug> [voice] [--provider p] [--model id] [--speed 1.0] [--widen] [--offline] [--estimate] [--over-budget]\n" +
       "                                | pick <slug> <sentence#> <take>\n" +
       "                                | listen <metin.json> [--provider say] [--sections id,id]",
