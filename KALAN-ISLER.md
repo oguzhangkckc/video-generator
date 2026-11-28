@@ -240,6 +240,9 @@ Bitince satır silinir.
   alttan kırpılıyor (kareler `out/ekg/final-taslak/sheet.png`). qa (taslak): 1 hata (33,87 sn kulakçık %26 üst yazı
   altında, sınır %25), 3 uyarı (kenar, finalde siluet yok, Yelda hızı 3,10 kelime/sn). Söylenen "yazı" `say`'e bağlı
   değil; qa bu yüzden yakalamıyor (aşağıda "Bağlam kuralı görsele gönderme yapan kelimeleri de kapsamalı").
+  **Düzeltildi (2026-11-28, Durak 2 onayı bekliyor):** şerit sona kadar ekranda ve "çizgi / yazı / tepe"ye bağlı;
+  finalde aynı çizimden bir `govde-final` katmanı kalbin üstünde eşleşip göğse çekiliyor (kalbin tamamı kart ile şerit
+  arasında, omuz çizgisi görünür); "≈ 0,1 SN BEKLEME" kendi cümlesiyle bitiyor (33,87 sn çakışması). Taslak qa 0 hata.
 - **Veri çizgisi etiket yerleşimi** (`src/kit/scenes/trace/labels.ts`): kılavuzu başka bir etiketten geçen yer
   seçilmez (qa'nın kuralı artık yerleştirmede de).
 - **Etiket ↔ seslendirme kontrolü** (`src/spec/label-speech.ts`, `npm run check` hatası, muafiyet `etiket-sozu`):
