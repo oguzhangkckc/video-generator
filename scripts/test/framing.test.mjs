@@ -238,3 +238,11 @@ test("composition: an element that draws nothing is not seen, and a leader to it
   const { errors } = composition({ samples, step: 0.5, labelAlign: () => "left", phrases: [{ text: "Değişen alan bu halkalardan geçince", start: 0, end: 1 }] });
   assert.ok(errors.some((e) => e.startsWith("bağlam") && e.includes("pos.rings")), errors.join("\n"));
 });
+
+test("composition: a chamber clipped to a filled organ is seen as that part of it", () => {
+  // The scene reports what it draws; a clipped sub-region of a filled region reports its part of the outline.
+  const chamber = { id: "ventricles", kind: "region", important: false, say: ["alt oda"], x1: 300, y1: 900, x2: 800, y2: 1200, drawn: [[[300, 900], [800, 900], [800, 1200]]] };
+  const samples = [0, 0.5, 1].map((t) => sample(t, [scene({ layer: "body", elements: [chamber] })]));
+  const { errors } = composition({ samples, step: 0.5, labelAlign: () => "left", phrases: [{ text: "Emir alt odaların", start: 0, end: 1 }] });
+  assert.deepEqual(errors.filter((e) => e.startsWith("bağlam")), []);
+});

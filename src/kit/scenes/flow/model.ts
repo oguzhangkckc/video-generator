@@ -110,10 +110,13 @@ export const flowElements = (layer: FlowLayer, geo: FlowGeometry, st: FlowState,
     const inside = r.clipTo ? regionBox(r.clipTo) : own;
     const box = { x1: Math.max(own.x1, inside.x1), y1: Math.max(own.y1, inside.y1), x2: Math.min(own.x2, inside.x2), y2: Math.min(own.y2, inside.y2) };
     const hidden = !shown(r.visible);
-    // A region with no fill and no edge is an invisible stand-in: it draws only while swept or highlighted.
+    // A region with no fill and no edge is an invisible stand-in: it draws only while swept or highlighted, or as the
+    // part of a filled region it is clipped to (a chamber of the heart is seen as that part of the heart).
     const outline = geo.regions.get(r.id)!.map(st.toScreen);
-    const draws = r.fill !== "none" || r.edge !== "none" || p > 0 || st.lit(r.id) > 0;
-    const drawn = draws ? [[...outline, outline[0]]] : [];
+    const parent = r.clipTo ? layer.regions.find((x) => x.id === r.clipTo) : undefined;
+    const draws = r.fill !== "none" || r.edge !== "none" || p > 0 || st.lit(r.id) > 0 || (parent !== undefined && parent.fill !== "none");
+    const seen = outline.filter(([x, y]) => x >= inside.x1 && x <= inside.x2 && y >= inside.y1 && y <= inside.y2);
+    const drawn = draws ? [parent ? seen : [...outline, outline[0]]] : [];
     out.push({ id: r.id, kind: "region", ...box, important: !hidden && (st.lit(r.id) > 0 || (p > 0 && p < 1) || said(r.say)), say: r.say, hidden, drawn });
   }
   for (const p of layer.paths) {
