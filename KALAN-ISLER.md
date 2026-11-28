@@ -138,7 +138,9 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
   süreleri, bekleme, turlar, duraklar ve müdahaleler kaydedilir. `round` sayıları `qa.json`'dan okur; kısmi
   (`--from/--to`) ya da eski `qa.json`'u tur saymaz. `qa.json`'a `range`, `render`, `draftVoice` eklendi.
 - Taslak ses (kullanıcı kararı): `say` yalnız otomatik modda ve gerçek TTS yokken; `render --draft` →
-  `out/<slug>.draft.mp4`, yayına uygun değil. `ekg` ve `gps` taslak ses almaz; gerçek ses yoksa f'de durur. qa
+  `out/<slug>.draft.mp4`, yayına uygun değil. `ekg` ve `gps` dahil (kullanıcı 2026-11-28: önceki "taslak ses yok"
+  kuralı, gerçek seste zamanlamanın elle yeniden kurulması gerektiği içindi; `gerçek ses <slug>` artık bunu
+  kendiliğinden yapıyor). qa
   geçici seste taslak dosyayı denetler; hız ve duraklamalar ölçülür, tonlama "taslak ses, ölçülmedi". Adım adım
   akıştan `say` taslağı kaldırıldı (c `listen` kalır).
 - Doğrulama:
@@ -272,8 +274,8 @@ demo-trace temiz.
 
 - **`videos/gps` (tamamlanmış GPS, 60 sn):** metin onaylı (`videos/gps/metin.json`: kanca 1, Final 1). Kanca söylenirken ekranda haritadaki konum
   işareti (mavi nokta) görünür.
-  Sahne planı (skill d) ve render **şimdi değil**: otomatik akış ve temassız kart testinden sonra (otomatik akış
-  2026-11-27'de eklendi; gps taslak ses almaz, gerçek ses yoksa f'de durur). `npm run new --
+  Otomatik modda d)'den taslak sesle (say) Durak 2'ye kadar: otomatik modun ikinci kabul testi (kullanıcı
+  2026-11-28). `npm run new --
   gps "…"` klasörde yalnız `spec.json` yoksa çalışır. Saat etiketi gibi söylenmeyen ekran yazıları etiket
   kontrolüne takılır; metinle eşle.
 - **Fikir: görelilik Short'u**, ayrı ve kendi içinde tamamlanmış: "Uydudaki saatler neden her gün ileri gidiyor?"
@@ -290,7 +292,8 @@ kullanılamaz; kullanıcıya hatırlat.
 - gps-pilot'taki 'yukarı' bağlam uyarısını, yeniden seslendirmeden önce senaryodan düzelt.
 - Sağlayıcı seçilince sesi (sağlayıcı, ses kimliği, model) `videos/sablon/spec.json` `voiceover.tts`'e yaz: otomatik
   mod yeni videolarda gerçek sesi oradan alır. Sonra "Taslak sesli videolar" listesindeki her video için
-  `/aciklayici-video gerçek ses <slug>`. EKG ve gps'in aşağıdaki planı aynen kalır (onlar `say` ile denenmez).
+  `/aciklayici-video gerçek ses <slug>`. EKG ve gps de taslak ses alır ve gerçek sesi aynı yoldan alır (kullanıcı
+  2026-11-28); aşağıdaki plan gps-pilot için geçerli.
 
 0. Sağlayıcı seçimi: ElevenLabs (kredi) ya da Azure Speech (SSML; `.env`'e `AZURE_SPEECH_KEY`,
    `AZURE_SPEECH_REGION` — hesabı kullanıcı açar, ücretsiz kotayı birlikte kontrol ederiz). Önce geçici sesle

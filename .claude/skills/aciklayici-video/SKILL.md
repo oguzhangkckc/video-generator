@@ -163,7 +163,6 @@ Yalnız bunlarda dur ve sor:
 - Bir hata ancak seslendirmede o an adı geçen nesneyi ekrandan kaldırarak ya da kadraj dışına iterek çözülebiliyor.
 - TTS bütçesi aşılacak (`voiceover` çıkış 3, "bütçe aşılıyor").
 - Düzeltme döngüsü `DUR` dedi ya da hata başka bir videonun spec'inde.
-- `ekg` ya da `gps` gerçek ses olmadan f'ye geldi (bu videolar taslak ses almaz).
 - Kullanıcının verdiği kayıt metinle uyuşmuyor (`align` eşleşmesi %80'in altında).
 
 Durma mesajı: neden, seçenekler ve önerin, `run-log.md`'nin o anki özeti. Yanıttan sonra otomatik modda devam et.
@@ -419,8 +418,8 @@ gerekiyorsa zorunlu durma noktasıdır.
    mutlak saniye yazma: sesle ilgili her an (`emits`, `flashes`, efektler dahil) bir cümleye bağlı olsun, gerçek ses
    gelince kendiliğinden kaysın.
    `note "ses: taslak (say), sebep: …"` yaz ve slug'ı KALAN-ISLER'deki "Taslak sesli videolar" listesine ekle (slug,
-   tarih, taslak dosyası, tahmini karakter). **`ekg` ve `gps` hiçbir zaman taslak ses almaz:** onlarda gerçek TTS
-   yoksa zorunlu durma noktası; kareler ve `qa-layout` tablosuyla dur, render alma.
+   tarih, taslak dosyası, tahmini karakter). Bu her video için geçerli (`ekg` ve `gps` dahil): gerçek ses gelince
+   `gerçek ses <slug>` zamanlamayı kendiliğinden yeniden kurar.
 3. Sonra aşağıdaki 2–7'yi durmadan yürüt; 6 `qa` kapısıdır.
 
 Seslendirme dosyası verildiğinde:
