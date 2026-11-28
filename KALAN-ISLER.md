@@ -160,6 +160,8 @@ Kullanıcı üç taslağı kare kare inceledi (PR #5 merge edildi). Bulunanlar o
   (merkeze ortalama uzaklık, zoom'dan bağımsız) bildirilen küçülmenin en az %60'ı kadar düşmeli; ilk mekanik eylem
   kontrolü. EKG: alt-odalar (kalbin alt hattı, karıncıklar, karıncık yolları), AV oluğunun altı, "önce emir, sonra
   vuruş"un "sonra vuruş"una (ALT tepesi çizildikten sonra), %20; çizilen %20.
+- **Durak 2 (2026-11-28):** EKG onaylandı; sıkışma yalnız "sonra vuruş"ta kalır, her atımda tekrarlanmaz (kullanıcı
+  kararı). Üç taslak (temassız kart, gps, ekg) gerçek sesi "Taslak sesli videolar" listesinden alacak.
 - **Önceden: DURDU, EKG madde 4 (kit desteklemiyor):** "Alt odalar ancak bundan sonra kasılıyor: önce emir, sonra vuruş"
   denirken alt odalar görünür biçimde sıkışmalı. flow kitinde bölgeler sabit çokgen; biçim ya da ölçek zamanla
   değişmiyor (`visible`, `sweep`, `highlight` var, hareket yok). Gereken: flow katmanına bir **sıkışma** (`squeeze`):
