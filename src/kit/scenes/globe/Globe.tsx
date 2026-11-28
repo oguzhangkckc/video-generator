@@ -24,6 +24,7 @@ import { COLOR, GLOW_STOPS } from "../../theme";
 import { envelope, ramp, sec, windowAlpha } from "../../time";
 import { CAMERA, type GlobeRig } from "./rig";
 import { useRig } from "./rig-context";
+import { heroDrawn } from "./hero.ts";
 
 type Globe = LayerOf<"globe">;
 const Z_AXIS = new THREE.Vector3(0, 0, 1);
@@ -256,7 +257,7 @@ const HeroSatellite: React.FC<{ t: number; glow: THREE.Texture; hero: NonNullabl
   hero,
   rig,
 }) => {
-  if (t > hero.visible.out[1]) return null;
+  if (!heroDrawn(hero.visible, t)) return null;
   const position = rig.heroPos(t);
   const up = position.clone().normalize();
   const forward = rig.heroVel(t);
@@ -310,11 +311,14 @@ const Flash: React.FC<{ t: number; glow: THREE.Texture; at: number; rig: GlobeRi
 
 const SHOT_KIND = { pullback: "wide", follow: "medium", descend: "close" } as const;
 
-/** The hero satellite (while shown) and the location (important on the near side), via `project` (raw or framed). */
+/**
+ * The hero satellite (whenever its model is drawn) and the location (important on the near side), via `project` (raw
+ * or framed), each with what is drawn of it: nothing behind the planet.
+ */
 export const globeElements = (layer: Globe, rig: GlobeRig, t: number, project: GlobeRig["project"]): SceneElement[] => {
   const elements: SceneElement[] = [];
   const shot = currentShot(layer.camera.map((c) => ({ ...c, at: c.from })), t);
-  if (layer.hero && t >= layer.hero.visible.in[0] && t <= layer.hero.visible.out[1]) {
+  if (layer.hero && heroDrawn(layer.hero.visible, t)) {
     const centre = rig.heroPos(t);
     const up = centre.clone().normalize();
     const forward = rig.heroVel(t);
@@ -329,13 +333,21 @@ export const globeElements = (layer: Globe, rig: GlobeRig, t: number, project: G
     const box = pointsBox([...ends, [p.x - 30, p.y - 30], [p.x + 30, p.y + 30]])!;
     // Coming down to the place, the satellite matters until its emission flash is over.
     const leftBehind = shot.type === "descend" && t > (layer.flash?.at ?? shot.from) + FLASH_END;
-    elements.push({ id: "hero", kind: "satellite", ...box, important: !p.behind && !leftBehind, hidden: p.behind, say: layer.hero.say });
+    const drawn = p.behind ? [] : [[...ends, ends[0]]];
+    elements.push({ id: "hero", kind: "satellite", ...box, important: !p.behind && !leftBehind, hidden: p.behind, say: layer.hero.say, drawn });
   }
   const camera = rig.cameraAt(t);
   const facing = rig.location.dot(camera.position.clone().sub(rig.location)) > 0;
   const where = project(rig.location, t);
   // The place matters while the camera leaves it or comes down to it; following the satellite, the satellite does.
-  elements.push({ id: "location", kind: "marker", ...pointBox([where.x, where.y], 30), important: facing && shot.type !== "follow", say: layer.location.say });
+  elements.push({
+    id: "location",
+    kind: "marker",
+    ...pointBox([where.x, where.y], 30),
+    important: facing && shot.type !== "follow",
+    say: layer.location.say,
+    drawn: facing ? [[[where.x, where.y]]] : [],
+  });
   return elements;
 };
 
