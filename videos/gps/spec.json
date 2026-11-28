@@ -4401,21 +4401,6 @@
       "color": "danger"
     },
     {
-      "text": "≈ 300 M",
-      "at": {
-        "cue": "haritada",
-        "offset": 0.45
-      },
-      "until": {
-        "cue": "Dördüncü",
-        "offset": -0.4
-      },
-      "top": 830,
-      "size": 44,
-      "align": "center",
-      "sound": "tick"
-    },
-    {
       "text": "SAAT DÜZELİYOR",
       "at": {
         "cue": "saatini",
