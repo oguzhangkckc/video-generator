@@ -69,7 +69,8 @@
         "window": [56.74, 62.69],
         "phrases": ["Artık okumaya başladın.", "EKG, yani elektro, kardiyo, gram:", "kalbin elektrikle yazdığı yazı."]
       }
-    ]
+    ],
+    "tts": { "provider": "say", "voice": "Yelda" }
   },
   "marks": {
     "toBody": [{ "cue": "Bu çizgi ne anlatıyor", "offset": 1.2 }, { "cue": "Bu çizgi ne anlatıyor", "offset": 2.2 }],
