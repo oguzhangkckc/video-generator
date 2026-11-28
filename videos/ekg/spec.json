@@ -500,6 +500,16 @@
         { "target": "ventricles", "range": [{ "cue": "son tepe hazırlık" }, { "cue": "Artık okumaya", "offset": -0.4 }] },
         { "target": "heart", "range": [{ "cue": "Artık okumaya" }, "@reveal-1.6"] }
       ],
+      "groups": { "alt-odalar": ["heart", "ventricles", "ivs", "rbb", "lbb", "lbbAnt", "pk1", "pk2", "pk3", "pk4", "pk5"] },
+      "squeeze": [
+        {
+          "group": "alt-odalar",
+          "side": { "below": -40, "soft": 220 },
+          "range": [{ "cue": "önce emir", "offset": 0.6 }, { "cue": "önce emir", "offset": 1.6 }],
+          "center": [30, 130],
+          "scale": 0.8
+        }
+      ],
       "camera": [
         { "at": "@toBody.end-0.3", "focus": "e2", "zoom": 4, "subject": ["skin"] },
         { "at": "@toBody.end+0.1", "focus": "e2", "zoom": 4, "subject": ["skin"] },
