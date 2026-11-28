@@ -182,7 +182,12 @@ gösterilen; patlatmadaki yer değişimi dahil) `adjustFor`'a verir; sonuç glob
   `out/temassiz-kart.draft.mp4`). Kayıt `out/temassiz-kart/run-log.md`. Üç durma: c'de editör (kullanıcı "sorun
   çıkarsa dur" dedi), e'de altyazı sığması (onaylı metin değişti; sistem açığı `a325788` ile kapandı). Kapılar:
   `check` 2 tur, `qa-layout` 3 + 1 tur, `qa` 1 tur; son qa 0 hata, 1 uyarı (Yelda hızı 3,06 kelime/sn). Spec
-  `out/`'taki değil, oturumdaki bir üreteçle değerlerden yazıldı. gps gerçek ses beklediği için f'de durur.
+  `out/`'taki değil, oturumdaki bir üreteçle değerlerden yazıldı.
+- **İkinci kabul testi: `videos/gps` (2026-11-28, Durak 2'de onaylandı; kesik çizgiye ≈ 300 M etiketi eklendi):** 60 sn, taslak ses `out/gps.draft.mp4`.
+  Kayıt `out/gps/run-log.md`. d'den başladı. Tek durma d'de oldu: onaylı metin yeni altyazı denetimine takıldı,
+  kullanıcı "karşılaştır → kıyasla"yı seçti. Kapılar: `check` 1 tur, `qa-layout` 4 + 2 tur, `qa` 2 tur. Son qa
+  0 hata, 3 uyarı (kenar ×2, "yukarı" bağlamı). 22 düzeltme; biri geri alındı (yukarıdaki globe notu). Spec,
+  oturumdaki bir üreteçle yazıldı.
 
 ## Taslak sesli videolar
 
@@ -198,6 +203,8 @@ Bitince satır silinir.
 | Slug | Tarih | Taslak dosyası | Tahmini karakter |
 |---|---|---|---|
 | temassiz-kart | 2026-11-28 | `out/temassiz-kart.draft.mp4` | ≈ 1.160 (önerilen bütçe 1.700) |
+| gps | 2026-11-28 | `out/gps.draft.mp4` | ≈ 850 (önerilen bütçe 1.300) |
+| ekg | 2026-11-28 | `out/ekg.draft.mp4` | ≈ 895 (önerilen bütçe 1.350) |
 
 ## Metin kalitesi (2026-11-27, `feat/metin-kalitesi`)
 
@@ -228,6 +235,11 @@ Bitince satır silinir.
 - **EKG final yerleşimi, seslendirmeden sonra yeniden kurulacak:** finalde "kalbin elektrikle yazdığı yazı" denirken
   veri şeridi kayboluyor ve kalbin tamamı görünmüyor (qa'yı temizlemek için yapılan değişiklik). Seslendirmeden sonra
   final, söylenen nesneler (şerit ve kalp) görünür kalacak şekilde yeniden kurulur.
+  **Taslak seste kontrol edildi (2026-11-28, `out/ekg.draft.mp4`):** sorun sürüyor. "kalbin elektrikle yazdığı yazı"
+  60,64 sn'de başlıyor; şerit tam o anda kavram kartıyla birlikte sönüyor, kalp kartın altına inerken soldan ve
+  alttan kırpılıyor (kareler `out/ekg/final-taslak/sheet.png`). qa (taslak): 1 hata (33,87 sn kulakçık %26 üst yazı
+  altında, sınır %25), 3 uyarı (kenar, finalde siluet yok, Yelda hızı 3,10 kelime/sn). Söylenen "yazı" `say`'e bağlı
+  değil; qa bu yüzden yakalamıyor (aşağıda "Bağlam kuralı görsele gönderme yapan kelimeleri de kapsamalı").
 - **Veri çizgisi etiket yerleşimi** (`src/kit/scenes/trace/labels.ts`): kılavuzu başka bir etiketten geçen yer
   seçilmez (qa'nın kuralı artık yerleştirmede de).
 - **Etiket ↔ seslendirme kontrolü** (`src/spec/label-speech.ts`, `npm run check` hatası, muafiyet `etiket-sozu`):
@@ -254,6 +266,16 @@ demo-trace temiz.
 
 ## Sistem notları (henüz uygulanmadı)
 
+- **Genel kural (kullanıcı 2026-11-28): qa, render'ın çizdiğini ölçmeli.** qa ile render'ın bir şeyi ayrı ayrı
+  hesapladığı her durum bir açıktır; ölçüm, çizimin kullandığı aynı değerden (aynı fonksiyon, aynı zarf, aynı
+  aralık) gelmeli. İlk örnek aşağıdaki globe açığı.
+- **globe: model uydu `hero.visible.in`'den önce de çiziliyor (gps kabul testi, 2026-11-28).** `HeroSatellite`
+  zarfı yalnız parıltıya uyguluyor; gövde ve paneller pencere boyunca görünüyor. qa ise uyduyu `in[0]`'dan önce
+  ölçmüyor. Sonuç: `in`'i geciktirmek uyduyu qa'dan gizler ama ekrandan kaldırmaz (gps'te bu yol denendi ve geri
+  alındı; çözüm yörünge hızıydı). Düzeltme: gövdeyi de zarfla soldur (ya da `in[0]`'dan önce çizme) ve qa'yı çizimle
+  aynı aralıkta ölç; sonra gps-pilot regresyonu. **Plan (kullanıcı 2026-11-28):** PR #5 merge edildikten sonra ayrı
+  bir dalda düzelt ve regresyonu çalıştır.
+
 - **Bağlam kuralı görsele gönderme yapan kelimeleri de kapsamalı:** "Seslendirmede adı geçen nesne o anda karede
   görünür" kuralı (STYLE "Kompozisyon → Bağlam", `say` takma adları) "yazı", "çizgi" gibi doğrudan ekrandaki bir
   görsele gönderme yapan kelimeleri de kapsamalı (ör. veri şeridinin `say`'i: "çizgi", "yazı", "tepe"). Ayrıca qa'yı
@@ -274,10 +296,8 @@ demo-trace temiz.
 
 - **`videos/gps` (tamamlanmış GPS, 60 sn):** metin onaylı (`videos/gps/metin.json`: kanca 1, Final 1). Kanca söylenirken ekranda haritadaki konum
   işareti (mavi nokta) görünür.
-  Otomatik modda d)'den taslak sesle (say) Durak 2'ye kadar: otomatik modun ikinci kabul testi (kullanıcı
-  2026-11-28). `npm run new --
-  gps "…"` klasörde yalnız `spec.json` yoksa çalışır. Saat etiketi gibi söylenmeyen ekran yazıları etiket
-  kontrolüne takılır; metinle eşle.
+  Otomatik modda d)'den taslak sesle (say) Durak 2'ye kadar üretildi: otomatik modun ikinci kabul testi (kullanıcı
+  2026-11-28; yukarıda "İkinci kabul testi"). Gerçek ses "Taslak sesli videolar" listesinden gelir.
 - **Fikir: görelilik Short'u**, ayrı ve kendi içinde tamamlanmış: "Uydudaki saatler neden her gün ileri gidiyor?"
   (net ≈ 38 µs/gün: hız −7, kütleçekim +45; düzeltme fırlatmadan önce saat frekansına işlenir. Kaynaklar: Penn State
   GEOG 862 "The Satellite Clock", arXiv gr-qc/0507121).
