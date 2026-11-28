@@ -154,7 +154,13 @@ Kullanıcı üç taslağı kare kare inceledi (PR #5 merge edildi). Bulunanlar o
   - gps: "≈ 300 M" kaldırıldı (300 METRE ile aynı anda), YAKLAŞIK notu kaldı.
   - EKG: özetteki her parçada kalpte karşılığı yanıyor (üst odalar, kapı, alt odalar, sonda kalp); "ÜST" ile "ALT"
     ayrı (sistemle).
-- **DURDU, EKG madde 4 (kit desteklemiyor):** "Alt odalar ancak bundan sonra kasılıyor: önce emir, sonra vuruş"
+- **Yapıldı (kullanıcı onayıyla): flow `squeeze`.** `groups` adlı öğe kümeleri; `squeeze: [{ group, side?, range,
+  center, scale }]` grubu (yarı düzlem isteğe bağlı, yumuşak geçişli) merkeze doğru sıkıştırıp gevşetiyor; çizim,
+  kadraj ve qa aynı büzülmüş geometriyi kullanıyor. qa "Eylem" satırı: sıkışma aralığında grubun çizilen boyutu
+  (merkeze ortalama uzaklık, zoom'dan bağımsız) bildirilen küçülmenin en az %60'ı kadar düşmeli; ilk mekanik eylem
+  kontrolü. EKG: alt-odalar (kalbin alt hattı, karıncıklar, karıncık yolları), AV oluğunun altı, "önce emir, sonra
+  vuruş"un "sonra vuruş"una (ALT tepesi çizildikten sonra), %20; çizilen %20.
+- **Önceden: DURDU, EKG madde 4 (kit desteklemiyor):** "Alt odalar ancak bundan sonra kasılıyor: önce emir, sonra vuruş"
   denirken alt odalar görünür biçimde sıkışmalı. flow kitinde bölgeler sabit çokgen; biçim ya da ölçek zamanla
   değişmiyor (`visible`, `sweep`, `highlight` var, hareket yok). Gereken: flow katmanına bir **sıkışma** (`squeeze`):
   `[{ range, center: [x, y], scale: 0.88, side: { below: y } }]` aralık boyunca (girip çıkan zarfla) bir yarı
