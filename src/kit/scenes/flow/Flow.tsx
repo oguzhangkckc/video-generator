@@ -9,7 +9,7 @@ import { envelope, ramp, useTime, windowAlpha } from "../../time";
 import { strokeAt, worldTransform } from "../camera2d/camera";
 import { GlowDot, MATCH_DOT_R } from "../camera2d/GlowDot";
 import { toPath } from "../camera2d/paths";
-import { flowElements, flowGeometry, flowState, flowSubject, type FlowLayer } from "./model";
+import { flowElements, flowGeometry, flowState, flowSubject, geometryAt, squeezeSizes, type FlowLayer } from "./model";
 
 const ns = { vectorEffect: "non-scaling-stroke" as const, fill: "none", strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 const pathColor = (c: ColorToken | "surface" | "faint") => (c === "surface" || c === "faint" ? EDGE[c] : tokenColor(c));
@@ -19,12 +19,16 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
   const t = useTime();
   const ground = useGround();
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
-  const geo = useMemo(() => flowGeometry(layer), [layer]);
+  const base = useMemo(() => flowGeometry(layer), [layer]);
+  const geo = geometryAt(layer, base, t);
   const framing = useFraming();
   const opacity = Math.max(...layer.visible.map((w) => windowAlpha(t, w)));
   if (opacity <= 0) return null;
 
-  const elementsAt = (u: number) => flowElements(layer, geo, flowState(layer, geo, curve, u), u, framing.spokenAt(u));
+  const elementsAt = (u: number) => {
+    const g = geometryAt(layer, base, u);
+    return flowElements(layer, g, flowState(layer, g, curve, u), u, framing.spokenAt(u));
+  };
   const adjust = adjustFor(framing, name, elementsAt, [CX, layer.anchorY], t);
   const st = flowState(layer, geo, curve, t, adjust);
   const { place, progressAt, view, anchor, toScreen, lit, signals, arrivals } = st;
@@ -40,6 +44,7 @@ export const Flow: React.FC<{ layer: FlowLayer; curve: (name: string) => CurveFn
       subject: flowSubject(layer, geo, st, t, elements),
       elements,
       adjust,
+      ...(layer.squeeze.length ? { actions: squeezeSizes(layer, base, geo, st) } : {}),
     });
   }
   const sw = (base: number) => strokeAt(base, view.zoom);

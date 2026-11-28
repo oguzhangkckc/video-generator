@@ -24,3 +24,20 @@ test("a part's drawn amplitude: a gap, a dip, and half-dropped single cycles", (
   const ragged = carrier((x) => (x >= 300 && x < 360 && Math.floor(x / 15) % 2 === 0 ? 0.05 : 1));
   assert.ok(lowest(ragged, 290, 370) > 0.9);
 });
+
+import { sideWeight, squeezeLevel, warpPoint } from "../../src/kit/scenes/flow/squeeze.ts";
+
+test("a squeeze contracts its group toward the centre and relaxes, only below its line", () => {
+  assert.equal(squeezeLevel([1, 2], 0.9), 0);
+  assert.equal(squeezeLevel([1, 2], 1.4), 1);
+  assert.ok(squeezeLevel([1, 2], 1.8) > 0 && squeezeLevel([1, 2], 1.8) < 1);
+  const squeezes = [{ group: "alt-odalar", side: { below: 0, soft: 50 }, range: [1, 2], center: [0, 100], scale: 0.8 }];
+  const groups = { "alt-odalar": ["ventricles"] };
+  // Below the line, at the peak: 20 % closer to the centre.
+  assert.deepEqual(warpPoint(squeezes, groups, "ventricles", [0, 300], 1.4).map(Math.round), [0, 260]);
+  // Above the line, or not in the group, or outside the range: unmoved.
+  assert.deepEqual(warpPoint(squeezes, groups, "ventricles", [0, -100], 1.4), [0, -100]);
+  assert.deepEqual(warpPoint(squeezes, groups, "atria", [0, 300], 1.4), [0, 300]);
+  assert.deepEqual(warpPoint(squeezes, groups, "ventricles", [0, 300], 2.5), [0, 300]);
+  assert.ok(sideWeight({ below: 0, soft: 50 }, [0, 25]) > 0 && sideWeight({ below: 0, soft: 50 }, [0, 25]) < 1);
+});

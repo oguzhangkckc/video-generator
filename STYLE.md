@@ -288,7 +288,9 @@ Still kareler incelenirken (skill adım e) her madde tek tek kontrol edilir:
 - [ ] Veri etiketleri değmiyor, yan yana tek ifade gibi okunmuyor, çizgiyi kesmiyor; aralıklar köşeli parantezle
       altta, noktalar kılavuzla üstte; kılavuz gösterdiği şeyin çizilen kenarında bitiyor.
 - [ ] Anlatılan her eylem (kasılma, kayma, kararma, yayılma) görüntüde bir hareketle karşılanıyor mu? Bir parça
-      genlik değişikliği anlatıyorsa çizgi gerçekten iniyor; fark yalnız renkle verilmiyor.
+      genlik değişikliği anlatıyorsa çizgi gerçekten iniyor; fark yalnız renkle verilmiyor. Kasılma flow `squeeze`
+      ile çizilir ve qa çizilen küçülmeyi ölçer ("Eylem" satırı); söz ile hareket aynı anda, önce sebep (elektrik)
+      sonra sonuç (hareket).
 - [ ] Kancadaki soru finalde açıkça cevaplanıyor; video soruyla bitmiyor.
 - [ ] En fazla 2 bölüm "Peki…?" ile açılıyor, diğerleri iddia, rakam ya da "ama" ile; izleyiciye "sen" deniyor.
 - [ ] Anlatma cümlesi var ve editörün çıkardığıyla aynı; editör listesindeki her bulgu düzeltildi ya da gerekçeli.

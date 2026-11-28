@@ -316,6 +316,7 @@ const report = {
   errors,
   warnings,
   said: laid?.stats?.said ?? null,
+  actions: laid?.stats?.actions ?? null,
   phraseTiming,
   audio: audioResult,
 };
@@ -332,6 +333,8 @@ const rows = [
     ["Bağlam (söylenen yer ekranda)", "bağlam"],
     ["Veri etiketleri", "veri etiketi"],
     ["Kılavuz (etiketten öğeye)", "kılavuz"],
+    ["Şerit genliği (parça anlamı)", "şerit"],
+    ["Eylem (anlatılan hareket çiziliyor)", "eylem"],
     ["Kapak (ilk 3 sn, kare kare)", "kapak"],
     ["Altyazı (sabit boyut)", "altyazı"],
     ["Bağlam planı (özne bütün ≥ 1 sn)", "siluet"],
@@ -365,6 +368,9 @@ for (const [name, result] of rows) console.log(`  ${name.padEnd(36)} ${result}`)
 if (laid?.stats) {
   const { subjectMin, emptyMax } = laid.stats;
   console.log(`  ${"En küçük özne / en boş kare".padEnd(36)} %${Math.round(subjectMin * 100)} / ${emptyMax == null ? "—" : `%${Math.round(emptyMax * 100)}`}`);
+  for (const [key, drawn, want] of laid?.stats?.actions ?? []) {
+    console.log(`  ${"Sıkışma (çizilen / bildirilen)".padEnd(36)} ${key}: %${Math.round(drawn * 100)} / %${Math.round(want * 100)}`);
+  }
 }
 if (audioResult?.rates?.spoken) {
   console.log(`  ${"Kelime/sn (konuşulan süre)".padEnd(36)} ${audioResult.rates.spoken.toFixed(2)}`);

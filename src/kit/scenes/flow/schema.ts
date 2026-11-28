@@ -123,6 +123,29 @@ export const flowSchema = <T extends z.ZodType, R extends z.ZodType, N extends z
         .default([]),
       /** Pulsing outline around a node, path or region while a label talks about it. */
       highlight: z.array(z.object({ target: id, range: k.range }).strict()).default([]),
+      /** Named sets of element ids (regions, paths, nodes) an action can move together, e.g. "alt-odalar". */
+      groups: z.record(z.string(), z.array(id).min(1)).default({}),
+      /**
+       * The group contracts toward `center` to `scale` of its size over `range` and relaxes again (a beat). `side`
+       * limits it to the part of the group on one side of a horizontal line (soft over `soft` px); a squeeze names a
+       * group, a side or both. qa checks the group is drawn smaller.
+       */
+      squeeze: z
+        .array(
+          z
+            .object({
+              group: z.string().optional(),
+              side: z
+                .object({ below: z.number().optional(), above: z.number().optional(), soft: z.number().positive().default(60) })
+                .strict()
+                .optional(),
+              range: k.range,
+              center: place,
+              scale: z.number().gt(0).lt(1),
+            })
+            .strict(),
+        )
+        .default([]),
       camera: z.array(shotSchema(k, place)).min(1),
       drift: driftSchema.prefault({}),
       /**

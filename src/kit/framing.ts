@@ -170,6 +170,8 @@ export type SceneReport = {
   /** The drawn data line, sampled in screen px. */
   line?: Vec[];
   adjust: Adjust;
+  /** Actions the spec asks the scene to perform, with what is drawn now (a squeeze: the group's size, world px). */
+  actions?: { kind: "squeeze"; id: string; range: [number, number]; scale: number; size: number | null }[];
 };
 
 export type Framing = {

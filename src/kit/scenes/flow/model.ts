@@ -8,6 +8,7 @@ import type { Box } from "../../overlays/geometry";
 import { EASING, envelope, ramp, windowAlpha } from "../../time";
 import { project, viewAt, type View, type Vec } from "../camera2d/camera";
 import { polylineLength, slice, spline } from "../camera2d/paths";
+import { sideWeight, squeezeLevel, warpPoint, type SqueezeSpec } from "./squeeze.ts";
 
 export type FlowLayer = LayerOf<"flow">;
 type Progress = FlowLayer["signals"][number]["progress"];
@@ -40,6 +41,52 @@ export const flowGeometry = (layer: FlowLayer) => {
   return { regions, paths, nodes };
 };
 export type FlowGeometry = ReturnType<typeof flowGeometry>;
+
+const squeezesOf = (layer: FlowLayer, geo: FlowGeometry): SqueezeSpec[] =>
+  layer.squeeze.map((s) => ({ ...s, center: Array.isArray(s.center) ? s.center : geo.nodes.get(s.center)!.at }));
+
+/** The geometry at t: what a squeeze moves is drawn, framed and measured where it is now. */
+export const geometryAt = (layer: FlowLayer, geo: FlowGeometry, t: number): FlowGeometry => {
+  const squeezes = squeezesOf(layer, geo).filter((s) => squeezeLevel(s.range, t) > 0);
+  if (!squeezes.length) return geo;
+  const warp = (id: string, p: Vec) => warpPoint(squeezes, layer.groups, id, p, t);
+  return {
+    regions: new Map([...geo.regions].map(([id, points]) => [id, points.map((p) => warp(id, p))])),
+    paths: new Map(
+      [...geo.paths].map(([id, path]) => {
+        const points = path.points.map((p) => warp(id, p));
+        return [id, { points, length: polylineLength(points) }];
+      }),
+    ),
+    nodes: new Map([...geo.nodes].map(([id, n]) => [id, { ...n, at: warp(id, n.at) }])),
+  };
+};
+
+/**
+ * Each squeeze's group as drawn now: the mean distance of its fully moved points (regions, paths, nodes) from the
+ * centre, in world px (camera zoom divided out), so qa can see the group really get smaller.
+ */
+export const squeezeSizes = (layer: FlowLayer, base: FlowGeometry, now: FlowGeometry, st: FlowState) =>
+  squeezesOf(layer, base).map((s, i) => {
+    const members = (id: string) => !s.group || (layer.groups[s.group] ?? []).includes(id);
+    const pairs: [Vec, Vec][] = [];
+    const take = (id: string, from: Vec[], to: Vec[]) => {
+      if (members(id)) from.forEach((p, k) => sideWeight(s.side, p) >= 0.9 && pairs.push([p, to[k]]));
+    };
+    for (const [id, points] of base.regions) take(id, points, now.regions.get(id)!);
+    for (const [id, path] of base.paths) take(id, path.points, now.paths.get(id)!.points);
+    for (const [id, n] of base.nodes) take(id, [n.at], [now.nodes.get(id)!.at]);
+    const c = st.toScreen(s.center);
+    const size = pairs.length
+      ? pairs.reduce((sum, [, p]) => {
+          const q = st.toScreen(p);
+          return sum + Math.hypot(q[0] - c[0], q[1] - c[1]);
+        }, 0) /
+        pairs.length /
+        st.view.zoom
+      : null;
+    return { kind: "squeeze" as const, id: `${s.group ?? "yarı-düzlem"}#${i}`, range: s.range, scale: s.scale, size };
+  });
 
 /** Camera, signals and lights at t; `adjust` is the framing move (p' = anchor + s·(p − anchor) + d). */
 export const flowState = (layer: FlowLayer, geo: FlowGeometry, curve: (name: string) => CurveFn, t: number, adjust: Adjust = IDENTITY) => {

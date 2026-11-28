@@ -24,6 +24,8 @@ export const LIMITS = {
   passHold: 1,
   /** Around a transition, no frame may be emptier than this. */
   transitionEmpty: 0.6,
+  /** A squeeze draws at least this share of the shrink it declares. */
+  squeeze: 0.6,
   /** Two data line labels side by side on one row stand at least this many label heights apart, or read as one. */
   readGap: 1,
   /** A data line part's drawn swing may exceed the drop it means by this share of the usual swing. */
@@ -477,6 +479,33 @@ export const composition = ({ samples, step, labelAlign, labelPointTo = () => un
     }
     if (who && longest < LIMITS.wholeHold) {
       warnings.push(`siluet: "${id}" bölümü (${fmt(from)}–${fmt(to)}): ${who} öznesi ${longest ? `en fazla ${longest.toFixed(2)} sn` : "hiç"} tamamen kadrajda (en az ${LIMITS.wholeHold} sn tanınabilir geniş plan)`);
+    }
+  }
+  // Actions the narration describes, measured on what is drawn: a squeeze must make its group visibly smaller.
+  const actions = new Map();
+  for (const s of samples) {
+    for (const layer of s.scene.layers) {
+      for (const a of layer.actions ?? []) {
+        const key = `${layer.layer} "${a.id.replace(/#\d+$/, "")}"`;
+        const entry = actions.get(key) ?? { ...a, seen: [] };
+        if (a.size != null) entry.seen.push({ t: s.t, size: a.size, shown: layer.opacity >= 0.5 });
+        actions.set(key, entry);
+      }
+    }
+  }
+  for (const [key, a] of actions) {
+    const [from, to] = a.range;
+    const relaxed = a.seen.filter((x) => x.t <= from || x.t >= to).sort((x, y) => Math.abs(x.t - from) - Math.abs(y.t - from))[0];
+    const during = a.seen.filter((x) => x.t > from && x.t < to && x.shown);
+    if (!relaxed || !during.length) {
+      errors.push(`eylem: ${key} sıkışması ${fmt(from)}–${fmt(to)} ölçülemedi (aralıkta görünen örnek yok)`);
+      continue;
+    }
+    const shrink = 1 - Math.min(...during.map((x) => x.size)) / relaxed.size;
+    const want = 1 - a.scale;
+    stats.actions = [...(stats.actions ?? []), [key, Math.round(shrink * 100) / 100, Math.round(want * 100) / 100]];
+    if (shrink < LIMITS.squeeze * want) {
+      errors.push(`eylem: ${key} sıkışması çizilmiyor: ${fmt(from)}–${fmt(to)} en çok %${Math.round(shrink * 100)} küçülüyor (bildirilen %${Math.round(want * 100)})`);
     }
   }
   return { errors, warnings, stats };
